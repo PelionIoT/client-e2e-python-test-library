@@ -1,0 +1,6 @@
+mbed-ls
+pytest
+pytest-html
+pyserial
+requests
+ws4py
