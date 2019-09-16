@@ -1,6 +1,16 @@
 """
-Pelion e2e python test library
+Copyright 2017 ARM Limited
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
+
 from setuptools import setup
 
 PACKAGE_NAME = "pelion_test_lib"
@@ -12,8 +22,6 @@ PACKAGE_LIST = ['pelion_test_lib',
                 'pelion_test_lib.helpers',
                 'pelion_test_lib.tools']
 
-# Read packet requirements from requirements.txt to have those only in one place. This has some downsides but as long
-# as we use this only internally and in the simple way it does not matter.
 with open('requirements.txt') as f:
     required = f.read().splitlines()
 
