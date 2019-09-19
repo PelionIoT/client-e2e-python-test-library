@@ -11,7 +11,7 @@ Python 3.5 or later.
 
 ```bash
 $ git clone https://github.com/ArmMbed/pelion-e2e-python-test-library.git
-$ python setup.py bdist_wheel
+$ python3 setup.py bdist_wheel
 $ cd dist/
 $ pip install -I pelion_test_lib*.whl
 ```
@@ -19,7 +19,9 @@ $ pip install -I pelion_test_lib*.whl
 ## Basic usage
 
 - Build the [Device Management Client example application](https://github.com/ARMmbed/mbed-cloud-client-example) for your board and flash it.
-- Set your account's [API key](https://www.pelion.com/docs/device-management/current/integrate-web-app/api-keys.html): `export PELION_CLOUD_API_KEY=[api_key_here]`
+- Set your account's [API key](https://www.pelion.com/docs/device-management/current/integrate-web-app/api-keys.html) using following command-line command:
+    - Linux: `export PELION_CLOUD_API_KEY=[api_key_here]`
+    - Windows: `set PELION_CLOUD_API_KEY=[api_key_here]`
 - Tests use [Mbed LS](https://github.com/ARMmbed/mbed-os-tools/tree/master/packages/mbed-ls) to select the board from the serial port.
   - If you have only one board connected to the serial port, you don't need to select the device for the tests.
   - If there are multiple boards connected to the serial port, run `mbedls` to check the target board's ID, and use it in the test run's argument `--target_id=[id]`.
@@ -53,6 +55,7 @@ pytest dev-client-tests.py -v -log_cli=true --log-cli-level=INFO --html=results.
 ### Results output
 
 Use the startup arguments to adjust the generated output:
+- `-log-cli=true` enables the output logging directly into the console
 - `--log-cli-level= DEBUG` adds more details
 - `--html=results.html` generates an HTML report
 - `--junitxml=junit.xml` provides output for CI systems, for example Jenkins
