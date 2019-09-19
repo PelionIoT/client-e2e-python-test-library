@@ -40,8 +40,7 @@ To run a test set for Device Management Client, go to `/tests` folder and use th
 ```bash
 pytest dev-client-tests.py -v -log_cli=true --log-cli-level=INFO --html=results.html
 ```
-Once the test run starts, reset the board to trigger the bootstrap.
-<!-- You don't reset the board while the test is running, do you? I would guess you reset it after completing the test. -->
+When the test run starts, reset the board to trigger the bootstrap.
 
 ### Running a single test
 
@@ -59,7 +58,6 @@ Use the startup arguments to adjust the generated output:
 - `--junitxml=junit.xml` provides output for CI systems, for example Jenkins
 
 The library also writes a separate `client.log` file from the Device Management Client output.
-<!-- What does this log contain?-->
 
 ### Customized test runs
 
