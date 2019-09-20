@@ -5,7 +5,8 @@ The library is designed to be used with the [pytest test framework](https://docs
 
 ## Prerequisites
 
-Python 3.5 or later.
+- Python 3.5 or later.
+- [Mbed LS](https://github.com/ARMmbed/mbed-os-tools/tree/master/packages/mbed-ls)
 
 ## Installation
 
@@ -18,7 +19,7 @@ $ pip install -I pelion_test_lib*.whl
 
 ## Basic usage
 
-- Build the [Device Management Client example application](https://github.com/ARMmbed/mbed-cloud-client-example) for your board and flash it.
+- Build the [Device Management Client example application](https://www.pelion.com/docs/device-management/current/connecting/device-management-client-tutorials.html) for your board and flash it.
 - Set your account's [API key](https://www.pelion.com/docs/device-management/current/integrate-web-app/api-keys.html) using following command-line command:
     - Linux: `export PELION_CLOUD_API_KEY=[api_key_here]`
     - Windows: `set PELION_CLOUD_API_KEY=[api_key_here]`
@@ -37,7 +38,7 @@ $ mbedls
 
 ### Running a test set
 
-To run a test set for Device Management Client, go to `/tests` folder and use the command:
+To run a test set for Device Management Client, go to the `/tests` folder and use the command:
 
 ```bash
 pytest dev-client-tests.py -v -log_cli=true --log-cli-level=INFO --html=results.html
@@ -46,7 +47,7 @@ When the test run starts, reset the board to trigger the bootstrap.
 
 ### Running a single test
 
-To run a single test from the set, use [`-k` argument](https://docs.pytest.org/en/latest/example/markers.html?highlight=keyword#using-k-expr-to-select-tests-based-on-their-name) to set the test name as a keyword:
+To run a single test from the set, use the [`-k` argument](https://docs.pytest.org/en/latest/example/markers.html?highlight=keyword#using-k-expr-to-select-tests-based-on-their-name) to set the test name as a keyword:
 
 ```bash
 pytest dev-client-tests.py -v -log_cli=true --log-cli-level=INFO --html=results.html -k test_03_get_resource
