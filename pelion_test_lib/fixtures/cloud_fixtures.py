@@ -1,5 +1,5 @@
 """
-Copyright 2017 ARM Limited
+Copyright 2019 ARM Limited
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -30,8 +30,20 @@ def cloud():
     """
     log.debug("Initializing Cloud API fixture")
 
-    api_gw = os.getenv('PELION_CLOUD_API_GW', 'https://api.us-east-1.mbedcloud.com')
-    api_key = os.environ['PELION_CLOUD_API_KEY']
+    api_gw = os.environ.get('PELION_CLOUD_API_GW', 'https://api.us-east-1.mbedcloud.com')
+    if os.environ.get('PELION_CLOUD_API_KEY'):
+        api_key = os.environ.get('PELION_CLOUD_API_KEY')
+    else:
+        api_key = os.environ.get('CLOUD_SDK_API_KEY')
+
+    if not api_gw or not api_key:
+        pytest.exit('Set missing API gateway url and/or API key via environment variables before running tests!\n'
+                    'API GW: PELION_CLOUD_API_GW={}\n'
+                    'API KEY: CLOUD_SDK_API_KEY={} or '
+                    'PELION_CLOUD_API_KEY={}'.format(api_gw if api_gw != '' else 'MISSING!',
+                                                     os.environ.get('CLOUD_SDK_API_KEY', 'MISSING!'),
+                                                     os.environ.get('PELION_CLOUD_API_KEY', 'MISSING!')))
+
     cloud_api = PelionCloud(api_gw, api_key)
 
     payload = {'name': 'pelion_e2e_dynamic_api_key'}
