@@ -20,7 +20,7 @@ $ pip install -I pelion_test_lib*.whl
 ## Basic usage
 
 - Build the [Device Management Client example application](https://www.pelion.com/docs/device-management/current/connecting/device-management-client-tutorials.html) for your board and flash it.
-- [API key](https://www.pelion.com/docs/device-management/current/integrate-web-app/api-keys.html) is used from Mbed's default `CLOUD_SDK_API_KEY` environment variable, but you can override it by defining separate variable using following command-line command:
+- The [API key](https://www.pelion.com/docs/device-management/current/integrate-web-app/api-keys.html) is used from Mbed's default `CLOUD_SDK_API_KEY` environment variable, but you can override it by defining a separate variable using a command-line command:
     - Linux: `export PELION_CLOUD_API_KEY=[api_key_here]`
     - Windows: `set PELION_CLOUD_API_KEY=[api_key_here]`
 - Tests use [Mbed LS](https://github.com/ARMmbed/mbed-os-tools/tree/master/packages/mbed-ls) to select the board from the serial port.
