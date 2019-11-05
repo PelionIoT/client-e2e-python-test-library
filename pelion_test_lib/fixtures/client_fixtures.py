@@ -1,5 +1,5 @@
 """
-Copyright 2017 ARM Limited
+Copyright 2019 ARM Limited
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -15,6 +15,7 @@ import logging
 from time import sleep
 import pytest
 from pelion_test_lib.tools.client_runner import Client
+from pelion_test_lib.tools.external_conn import ExternalConnection
 from pelion_test_lib.tools.serial_conn import SerialConnection
 from pelion_test_lib.tools.utils import get_serial_port_for_mbed
 
@@ -27,21 +28,25 @@ def client(request):
     Initializes and starts up the cloud client.
     :return: Running client instance
     """
-    address = get_serial_port_for_mbed(request.config.getoption('target_id'))
-    if address:
-        conn = SerialConnection(address, 115200)
+    if request.config.getoption('ext_conn'):
+        log.info('Using external connection')
+        conn = ExternalConnection()
     else:
-        err_msg = 'No serial connection to open for test device'
-        log.error(err_msg)
-        assert False, err_msg
+        address = get_serial_port_for_mbed(request.config.getoption('target_id'))
+        if address:
+            conn = SerialConnection(address, 115200)
+        else:
+            err_msg = 'No serial connection to open for test device'
+            log.error(err_msg)
+            assert False, err_msg
     sleep(2)
-    ser_cli = Client(conn)
-    ser_cli.wait_for_output(b'Client registered', 300)
-    ep_id = ser_cli.endpoint_id(120)
+    cli = Client(conn)
+    cli.wait_for_output(b'Client registered', 300)
+    ep_id = cli.endpoint_id(120)
 
-    yield ser_cli
+    yield cli
 
     log.info('Closing client "{}"'.format(ep_id))
     sleep(2)
-    ser_cli.kill()
     conn.close()
+    cli.kill()
