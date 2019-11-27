@@ -30,7 +30,7 @@ def test_01_get_device_id(cloud, client):
 def test_02_subscribe_resource(cloud, client):
     r = cloud.connect.set_subscription_for_resource(client.endpoint_id(), '3200/0/5501', expected_status_code=202)
     log.info('Set subscription for resource "3200/0/5501". Async-id: "{}"'.format(r.json()['async-response-id']))
-    client.wait_for_output(b'Message status callback: (3200/0/5501) subscribed', timeout=60)
+    client.wait_for_output('Message status callback: (3200/0/5501) subscribed', timeout=60)
 
 
 def test_03_get_resource(cloud, client, websocket, temp_api_key):
@@ -47,7 +47,7 @@ def test_04_put_resource(cloud, client, websocket, temp_api_key):
     async_id = put_async_device_request(cloud, RESOURCE_PATH, client.endpoint_id(), PATTERN, headers)
     log.info('Put value "{}" to resource "{}". Async-id: "{}"'.format(PATTERN, RESOURCE_PATH, async_id))
 
-    client.wait_for_output('PUT received, new value: {}'.format(PATTERN).encode('ascii'), 60)
+    client.wait_for_output('PUT received, new value: {}'.format(PATTERN), 60)
     async_response = websocket.wait_for_async_response(async_response_id=async_id, timeout=30, assert_errors=True)
     assert async_response['decoded_payload'] == b'', 'Invalid payload received from the device!'
 

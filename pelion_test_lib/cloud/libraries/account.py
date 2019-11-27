@@ -11,8 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import json
-
 
 class AccountManagementAPI:
     """
@@ -38,7 +36,7 @@ class AccountManagementAPI:
         :return: POST /api-key response
         """
         api_url = '/{}/api-keys'.format(self.api_version)
-        r = self.cloud_api.post(api_url, json.dumps(request_data), headers, expected_status_code)
+        r = self.cloud_api.post(api_url, request_data, headers, expected_status_code)
         return r
 
     def delete_api_key(self, api_key_id, headers=None, expected_status_code=None):

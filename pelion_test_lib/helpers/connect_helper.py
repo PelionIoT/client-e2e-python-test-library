@@ -34,7 +34,7 @@ def get_async_device_request(cloud, path, device_id, headers):
     async_id = str(uuid.uuid4())
     request_params = {'async-id': async_id}
     request_payload = {'method': 'GET', 'uri': path}
-    cloud.connect.send_device_request(device_id, json.dumps(request_payload), request_params, headers=headers,
+    cloud.connect.send_device_request(device_id, request_payload, request_params, headers=headers,
                                       expected_status_code=202)
     return async_id
 
@@ -56,6 +56,6 @@ def put_async_device_request(cloud, path, device_id, request_data, headers, cont
     request_params = {"async-id": async_id}
     request_payload = {"method": "PUT", "uri": path, "content-type": content_type,
                        "payload-b64": payload_data}
-    cloud.connect.send_device_request(device_id, json.dumps(request_payload), request_params, headers=headers,
+    cloud.connect.send_device_request(device_id, request_payload, request_params, headers=headers,
                                       expected_status_code=202)
     return async_id

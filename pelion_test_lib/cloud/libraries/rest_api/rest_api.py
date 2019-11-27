@@ -12,6 +12,7 @@ limitations under the License.
 """
 
 import inspect
+import json
 import logging
 import requests
 from pelion_test_lib.tools.utils import assert_status
@@ -56,6 +57,31 @@ class RestAPI:
         self.headers['Authorization'] = 'Bearer {}'.format(self._api_key)
 
     @staticmethod
+    def _clean_request_body(req_body):
+        """
+        Cleans the password and binary data from request body for logging
+        :param req_body: request body
+        :return:
+        """
+        if req_body is not None:
+            if isinstance(req_body, str):
+                split_body = req_body.split('&')
+                for param in split_body:
+                    if 'password=' in param:
+                        pwd = param.split('=')[1]
+                        req_body = req_body.replace('password={}'.format(pwd), 'password=*')
+            if isinstance(req_body, bytes):
+                req_body = 'body content in binary data - removed from the log'
+        return req_body
+
+    @staticmethod
+    def _data_content(headers, data):
+        if 'Content-type' in headers and data:
+            if headers['Content-type'] == 'application/json':
+                return json.dumps(data)
+        return data
+
+    @staticmethod
     def _write_log_response(method, api_url, r):
         """
         Function handling the response logging
@@ -76,7 +102,9 @@ class RestAPI:
         :param additional_header: Headers to merge with default ones
         :return: Merged header dictionary
         """
-        return {**self.headers, **additional_header}
+        if additional_header:
+            return {**self.headers, **additional_header}
+        return self.headers
 
     def get(self, api_url, headers=None, expected_status_code=None, **kwargs):
         """
@@ -88,11 +116,7 @@ class RestAPI:
         :return: Request response
         """
         url = self.api_gw + api_url
-        if headers is not None:
-            request_headers = self._combine_headers(headers)
-        else:
-            request_headers = self.headers
-
+        request_headers = self._combine_headers(headers)
         r = requests.get(url, headers=request_headers, **kwargs)
         self._write_log_response('GET', api_url, r)
         if expected_status_code is not None:
@@ -111,12 +135,9 @@ class RestAPI:
         :return: Request response
         """
         url = self.api_gw + api_url
-        if headers is not None:
-            request_headers = self._combine_headers(headers)
-        else:
-            request_headers = self.headers
-
-        r = requests.put(url, headers=request_headers, data=data, **kwargs)
+        request_headers = self._combine_headers(headers)
+        request_data = self._data_content(request_headers, data)
+        r = requests.put(url, headers=request_headers, data=request_data, **kwargs)
         self._write_log_response('PUT', api_url, r)
         if expected_status_code is not None:
             assert_status(r, inspect.stack()[1][3], expected_status_code)
@@ -134,12 +155,11 @@ class RestAPI:
         :return: Request response
         """
         url = self.api_gw + api_url
-        if headers is not None:
-            request_headers = self._combine_headers(headers)
-        else:
-            request_headers = self.headers
-
-        r = requests.post(url, headers=request_headers, data=data, **kwargs)
+        request_headers = self._combine_headers(headers)
+        if 'files' in kwargs:
+            request_headers.pop('Content-type')
+        request_data = self._data_content(request_headers, data)
+        r = requests.post(url, headers=request_headers, data=request_data, **kwargs)
         self._write_log_response('POST', api_url, r)
         if expected_status_code is not None:
             assert_status(r, inspect.stack()[1][3], expected_status_code)
@@ -156,11 +176,7 @@ class RestAPI:
         :return: Request response
         """
         url = self.api_gw + api_url
-        if headers is not None:
-            request_headers = self._combine_headers(headers)
-        else:
-            request_headers = self.headers
-
+        request_headers = self._combine_headers(headers)
         r = requests.delete(url, headers=request_headers, **kwargs)
         self._write_log_response('DELETE', api_url, r)
         if expected_status_code is not None:

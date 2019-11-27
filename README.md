@@ -41,7 +41,7 @@ $ mbedls
 To run a test set for Device Management Client, go to the `/tests` folder and use the command:
 
 ```bash
-pytest dev-client-tests.py -v -log_cli=true --log-cli-level=INFO --html=results.html
+pytest dev-client-tests.py
 ```
 When the test run starts, reset the board to trigger the bootstrap.
 
@@ -50,14 +50,13 @@ When the test run starts, reset the board to trigger the bootstrap.
 To run a single test from the set, use the [`-k` argument](https://docs.pytest.org/en/latest/example/markers.html?highlight=keyword#using-k-expr-to-select-tests-based-on-their-name) to set the test name as a keyword:
 
 ```bash
-pytest dev-client-tests.py -v -log_cli=true --log-cli-level=INFO --html=results.html -k test_03_get_resource
+pytest dev-client-tests.py -k test_03_get_resource
 ```
 
 ### Results output
 
-Use the startup arguments to adjust the generated output:
-- `-log-cli=true` enables the output logging directly into the console
-- `--log-cli-level= DEBUG` adds more details
+Add the startup arguments to adjust the generated output:
+- `--log-cli-level=DEBUG` adds more details
 - `--html=results.html` generates an HTML report
 - `--junitxml=junit.xml` provides output for CI systems, for example Jenkins
 

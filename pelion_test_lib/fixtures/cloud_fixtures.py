@@ -31,16 +31,16 @@ def cloud():
     log.debug("Initializing Cloud API fixture")
 
     api_gw = os.environ.get('PELION_CLOUD_API_GW', 'https://api.us-east-1.mbedcloud.com')
-    if os.environ.get('PELION_CLOUD_API_KEY'):
-        api_key = os.environ.get('PELION_CLOUD_API_KEY')
-    else:
+    if os.environ.get('CLOUD_SDK_API_KEY'):
         api_key = os.environ.get('CLOUD_SDK_API_KEY')
+    else:
+        api_key = os.environ.get('PELION_CLOUD_API_KEY')
 
     if not api_gw or not api_key:
         pytest.exit('Set missing API gateway url and/or API key via environment variables before running tests!\n'
                     'API GW: PELION_CLOUD_API_GW={}\n'
                     'API KEY: CLOUD_SDK_API_KEY={} or '
-                    'PELION_CLOUD_API_KEY={}'.format(api_gw if api_gw != '' else 'MISSING!',
+                    'PELION_CLOUD_API_KEY={}'.format(os.environ.get('PELION_CLOUD_API_GW', 'MISSING!'),
                                                      os.environ.get('CLOUD_SDK_API_KEY', 'MISSING!'),
                                                      os.environ.get('PELION_CLOUD_API_KEY', 'MISSING!')))
 

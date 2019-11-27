@@ -11,10 +11,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import logging
 import pytest
 
 pytest_plugins = ['pelion_test_lib.fixtures.client_fixtures',
                   'pelion_test_lib.fixtures.cloud_fixtures']
+
+log = logging.getLogger(__name__)
+pytest.global_test_results = []
 
 
 def pytest_addoption(parser):
@@ -26,3 +30,54 @@ def pytest_addoption(parser):
     parser.addoption('--target_id', action='store', help='mbed device target id')
     parser.addoption('--update_bin', action='store', help='mbed device update binary')
     parser.addoption('--ext_conn', action='store_true', default=False, help='use external connection')
+
+
+def pytest_report_teststatus(report):
+    """
+    Hook for collecting test results during the test run for the summary
+    :param report: pytest test report
+    :return:
+    """
+    error_rep = ''
+    test_result = {'test_name': report.nodeid,
+                   'result': report.outcome,
+                   'when': report.when,
+                   'duration': report.duration,
+                   'error_msg': error_rep}
+    if report.outcome == 'failed':
+        if report.longrepr:
+            for line in str(report.longrepr).splitlines():
+                if line.startswith('E       '):
+                    error_rep += '{}\n'.format(line)
+            error_rep += '{}\n'.format(str(report.longrepr).splitlines()[-1])
+        test_result['error_msg'] = error_rep
+        if report.when == 'teardown':
+            pytest.global_test_results.pop()
+        pytest.global_test_results.append(test_result)
+    else:
+        if report.when == 'call':
+            pytest.global_test_results.append(test_result)
+
+
+def pytest_sessionfinish():
+    """
+    Hook for writing the test result summary to console log after the test run
+    """
+    if pytest.global_test_results != []:
+        log.info('-----  TEST RESULTS SUMMARY  -----')
+        log.info('[ check the complete fail reasons and code locations from this log or html report ]')
+        for resp in pytest.global_test_results:
+            result = resp['result']
+            if result == 'failed':
+                result = result.upper()
+            log.info('[{}] - {} - ({:.3f}s)'.format(result, resp['test_name'], resp['duration']))
+            if resp['error_msg'] != '':
+                take_these = 3
+                for line in resp['error_msg'].splitlines():
+                    if take_these > 0:
+                        log.info(line)
+                    else:
+                        log.info('E ---8<--- Error log summary cut down to few lines, '
+                                 'check full log above or from html report ---8<---\n')
+                        break
+                    take_these -= 1
