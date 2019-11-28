@@ -87,11 +87,9 @@ class Client:
         if self._ep_id is None:
             ep_id = self.wait_for_output('Device Id:', wait_for_response)
             if ep_id is not None:
-                log.debug(ep_id)
                 ep_array = ep_id.split()
                 if len(ep_array) > 1:
                     self._ep_id = ep_array[2]
-
         return self._ep_id
 
     def wait_for_output(self, search, timeout=60, assert_errors=True, ignore_case=True):
