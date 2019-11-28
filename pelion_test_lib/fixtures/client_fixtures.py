@@ -41,7 +41,7 @@ def client(request):
             assert False, err_msg
     sleep(2)
     cli = Client(conn)
-    cli.wait_for_output(b'Client registered', 300)
+    cli.wait_for_output('Client registered', 300)
     ep_id = cli.endpoint_id(120)
 
     yield cli

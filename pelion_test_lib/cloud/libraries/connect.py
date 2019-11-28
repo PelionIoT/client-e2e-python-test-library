@@ -68,8 +68,9 @@ class ConnectAPI:
         api_url = '/{}/endpoints/{}/{}'.format(self.api_version, device_id, resource_path)
 
         # Set text/plain to be default content type for this request - content type from parameters will override this
+        if not headers:
+            headers = dict()
         headers = {**{'Content-type': 'text/plain'}, **headers}
-
         r = self.cloud_api.put(api_url, resource_data, headers, expected_status_code)
         return r
 

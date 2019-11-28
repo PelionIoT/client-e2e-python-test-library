@@ -56,12 +56,9 @@ class Client:
             line = self.dut.readline()
             if line:
                 plain_line = utils.strip_escape(line)
-                # Testapp uses \r to print characters to the same line, strip those and return only the last part
-                # If there is only one \r, don't remove anything.
                 if b'\r' in line and line.count(b'\r') > 1:
                     plain_line = plain_line.split(b'\r')[-2]
-                # Debug traces use tabulator characters, change those to spaces for readability
-                plain_line = plain_line.replace(b'\t', b'  ')
+                plain_line = plain_line.replace(b'\t', b'  ').decode('utf-8')
                 flog.info('<--|D{}| {}'.format(self.name, plain_line.strip()))
                 if self.trace:
                     log.debug('Raw output: {}'.format(line))
@@ -88,21 +85,20 @@ class Client:
         :return: Endpoint id
         """
         if self._ep_id is None:
-            ep_id = self.wait_for_output(b'Device Id:', wait_for_response)
+            ep_id = self.wait_for_output('Device Id:', wait_for_response)
             if ep_id is not None:
-                log.debug(ep_id)
                 ep_array = ep_id.split()
                 if len(ep_array) > 1:
-                    self._ep_id = ep_array[2].decode('UTF-8')
-
+                    self._ep_id = ep_array[2]
         return self._ep_id
 
-    def wait_for_output(self, search, timeout=60, assert_errors=True):
+    def wait_for_output(self, search, timeout=60, assert_errors=True, ignore_case=True):
         """
         Wait for expected output response
         :param search: Expected response string
         :param timeout: Response waiting time
         :param assert_errors: Assert on error situations
+        :param ignore_case: Ignore client output's casing
         :return: Response line with expected string
         """
         start = time()
@@ -114,6 +110,9 @@ class Client:
             try:
                 line = self._read_line(1)
                 if line:
+                    if ignore_case:
+                        search = search.lower()
+                        line = line.lower()
                     if search in line:
                         end = time()
                         log.debug('Expected string "{}" found! [time][{:.4f} s]'.format(search, end - start))
