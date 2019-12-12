@@ -152,6 +152,8 @@ class WebSocketHandler:
             for item in self.ws.events['notifications']:
                 if item['ep'] == device_id and item['path'] == resource_path and \
                         base64.b64decode(item['payload']).decode('utf8') == expected_value:
+                    log.info('Notification value received: "{}"'.
+                             format(base64.b64decode(item['payload']).decode('utf8')))
                     return item
             sleep(1)
         if assert_errors:
