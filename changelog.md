@@ -1,5 +1,8 @@
 # Pelion E2E Python Test Library Changelog
 
+## 0.1.2  2019-12-xx
+- Refactored the test set
+
 ## 0.1.1  2019-11-28
 - Defined few default startup arguments for easier usability
 - Re-formatted logging
