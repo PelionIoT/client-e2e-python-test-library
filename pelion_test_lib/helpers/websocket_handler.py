@@ -29,15 +29,15 @@ log.setLevel(logging.DEBUG)
 class WebSocketHandler:
     def __init__(self, ws):
         """
-        Class to handle messages via websocket
+        Class to handle messages via WebSocket
 
-        :param ws: Websocket Runner class
+        :param ws: WebSocket Runner class
         """
         self.ws = ws
 
     def check_registration(self, device_id):
         """
-        Check if websocket has registration message(s)
+        Check if WebSocket has registration message(s)
 
         :param device_id: string
         :return:
@@ -50,7 +50,7 @@ class WebSocketHandler:
 
     def check_deregistration(self, device_id):
         """
-        Check if websocket has de-registration message(s) for given device id
+        Check if WebSocket has de-registration message(s) for given device id
 
         :param device_id: string
         :return:
@@ -63,7 +63,7 @@ class WebSocketHandler:
 
     def check_registration_updates(self, device_id):
         """
-        Check if websocket has registration updates message(s) for given device id
+        Check if WebSocket has registration updates message(s) for given device id
 
         :param device_id: string
         :return: False / dict
@@ -89,7 +89,7 @@ class WebSocketHandler:
 
     def get_notifications(self):
         """
-        Get all notifications from websocket data
+        Get all notifications from WebSocket data
 
         :return: dict
         """
@@ -97,7 +97,7 @@ class WebSocketHandler:
 
     def get_async_response(self, async_response_id):
         """
-        Get async-response from websocket data for given async_id
+        Get async-response from WebSocket data for given async_id
 
         :param async_response_id: string
         :return: dict
@@ -138,7 +138,7 @@ class WebSocketHandler:
 
     def wait_for_notification(self, device_id, resource_path, expected_value, timeout=30, assert_errors=False):
         """
-        Wait for given device id + resource path + expected value to appear in websocket
+        Wait for given device id + resource path + expected value to appear in WebSocket
 
         :param device_id: string
         :param resource_path: string
@@ -162,7 +162,7 @@ class WebSocketHandler:
 
     def wait_for_async_response(self, async_response_id, timeout=30, assert_errors=False):
         """
-        Wait for given async-response to appear in websocket data
+        Wait for given async-response to appear in WebSocket data
 
         :param async_response_id: string
         :param timeout: int
@@ -184,7 +184,7 @@ class WebSocketHandler:
 
     def wait_for_registration(self, device_id, timeout=30):
         """
-        Wait for given device id registration to appear in websocket
+        Wait for given device id registration to appear in WebSocket
 
         :param device_id: string
         :param timeout: int
@@ -199,7 +199,7 @@ class WebSocketHandler:
 
     def wait_for_registration_updates(self, device_id, timeout=30):
         """
-        Wait for given device id registration update notification to appear in websocket
+        Wait for given device id registration update notification to appear in WebSocket
 
         :param device_id: string
         :param timeout: int
@@ -214,7 +214,7 @@ class WebSocketHandler:
 
     def wait_for_registration_expiration(self, device_id, timeout=30):
         """
-        Wait for given device id registration expiration notification to appear in websocket
+        Wait for given device id registration expiration notification to appear in WebSocket
 
         :param device_id: string
         :param timeout: int
@@ -229,7 +229,7 @@ class WebSocketHandler:
 
     def wait_for_deregistration(self, device_id, timeout=30):
         """
-        Wait for given device id de-registration to appear in websocket
+        Wait for given device id de-registration to appear in WebSocket
 
         :param device_id: string
         :param timeout: int
@@ -243,11 +243,11 @@ class WebSocketHandler:
         return False
 
 
-class WebsocketRunner:
+class WebSocketRunner:
     """
-    Class for handling websocket connection and storing data from notification service
+    Class for handling WebSocket connection and storing data from notification service
 
-    :param api: string URL for websocket connection endpoint
+    :param api: string URL for WebSocket connection endpoint
     :param api_key: string
     """
 
@@ -260,6 +260,7 @@ class WebsocketRunner:
         self.events['de-registrations'] = []
         self.events['registrations-expired'] = []
         self.run = True
+        self.exit = False
         self.message_queue = queue.Queue()
 
         it = threading.Thread(target=self.input_thread, args=(api, api_key),
@@ -267,7 +268,7 @@ class WebsocketRunner:
         ht = threading.Thread(target=self.handle_thread, name='messages_{}'.format(build_random_string(3)))
         it.setDaemon(True)
         ht.setDaemon(True)
-        log.info('Starting websocket threads')
+        log.info('Starting WebSocket threads')
         it.start()
         ht.start()
 
@@ -275,16 +276,19 @@ class WebsocketRunner:
         while self.run:
             try:
                 ws = CallbackClient(self.message_queue, api, protocols=['wss', 'pelion_{}'.format(api_key)])
-                log.debug('Connecting websocket')
+                log.debug('Connecting WebSocket')
                 ws.connect()
-                log.debug('Run forever websocket handler')
+                log.debug('Run forever WebSocket handler')
                 ws.run_forever()
-                log.error('Websocket handler exited')
+                if self.exit:
+                    log.info('WebSocket handler exited')
+                else:
+                    log.error('WebSocket handler exited')
             except Exception as e:
-                log.warning('Websocket failed, retrying! {}'.format(e))
+                log.warning('WebSocket failed, retrying! {}'.format(e))
                 sleep(1)
             sleep(1)
-        log.info('Websocket input thread was stopped.')
+        log.info('WebSocket input thread was stopped.')
 
     def handle_thread(self):
         while self.run:
@@ -294,6 +298,11 @@ class WebsocketRunner:
             for notification_type, notification_value in data.items():
                 log.debug('Message contains %s', notification_type)
                 self._handle_content(notification_type, notification_value)
+
+    def close(self):
+        log.info('Closing WebSocket threads')
+        self.exit = True
+        self.run = False
 
     def _handle_content(self, notification_type, data):
         for content in data:
@@ -320,8 +329,8 @@ class CallbackClient(WebSocketClient):
         log.info('WebSocket opened to {}'.format(self.api))
 
     def closed(self, code, reason=None):
-        log.error('WebSocket closed with code {} reason {}'.format(code, reason))
+        log.info('WebSocket closed with code {} reason {}'.format(code, reason))
 
     def received_message(self, m):
-        log.debug('Websocket Received: {}'.format(m))
+        log.debug('WebSocket Received: {}'.format(m))
         self.mq.put(json.loads(str(m)))

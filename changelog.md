@@ -1,5 +1,8 @@
 # Pelion E2E Python Test Library Changelog
 
+## 0.1.3  2019-12-13
+- Updated WebSocket handler
+
 ## 0.1.2  2019-12-12
 - Refactored the test set
 

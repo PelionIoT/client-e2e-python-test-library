@@ -79,19 +79,20 @@ def temp_api_key(cloud):
 
 @pytest.fixture(scope='module')
 def websocket(cloud, temp_api_key):
-    log.info('Register and open websocket notification channel')
+    log.info('Register and open WebSocket notification channel')
     headers = {'Authorization': 'Bearer {}'.format(temp_api_key['key'])}
     cloud.connect.register_websocket_channel(headers=headers, expected_status_code=[200, 201])
     sleep(5)
     # Get host part from api address
     host = cloud.api_gw.split('//')[1]
 
-    log.info('Opening websocket handler')
-    ws = websocket_handler.WebsocketRunner('wss://{}/v2/notification/websocket-connect'.format(host),
+    log.info('Opening WebSocket handler')
+    ws = websocket_handler.WebSocketRunner('wss://{}/v2/notification/websocket-connect'.format(host),
                                            temp_api_key['key'])
     handler = websocket_handler.WebSocketHandler(ws)
     yield handler
 
-    ws.run = False
-    log.info('Deleting websocket channel')
+    ws.close()
+    sleep(2)
+    log.info('Deleting WebSocket channel')
     cloud.connect.delete_websocket_channel(headers=headers, expected_status_code=204)
