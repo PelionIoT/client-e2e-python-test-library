@@ -1,5 +1,8 @@
 # Pelion E2E Python Test Library Changelog
 
+## 0.1.4  2019-12-xx
+- Automatic reset for the board
+
 ## 0.1.3  2019-12-13
 - Updated WebSocket handler
 

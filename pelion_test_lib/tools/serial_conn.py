@@ -51,6 +51,16 @@ class SerialConnection:
         except SerialException as se:
             log.debug('Serial connection write error: {}'.format(se))
 
+    def reset(self, duration=0.25):
+        """
+        Send break condition to serial port
+        :param duration: Break duration
+        """
+        try:
+            self.ser.send_break(duration)
+        except SerialException as se:
+            log.debug('Serial connection send break error: {}'.format(se))
+
     def close(self):
         """
         Close serial port connection

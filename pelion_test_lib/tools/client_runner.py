@@ -78,6 +78,12 @@ class Client:
         log.debug('Killing client "D{}" runner...'.format(self.name))
         self.run = False
 
+    def reset(self):
+        """
+        Send reset to client
+        """
+        self.dut.reset()
+
     def endpoint_id(self, wait_for_response=10):
         """
         Get endpoint id from client
