@@ -43,7 +43,6 @@ To run a test set for Device Management Client, go to the `/tests` folder and us
 ```bash
 pytest dev-client-tests.py
 ```
-When the test run starts, reset the board to trigger the bootstrap.
 
 ### Running a single test
 
