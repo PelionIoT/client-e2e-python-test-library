@@ -15,7 +15,10 @@ import logging
 import os
 from time import sleep
 from pelion_test_lib.cloud.cloud import PelionCloud
+from pelion_test_lib.helpers.update_helper import wait_for_campaign_phase
 import pelion_test_lib.helpers.websocket_handler as websocket_handler
+import pelion_test_lib.tools.manifest_tool as manifest_tool
+from pelion_test_lib.tools.utils import build_random_string
 import pytest
 
 log = logging.getLogger(__name__)
@@ -96,3 +99,72 @@ def websocket(cloud, temp_api_key):
     sleep(2)
     log.info('Deleting WebSocket channel')
     cloud.connect.delete_websocket_channel(headers=headers, expected_status_code=204)
+
+
+@pytest.fixture(scope='function')
+def update_device(cloud, client, request):
+    """
+    Fixture for updating device.
+    This uploads firmware image, creates manifest, uploads manifest, and creates and starts the update campaign.
+    :param cloud: Cloud fixture
+    :param client: Client fixture
+    :param request: Requests fixture
+    :return: Campaign ID
+    """
+    binary_path = request.config.getoption('update_bin', None)
+    manifest_tool_path = request.config.getoption('manifest_tool', os.getcwd())
+    no_cleanup = request.config.getoption('no_cleanup', False)
+    delta_manifest = request.config.getoption('delta_manifest', None)
+    log.info('Update image: "{}"'.format(binary_path))
+    log.info('Path for manifest-tool init: "{}"'.format(manifest_tool_path))
+    if not binary_path or not manifest_tool_path:
+        skip_msg = 'Provide missing binary image in startup arguments to run update case\n' \
+                   '--update_bin={}'.format(binary_path if binary_path else 'MISSING!')
+        log.warning(skip_msg)
+        pytest.skip(skip_msg)
+
+    sleep(5)
+    resp = cloud.device_directory.get_device(client.endpoint_id(), expected_status_code=200).json()
+    assert resp['state'] == 'registered'
+
+    fw_image = cloud.update.upload_firmware_image(binary_path, expected_status_code=201).json()
+    fw_image_id = fw_image['id']
+    log.info('Firmware image uploaded! Image ID: {}'.format(fw_image_id))
+
+    manifest_file = manifest_tool.create_manifest(path=manifest_tool_path,
+                                                  firmware_url=fw_image['datafile'],
+                                                  update_image_path=binary_path,
+                                                  delta_manifest=delta_manifest)
+    assert manifest_file is not None, 'Manifest file was not created'
+
+    manifest = cloud.update.upload_firmware_manifest(manifest_file, expected_status_code=201).json()
+    manifest_id = manifest['id']
+    log.info('Firmware manifest uploaded! Manifest ID: {}'.format(manifest_id))
+
+    campaign_name = 'pelion_e2e_update_test_{}'.format(build_random_string(8, True))
+    campaign_data = {'name': campaign_name,
+                     'device_filter': 'id__eq={}'.format(client.endpoint_id()),
+                     'root_manifest_id': manifest['id']}
+
+    campaign = cloud.update.create_update_campaign(campaign_data, expected_status_code=201).json()
+    campaign_id = campaign['id']
+    assert campaign['phase'] == 'draft'
+    log.info('Update campaign created! Campaign ID: {}'.format(campaign_id))
+
+    cloud.update.start_update_campaign(campaign['id'], expected_status_code=202)
+    log.info('Update campaign started! Campaign ID: {}'.format(campaign_id))
+
+    yield campaign_id
+
+    if not no_cleanup:
+        if campaign_id:
+            cloud.update.stop_update_campaign(campaign_id, expected_status_code=[202, 409])
+            wait_for_campaign_phase(cloud, campaign_id, ['draft', 'stopped', 'archived'])
+            log.info('Deleting update campaign. ID: {}'.format(campaign_id))
+            cloud.update.delete_update_campaign(campaign_id, expected_status_code=204)
+        if fw_image_id:
+            log.info('Deleting firmware image. ID: {}'.format(fw_image_id))
+            cloud.update.delete_firmware_image(fw_image_id, expected_status_code=204)
+        if manifest_id:
+            log.info('Deleting firmware manifest. ID: {}'.format(manifest_id))
+            cloud.update.delete_firmware_manifest(manifest_id, expected_status_code=204)

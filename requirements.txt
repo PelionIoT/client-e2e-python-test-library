@@ -1,3 +1,4 @@
+manifest-tool
 mbed-ls
 pytest
 pytest-html

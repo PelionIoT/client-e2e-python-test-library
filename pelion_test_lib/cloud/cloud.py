@@ -15,6 +15,7 @@ from pelion_test_lib.cloud.libraries.account import AccountManagementAPI
 from pelion_test_lib.cloud.libraries.connect import ConnectAPI
 from pelion_test_lib.cloud.libraries.device_directory import DeviceDirectoryAPI
 from pelion_test_lib.cloud.libraries.rest_api.rest_api import RestAPI
+from pelion_test_lib.cloud.libraries.update import UpdateAPI
 
 
 class PelionCloud:
@@ -34,6 +35,7 @@ class PelionCloud:
         self._account = AccountManagementAPI(self._rest_api)
         self._connect = ConnectAPI(self._rest_api)
         self._device_directory = DeviceDirectoryAPI(self._rest_api)
+        self._update = UpdateAPI(self._rest_api)
 
     @property
     def api_gw(self):
@@ -58,3 +60,7 @@ class PelionCloud:
     @property
     def rest_api(self):
         return self._rest_api
+
+    @property
+    def update(self):
+        return self._update

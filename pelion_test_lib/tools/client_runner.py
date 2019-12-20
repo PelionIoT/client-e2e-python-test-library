@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from copy import deepcopy
 import logging
 import queue
 import threading
@@ -98,15 +99,33 @@ class Client:
                     self._ep_id = ep_array[2]
         return self._ep_id
 
-    def wait_for_output(self, search, timeout=60, assert_errors=True, ignore_case=True):
+    def wait_for_output(self, search, timeout=60, assert_errors=True, ignore_case=True, errors=None):
         """
         Wait for expected output response
         :param search: Expected response string
         :param timeout: Response waiting time
         :param assert_errors: Assert on error situations
         :param ignore_case: Ignore client output's casing
-        :return: Response line with expected string
+        :param errors: String(s) that should cause error
+        :return: Response line with expected string or None if either line containing
+                 one of the errors strings was found or timeout was reached (and assert_errors was False)
         """
+
+        if errors is None:
+            errors = []
+        elif isinstance(errors, str):
+            errors = [errors]
+
+        if ignore_case:
+            search = search.lower()
+            errors = deepcopy(errors)
+            for i, error in enumerate(errors):
+                errors[i] = error.lower()
+
+        return self._do_wait_for_output(search, errors, timeout, assert_errors, ignore_case)
+
+    def _do_wait_for_output(self, search, errors, timeout, assert_errors, ignore_case):
+
         start = time()
         now = 0
         time_to_wait = timeout
@@ -117,12 +136,23 @@ class Client:
                 line = self._read_line(1)
                 if line:
                     if ignore_case:
-                        search = search.lower()
                         line = line.lower()
                     if search in line:
                         end = time()
                         log.debug('Expected string "{}" found! [time][{:.4f} s]'.format(search, end - start))
                         return line
+                    for error in errors:
+                        if error in line:
+                            end = time()
+                            log.debug('Expected error string "{}" found! [time][{:.4f} s]'.format(error, end - start))
+                            break
+                    else:
+                        continue
+
+                    if assert_errors:
+                        assert False, 'Error string found from line "{}"'.format(line)
+                    else:
+                        return None
                 else:
                     last = now
                     now = time()
