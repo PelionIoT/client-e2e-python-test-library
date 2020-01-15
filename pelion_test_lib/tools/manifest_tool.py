@@ -56,9 +56,8 @@ def init(working_path, vendor_domain=None, model_name=None):
     if os.path.isfile(f):
         log.debug('Path to update_default_resources.c: {}'.format(f))
         return os.path.abspath(f)
-    else:
-        log.error('Could not find update_default_resources.c')
-        return None
+    log.error('Could not find update_default_resources.c')
+    return None
 
 
 def create_manifest(path, firmware_url, update_image_path, output='output.manifest', delta_manifest=None):
@@ -105,6 +104,5 @@ def create_manifest(path, firmware_url, update_image_path, output='output.manife
             return None
         log.info('Manifest created!')
         return os.path.abspath(f)
-    else:
-        log.error('Could not find manifest file')
-        return None
+    log.error('Could not find manifest file')
+    return None

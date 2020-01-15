@@ -31,14 +31,14 @@ log.setLevel(logging.DEBUG)
 
 
 class Client:
+    """
+    Client runner class that handles communication for given dut object
+    :param dut: Running client object
+    :param trace: Log the raw client output
+    :param name: Logging name for the client
+    """
 
     def __init__(self, dut, trace=False, name='0'):
-        """
-        Client runner class that handles communication for given dut object
-        :param dut: Running client object
-        :param trace: Log the raw client output
-        :param name: Logging name for the client
-        """
         self._ep_id = None
         self.name = name
         self.trace = trace
@@ -53,6 +53,9 @@ class Client:
         it.start()
 
     def _input_thread(self):
+        """
+        Runner's input thread
+        """
         while self.run:
             line = self.dut.readline()
             if line:
@@ -70,6 +73,11 @@ class Client:
                 pass
 
     def _read_line(self, timeout):
+        """
+        Read data from input queue
+        :param timeout: Timeout
+        :return: Data from queue
+        """
         return self.iq.get(timeout=timeout)
 
     def kill(self):
@@ -125,7 +133,6 @@ class Client:
         return self._do_wait_for_output(search, errors, timeout, assert_errors, ignore_case)
 
     def _do_wait_for_output(self, search, errors, timeout, assert_errors, ignore_case):
-
         start = time()
         now = 0
         time_to_wait = timeout

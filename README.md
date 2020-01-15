@@ -52,6 +52,16 @@ To run a single test from the set, use the [`-k` argument](https://docs.pytest.o
 pytest dev-client-tests.py -k test_03_get_resource
 ```
 
+### Running the update test
+Before running the update test case create an authentication certificate with [manifest-tool's init](https://www.pelion.com/docs/device-management/current/updating-firmware/setting-up.html) command and [compile your update image](https://www.pelion.com/docs/device-management/current/updating-firmware/preparing-images.html).
+Update test uses the same manifest-tool to create the actual manifest for update campaign.
+Running the update test provide two mandatory arguments at startup:
+- `--update_bin=/home/user/mbed-cloud-client-example_update.bin` absolute path for the update image
+- `--manifest_tool=/home/user/mbed-os-example-pelion` absolute path where manifest-tool init is executed
+
+If you want to leave the firmware image, manifest and campaign to your account after the test, add `--no_cleanup` startup argument.
+
+
 ### Results output
 
 Add the startup arguments to adjust the generated output:
@@ -66,13 +76,19 @@ The library also writes a separate `client.log` file from the Device Management 
 There are many ways to configure the test runs. Refer to the [full pytest documentation](https://docs.pytest.org/en/latest/contents.html) for more information.
 
 ## Current tests
+#### dev-client-tests.py
+| Test name                       | Main functions                                        | Notes                        |
+| ------------------------------- | ------------------------------------------------------| -----------------------------|
+| `test_01_get_device_id`         | Verify that the device is registered.                 |                              |
+| `test_02_put_resource`          | Verify that the device responds to PUT.               | Uses Resource `/3201/0/5853` |
+| `test_03_get_resource`          | Verify that the device responds to GET.               | Uses Resource `/3201/0/5853` |
+| `test_04_subscribe_resource`    | Verify the notification from the subscribed resource. | Uses Resource `/3201/0/5853` |
+| `test_05_factory_reset`         | Verify the client's factory reset behaviour.          |                              |
 
-| Test name                       | Main functions                                       | Notes                        |
-| ------------------------------- | -----------------------------------------------------| -----------------------------|
-| `test_01_get_device_id`         | Verify that the device is registered.                |                              |
-| `test_02_put_resource`          | Verify that the device responds to PUT.              | Uses Resource `/3201/0/5853` |
-| `test_03_get_resource`          | Verify that the device responds to GET.              | Uses Resource `/3201/0/5853` |
-| `test_04_subscribe_resource`    | Verify the notification from the subscribed resource | Uses Resource `/3201/0/5853` |
+#### dev-update-tests.py
+| Test name                       | Main functions                                        | Notes                        |
+| ------------------------------- | ------------------------------------------------------| -----------------------------|
+| `test_01_update_device`         | Verify the device firmware update.                    |                              |
 
 
 ## License

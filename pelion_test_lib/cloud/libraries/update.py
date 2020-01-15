@@ -16,14 +16,10 @@ class UpdateAPI:
     """
     A class that provides Update related functionality.
     https://www.pelion.com/docs/device-management/current/service-api-references/update-service.html
-
+    :param rest_api: RestAPI object
     """
 
     def __init__(self, rest_api):
-        """
-        Initializes the Update library
-        :param rest_api: RestAPI object
-        """
         self.api_version = 'v3'
         self.cloud_api = rest_api
 

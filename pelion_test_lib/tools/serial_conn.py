@@ -19,6 +19,13 @@ log.setLevel(logging.DEBUG)
 
 
 class SerialConnection:
+    """
+    Serial connection class
+    :param port: Serial port
+    :param baudrate: Baudrate
+    :param timeout: Timeout
+    """
+
     def __init__(self, port=None, baudrate=9600, timeout=1):
         self.ser = Serial(port, baudrate, timeout=timeout)
 
@@ -37,8 +44,8 @@ class SerialConnection:
         try:
             output = self.ser.readline()
             return output
-        except SerialException as se:
-            log.debug('Serial connection read error: {}'.format(se))
+        except SerialException as e:
+            log.debug('Serial connection read error: {}'.format(e))
             return None
 
     def write(self, data):
@@ -48,8 +55,8 @@ class SerialConnection:
         """
         try:
             self.ser.write(data)
-        except SerialException as se:
-            log.debug('Serial connection write error: {}'.format(se))
+        except SerialException as e:
+            log.debug('Serial connection write error: {}'.format(e))
 
     def reset(self, duration=0.25):
         """
@@ -58,8 +65,8 @@ class SerialConnection:
         """
         try:
             self.ser.send_break(duration)
-        except SerialException as se:
-            log.debug('Serial connection send break error: {}'.format(se))
+        except SerialException as e:
+            log.debug('Serial connection send break error: {}'.format(e))
 
     def close(self):
         """

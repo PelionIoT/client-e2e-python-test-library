@@ -14,12 +14,12 @@ limitations under the License.
 import logging
 import os
 from time import sleep
+import pytest
 from pelion_test_lib.cloud.cloud import PelionCloud
 from pelion_test_lib.helpers.update_helper import wait_for_campaign_phase
 import pelion_test_lib.helpers.websocket_handler as websocket_handler
 import pelion_test_lib.tools.manifest_tool as manifest_tool
 from pelion_test_lib.tools.utils import build_random_string
-import pytest
 
 log = logging.getLogger(__name__)
 

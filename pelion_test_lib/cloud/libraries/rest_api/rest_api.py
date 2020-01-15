@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import copy
 import inspect
 import json
 import logging
@@ -28,15 +29,11 @@ urllib3_logger.setLevel(logging.WARNING)
 class RestAPI:
     """
     Rest API connection class - uses requests
-
+    :param api_gw: api gateway url
+    :param api_key: api-key
     """
-    def __init__(self, api_gw, api_key):
-        """
-        Initializes the RestAPI request class
-        :param api_gw: api gateway url
-        :param api_key: api-key
-        """
 
+    def __init__(self, api_gw, api_key):
         self.api_gw = api_gw
         self._api_key = api_key
         user_agent = 'pelion-e2e-test-library'
@@ -50,18 +47,24 @@ class RestAPI:
         """
         Set the default api key for REST API calls
         :param key: Api key
-
         """
         log.debug('Set default api key to: {}...{}'.format(key[:5], key[-5:]))
         self._api_key = key
         self.headers['Authorization'] = 'Bearer {}'.format(self._api_key)
 
+    @property
+    def api_key(self):
+        """
+        Returns default API key
+        """
+        return self._api_key
+
     @staticmethod
     def _clean_request_body(req_body):
         """
         Cleans the password and binary data from request body for logging
-        :param req_body: request body
-        :return:
+        :param req_body: Request body
+        :return: Cleaned body for logging
         """
         if req_body is not None:
             if isinstance(req_body, str):
@@ -88,7 +91,6 @@ class RestAPI:
         :param method: GET, PUT, POST, etc to be written in short response log
         :param api_url: API endpoint url where the response came from
         :param r: The response itself
-
         """
         log.debug('Request headers: {}'.format(r.request.headers))
         log.debug('Request body: {}'.format(r.request.body))
@@ -103,7 +105,9 @@ class RestAPI:
         :return: Merged header dictionary
         """
         if additional_header:
-            return {**self.headers, **additional_header}
+            _headers = copy.copy(self.headers)
+            _headers.update(additional_header)
+            return _headers
         return self.headers
 
     def get(self, api_url, headers=None, expected_status_code=None, **kwargs):

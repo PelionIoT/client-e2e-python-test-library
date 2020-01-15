@@ -67,8 +67,8 @@ def wait_for_campaign_phase(cloud, campaign_id, expected_phases, timeout=300, de
             return
         log.info('Campaign phase "{}" - waiting {} seconds...'.format(campaign_phase, delay))
         sleep(delay)
-    assert False, 'Timeout while waiting update campaign to reach "{}" phase. ' \
-                  'Campaign: {} - "{}"'.format(campaign_phase, campaign_id, campaign_phase)
+    assert False, 'Timeout while waiting update campaign to reach "{}" phase(s). ' \
+                  'Campaign: {} - "{}"'.format(expected_phases, campaign_id, campaign_phase)
 
 
 def wait_for_campaign_device_state(cloud, campaign_id, device_id, expected_state='deployed', timeout=300, delay=10):

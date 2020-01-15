@@ -12,7 +12,6 @@ limitations under the License.
 """
 
 import base64
-import json
 import logging
 import uuid
 
@@ -59,3 +58,42 @@ def put_async_device_request(cloud, path, device_id, request_data, headers, cont
     cloud.connect.send_device_request(device_id, request_payload, request_params, headers=headers,
                                       expected_status_code=202)
     return async_id
+
+
+def post_async_device_request(cloud, path, device_id, headers):
+    """
+    Sends POST async request to device
+    https://www.pelion.com/docs/device-management/current/service-api-references/device-management-connect.html#createAsyncRequest
+    :param cloud: Cloud object
+    :param path: Device resource path
+    :param device_id: Device ID
+    :param headers: Request headers
+    :return: Async_id
+    """
+    async_id = str(uuid.uuid4())
+    request_params = {'async-id': async_id}
+    request_payload = {'method': 'POST', 'uri': path}
+    cloud.connect.send_device_request(device_id, request_payload, request_params, headers=headers,
+                                      expected_status_code=202)
+    return async_id
+
+
+def device_resource_exists(cloud, path, device_id, headers):
+    """
+    Checks if resource has defined path by the GET async request
+    :param cloud: Cloud object
+    :param path: Device resource path
+    :param device_id: Device ID
+    :param headers: Request headers
+    :return: False if cloud returns 400, RESOURCE_NOT_FOUND
+    """
+    async_id = str(uuid.uuid4())
+    request_params = {'async-id': async_id}
+    request_payload = {'method': 'GET', 'uri': path}
+    r = cloud.connect.send_device_request(device_id, request_payload, request_params, headers=headers,
+                                          expected_status_code=[202, 400])
+    if r.status_code == 400:
+        if r.text == 'RESOURCE_NOT_FOUND':
+            return False
+        log.error(r.text)
+    return True

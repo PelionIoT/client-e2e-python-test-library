@@ -1,5 +1,10 @@
 # Pelion E2E Python Test Library Changelog
 
+## 0.1.5  2020-01-xx
+- Added factory reset test case.
+- Added update test case.
+- Minor code syntax improvements
+
 ## 0.1.4  2019-12-17
 - Added an automatic reset option for the board.
 
