@@ -80,7 +80,7 @@ def post_async_device_request(cloud, path, device_id, headers):
 
 def device_resource_exists(cloud, path, device_id, headers):
     """
-    Checks if resource has defined path by the GET async request
+    Checks if device has defined path by the GET async request
     :param cloud: Cloud object
     :param path: Device resource path
     :param device_id: Device ID
