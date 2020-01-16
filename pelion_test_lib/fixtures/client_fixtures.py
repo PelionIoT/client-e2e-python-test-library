@@ -23,7 +23,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope='module')
-def client(request):
+def client_internal(request):
     """
     Initializes and starts up the cloud client.
     :return: Running client instance
@@ -55,3 +55,14 @@ def client(request):
     sleep(2)
     conn.close()
     cli.kill()
+
+
+@pytest.fixture(scope='function')
+def client(client_internal):
+    """
+    Makes sure client output from previous test doesn't
+    interfere with current test
+    :return: Running client instance
+    """
+    client_internal.clear_input()
+    return client_internal

@@ -15,6 +15,7 @@ import logging
 import pytest
 from pelion_test_lib.helpers.connect_helper import get_async_device_request, put_async_device_request, \
     post_async_device_request, device_resource_exists
+from pelion_test_lib.helpers.update_helper import wait_for_campaign_device_state, wait_for_campaign_state
 from pelion_test_lib.tools.utils import get_bootstrap_time_and_execution_mode
 
 logging.basicConfig(format="%(asctime)s:%(name)s:%(threadName)s:%(levelname)s: %(message)s")
@@ -97,3 +98,11 @@ def test_05_factory_reset(cloud, client, websocket, temp_api_key):
     # check that bootstrap time is bigger now since factory reset should result in re-bootstrapping
     new_bootstrap_time, _ = get_bootstrap_time_and_execution_mode(cloud, new_id, headers)
     assert new_bootstrap_time > bootstrap_time, 'New bootstrap time not bigger than old'
+
+
+def test_06_update_device(cloud, client, update_device):
+    campaign_id = update_device
+    client.wait_for_output('New active firmware is valid', timeout=900, errors=['Error occurred'])
+    client_id = client.endpoint_id(120)
+    wait_for_campaign_state(cloud, campaign_id)
+    wait_for_campaign_device_state(cloud, campaign_id, client_id)

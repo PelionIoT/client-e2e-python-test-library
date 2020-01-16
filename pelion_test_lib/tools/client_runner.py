@@ -80,6 +80,13 @@ class Client:
         """
         return self.iq.get(timeout=timeout)
 
+    def clear_input(self):
+        """
+        Clear input queue messages
+        """
+        with self.iq.mutex:
+            self.iq.queue.clear()
+
     def kill(self):
         """
         Kill the client runner
