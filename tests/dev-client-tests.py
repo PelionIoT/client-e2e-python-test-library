@@ -102,7 +102,7 @@ def test_05_factory_reset(cloud, client, websocket, temp_api_key):
 
 def test_06_update_device(cloud, client, update_device):
     campaign_id = update_device
-    client.wait_for_output('New active firmware is valid', timeout=900, errors=['Error occurred'])
+    client.wait_for_output('New active firmware is valid', timeout=900)
     client_id = client.endpoint_id(120)
     wait_for_campaign_state(cloud, campaign_id)
     wait_for_campaign_device_state(cloud, campaign_id, client_id)
