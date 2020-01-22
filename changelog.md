@@ -1,7 +1,7 @@
 # Pelion E2E Python Test Library Changelog
 
 
-## 0.2.1  2020-01-xx
+## 0.2.1  2020-01-22
 - Added pylint PR checker
 
 ## 0.2.0  2020-01-22
