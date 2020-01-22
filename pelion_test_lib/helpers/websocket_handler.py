@@ -19,6 +19,7 @@ import queue
 import threading
 from time import sleep
 from ws4py.client.threadedclient import WebSocketClient
+from ws4py.exc import WebSocketException
 from pelion_test_lib.tools.utils import build_random_string
 
 logging.basicConfig(format='%(asctime)s:%(name)s:%(threadName)s:%(levelname)s: %(message)s')
@@ -245,16 +246,16 @@ class WebSocketRunner:
         self.exit = False
         self.message_queue = queue.Queue()
 
-        _it = threading.Thread(target=self.input_thread, args=(api, api_key),
+        _it = threading.Thread(target=self._input_thread, args=(api, api_key),
                                name='websocket_{}'.format(build_random_string(3)))
-        _ht = threading.Thread(target=self.handle_thread, name='messages_{}'.format(build_random_string(3)))
+        _ht = threading.Thread(target=self._handle_thread, name='messages_{}'.format(build_random_string(3)))
         _it.setDaemon(True)
         _ht.setDaemon(True)
         log.info('Starting WebSocket threads')
         _it.start()
         _ht.start()
 
-    def input_thread(self, api, api_key):
+    def _input_thread(self, api, api_key):
         """
         Runner's input thread
         :param api: Api
@@ -271,13 +272,13 @@ class WebSocketRunner:
                     log.info('WebSocket handler exited')
                 else:
                     log.error('WebSocket handler exited')
-            except Exception as e:
+            except (WebSocketException, RuntimeError) as e:
                 log.warning('WebSocket failed, retrying! {}'.format(e))
                 sleep(1)
             sleep(1)
         log.info('WebSocket input thread was stopped.')
 
-    def handle_thread(self):
+    def _handle_thread(self):
         """
         Runner's handle thread
         """
