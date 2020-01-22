@@ -1,3 +1,4 @@
+# pylint: disable=broad-except
 """
 Copyright 2019 ARM Limited
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -137,7 +138,10 @@ class ExternalConnection:
         """
         Close connection
         """
-        if self.resource:
-            self.resource.release()
-        if self.client:
-            self.client.disconnect()
+        try:
+            if self.resource:
+                self.resource.release()
+            if self.client:
+                self.client.disconnect()
+        except Exception as ex:
+            log.debug('External connection closing error: {}'.format(ex))

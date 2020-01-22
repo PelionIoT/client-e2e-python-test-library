@@ -1,3 +1,4 @@
+# pylint: disable=redefined-outer-name
 """
 Copyright 2019 ARM Limited
 Licensed under the Apache License, Version 2.0 (the "License");
