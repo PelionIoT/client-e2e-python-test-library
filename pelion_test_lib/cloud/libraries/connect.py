@@ -16,14 +16,10 @@ class ConnectAPI:
     """
     A class that provides Device management connect related functionality.
     https://www.pelion.com/docs/device-management/current/service-api-references/device-management-connect.html
-
+    :param rest_api: RestAPI object
     """
 
     def __init__(self, rest_api):
-        """
-        Initializes the Device Management Connect library
-        :param rest_api: RestAPI object
-        """
         self.api_version = 'v2'
         self.cloud_api = rest_api
 
@@ -68,10 +64,10 @@ class ConnectAPI:
         api_url = '/{}/endpoints/{}/{}'.format(self.api_version, device_id, resource_path)
 
         # Set text/plain to be default content type for this request - content type from parameters will override this
-        if not headers:
-            headers = dict()
-        headers = {**{'Content-type': 'text/plain'}, **headers}
-        r = self.cloud_api.put(api_url, resource_data, headers, expected_status_code)
+        _headers = {'Content-type': 'text/plain'}
+        if headers:
+            _headers.update(headers)
+        r = self.cloud_api.put(api_url, resource_data, _headers, expected_status_code)
         return r
 
     def set_subscription_for_resource(self, device_id, resource_path, headers=None, expected_status_code=None):

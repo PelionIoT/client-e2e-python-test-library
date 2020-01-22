@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from datetime import datetime
 import logging
 import os
 import random
@@ -20,6 +21,27 @@ import mbed_lstools
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
+
+
+def get_bootstrap_time_and_execution_mode(cloud_api, endpoint_id, headers):
+    """
+    Query Device directory for latest bootstrap time and execution mode (whether device
+    is developer or production device) of a device.
+    https://www.pelion.com/docs/device-management/current/service-api-references/device-directory.html#DeviceData
+    :param cloud_api: Cloud api object to be used in the query
+    :param endpoint_id: endpoint to be queried
+    :param headers: headers to be added to the device query
+    :return: A tuple with latest bootstrap timestamp as datetime and True/False
+             whether the queried device is developer device or not
+    """
+    response = cloud_api.device_directory.get_device(endpoint_id, headers)
+    assert_status(response, 'get_bootstrap_time_and_execution_mode', 200)
+    response = response.json()
+    assert 'bootstrapped_timestamp' in response, 'Missing bootstrap time in device directory'
+    assert 'device_execution_mode' in response, 'Missing device execution mode in device directory'
+    bootstrap_time = datetime.strptime(response['bootstrapped_timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
+    is_developer_device = response['device_execution_mode'] == 1
+    return bootstrap_time, is_developer_device
 
 
 def assert_status(response, func, expected_resp):
@@ -50,11 +72,11 @@ def _assert_status(expected_resp, response):
 
 
 def build_random_string(str_length, use_digits=False, use_punctuations=False):
-    """
+    r"""
     Create random string
     :param str_length: String length
     :param use_digits: Takes string.digits as well
-    :param use_punctuations: Takes string.punctuation without "\, ", '"
+    :param use_punctuations: Takes string.punctuation without \, ", '
     :return: Random string
     """
     letters = string.ascii_letters
@@ -71,10 +93,11 @@ def strip_escape(string_to_escape):
     :param string_to_escape: string to work on
     :return: stripped string
     """
-    ANSI_PATTERN = b'\033\[((?:\d|;)*)([a-zA-Z])'
-    ANSI_ENG = re.compile(ANSI_PATTERN)
+    raw_ansi_pattern = r'\033\[((?:\d|;)*)([a-zA-Z])'
+    ansi_pattern = raw_ansi_pattern.encode()
+    ansi_eng = re.compile(ansi_pattern)
     matches = []
-    for match in ANSI_ENG.finditer(string_to_escape):
+    for match in ansi_eng.finditer(string_to_escape):
         matches.append(match)
     matches.reverse()
     for match in matches:

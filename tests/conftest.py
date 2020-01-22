@@ -30,6 +30,11 @@ def pytest_addoption(parser):
     parser.addoption('--target_id', action='store', help='mbed device target id')
     parser.addoption('--update_bin', action='store', help='mbed device update binary')
     parser.addoption('--ext_conn', action='store_true', default=False, help='use external connection')
+    parser.addoption('--manifest_tool', action='store', help='manifest-tool init path')
+    parser.addoption('--no_cleanup', action='store_true', default=False,
+                     help='true for keeping update image, manifest and campaign')
+    parser.addoption('--delta_manifest', action='store', default=False,
+                     help='set when given update_bin is a delta payload')
 
 
 def pytest_report_teststatus(report):

@@ -16,14 +16,10 @@ class DeviceDirectoryAPI:
     """
     A class that provides Device directory related functionality.
     https://www.pelion.com/docs/device-management/current/service-api-references/device-directory.html
-
+    :param rest_api: RestAPI object
     """
 
     def __init__(self, rest_api):
-        """
-        Initializes the Device Directory library
-        :param rest_api: RestAPI object
-        """
         self.api_version = 'v3'
         self.cloud_api = rest_api
 

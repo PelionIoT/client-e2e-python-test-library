@@ -16,14 +16,10 @@ class AccountManagementAPI:
     """
     A class that provides Account management related functionality.
     https://www.pelion.com/docs/device-management/current/service-api-references/account-management.html
-
+    :param rest_api: RestAPI object
     """
 
     def __init__(self, rest_api):
-        """
-        Initializes the Account Management library
-        :param rest_api: RestAPI object
-        """
         self.api_version = 'v3'
         self.cloud_api = rest_api
 

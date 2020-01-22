@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import importlib
 import logging
 import json
 
@@ -19,12 +20,16 @@ log.setLevel(logging.DEBUG)
 
 
 class ExternalConnection:
-    def __init__(self, importer=__import__):
+    """
+    External connection class
+    """
+
+    def __init__(self):
         self.client = None
         self.resource = None
-        self.__initialize_resource(importer)
+        self.__initialize_resource()
 
-    def __initialize_resource(self, importer):
+    def __initialize_resource(self):
         """
         Connect to external resource and flash it
         """
@@ -51,14 +56,14 @@ class ExternalConnection:
         local_allocation = configs.get('local_allocation', False)
 
         try:
-            self.remote_module = importer(external_module)
+            self.remote_module = importlib.import_module(external_module)
         except ImportError as error:
             log.error('Unable to load external "{}" module!'.format(external_module))
             log.error(str(error))
             self.remote_module = None
             raise error
 
-        self.client = self.remote_module.create(host=host, port=port, logger=log, user=user, passwd=password)
+        self.client = self.remote_module.create(host=host, port=port, user=user, passwd=password)
 
         description = {'resource_type': resource_type,
                        'platform_name': platform_name,
@@ -83,8 +88,7 @@ class ExternalConnection:
             if self.resource:
                 output = self.resource.readline()
                 return output
-            else:
-                raise Exception('External resource does not exist')
+            raise Exception('External resource does not exist')
         except Exception as ex:
             log.debug('External connection read error: {}'.format(ex))
             return None
@@ -122,6 +126,7 @@ class ExternalConnection:
         """
         try:
             if self.resource:
+                log.info('Flashing resource with "{}"'.format(filename))
                 self.resource.flash(filename, forceflash=force_flash)
             else:
                 raise Exception('External resource does not exist')
