@@ -1,6 +1,6 @@
 # pylint: disable=redefined-outer-name
 """
-Copyright 2019 ARM Limited
+Copyright 2020 ARM Limited
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -17,6 +17,7 @@ from time import sleep
 import pytest
 from pelion_test_lib.tools.client_runner import Client
 from pelion_test_lib.tools.external_conn import ExternalConnection
+from pelion_test_lib.tools.local_conn import LocalConnection
 from pelion_test_lib.tools.serial_conn import SerialConnection
 from pelion_test_lib.tools.utils import get_serial_port_for_mbed
 
@@ -32,6 +33,10 @@ def client_internal(request):
     if request.config.getoption('ext_conn'):
         log.info('Using external connection')
         conn = ExternalConnection()
+        sleep(2)
+    elif request.config.getoption('local_binary'):
+        log.info('Using local binary process')
+        conn = LocalConnection(request.config.getoption('local_binary'))
     else:
         address = get_serial_port_for_mbed(request.config.getoption('target_id'))
         if address:
@@ -40,11 +45,11 @@ def client_internal(request):
             err_msg = 'No serial connection to open for test device'
             log.error(err_msg)
             assert False, err_msg
-    sleep(2)
+
     cli = Client(conn)
 
     # reset the serial connection device
-    if not request.config.getoption('ext_conn'):
+    if not request.config.getoption('ext_conn') and not request.config.getoption('local_binary'):
         cli.reset()
 
     cli.wait_for_output('Client registered', 300)
@@ -53,9 +58,9 @@ def client_internal(request):
     yield cli
 
     log.info('Closing client "{}"'.format(ep_id))
-    sleep(2)
-    conn.close()
     cli.kill()
+    conn.close()
+    sleep(2)
 
 
 @pytest.fixture(scope='function')

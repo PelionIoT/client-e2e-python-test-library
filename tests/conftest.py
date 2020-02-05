@@ -1,5 +1,5 @@
 """
-Copyright 2019 ARM Limited
+Copyright 2020 ARM Limited
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -12,6 +12,7 @@ limitations under the License.
 """
 
 import logging
+import os
 import pytest
 
 pytest_plugins = ['pelion_test_lib.fixtures.client_fixtures',
@@ -28,13 +29,14 @@ def pytest_addoption(parser):
     :return:
     """
     parser.addoption('--target_id', action='store', help='mbed device target id')
-    parser.addoption('--update_bin', action='store', help='mbed device update binary')
+    parser.addoption('--update_bin', action='store', help='mbed device update binary path')
     parser.addoption('--ext_conn', action='store_true', default=False, help='use external connection')
-    parser.addoption('--manifest_tool', action='store', help='manifest-tool init path')
+    parser.addoption('--manifest_tool', action='store', default=os.getcwd(), help='manifest-tool init path')
     parser.addoption('--no_cleanup', action='store_true', default=False,
-                     help='true for keeping update image, manifest and campaign')
+                     help='set true to keep update image, manifest and campaign')
     parser.addoption('--delta_manifest', action='store', default=False,
-                     help='set when given update_bin is a delta payload')
+                     help='set true if given update_bin is a delta image')
+    parser.addoption('--local_binary', action='store', help='local linux client binary path')
 
 
 def pytest_report_teststatus(report):
