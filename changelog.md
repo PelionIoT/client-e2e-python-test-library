@@ -1,13 +1,19 @@
 # Pelion E2E Python Test Library Changelog
 
 
+## 0.2.2  2020-02-06
+- Support for testing with linux binary.
+- Subscription test updated.
+- Set manifest-tool's default path to working directory
+- Minor error situation improvements
+
 ## 0.2.1  2020-01-22
-- Added pylint PR checker
+- Added pylint PR checker.
 
 ## 0.2.0  2020-01-22
 - Added factory reset test case.
 - Added update test case.
-- Minor code syntax improvements
+- Minor code syntax improvements.
 
 ## 0.1.4  2019-12-17
 - Added an automatic reset option for the board.
@@ -24,4 +30,4 @@
 - Added test result summary after the test run.
 
 ## 0.1.0  2019-11-05
-- Initial release of Pelion E2E Test Library
+- Initial release of Pelion E2E Test Library.

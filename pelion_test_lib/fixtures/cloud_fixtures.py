@@ -1,6 +1,6 @@
 # pylint: disable=redefined-outer-name
 """
-Copyright 2019 ARM Limited
+Copyright 2019-2020 ARM Limited
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -113,12 +113,18 @@ def update_device(cloud, client, request):
     :return: Campaign ID
     """
     binary_path = request.config.getoption('update_bin', None)
-    manifest_tool_path = request.config.getoption('manifest_tool', os.getcwd())
+    manifest_tool_path = request.config.getoption('manifest_tool')
     no_cleanup = request.config.getoption('no_cleanup', False)
     delta_manifest = request.config.getoption('delta_manifest', None)
+    local_bin = request.config.getoption('local_binary', None)
+    if local_bin:
+        skip_msg = 'Update test is not supported when using local linux binary!'
+        log.info(skip_msg)
+        pytest.skip(skip_msg)
+
     log.info('Update image: "{}"'.format(binary_path))
     log.info('Path for manifest-tool init: "{}"'.format(manifest_tool_path))
-    if not binary_path or not manifest_tool_path:
+    if not binary_path:
         skip_msg = 'Provide missing binary image in startup arguments to run update case\n' \
                    '--update_bin={}'.format(binary_path if binary_path else 'MISSING!')
         log.warning(skip_msg)

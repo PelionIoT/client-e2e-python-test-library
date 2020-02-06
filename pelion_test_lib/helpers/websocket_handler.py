@@ -1,5 +1,5 @@
 """
-Copyright 2019 ARM Limited
+Copyright 2019-2020 ARM Limited
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -22,9 +22,7 @@ from ws4py.client.threadedclient import WebSocketClient
 from ws4py.exc import WebSocketException
 from pelion_test_lib.tools.utils import build_random_string
 
-logging.basicConfig(format='%(asctime)s:%(name)s:%(threadName)s:%(levelname)s: %(message)s')
 log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
 
 
 class WebSocketHandler:

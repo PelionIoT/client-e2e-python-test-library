@@ -1,5 +1,5 @@
 """
-Copyright 2019 ARM Limited
+Copyright 2019-2020 ARM Limited
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -68,6 +68,19 @@ class ConnectAPI:
         if headers:
             _headers.update(headers)
         r = self.cloud_api.put(api_url, resource_data, _headers, expected_status_code)
+        return r
+
+    def get_subscription_status(self, device_id, resource_path, headers=None, expected_status_code=None):
+        """
+        Read subscription status
+        :param device_id: Device id
+        :param resource_path: Resource path
+        :param headers: Override default header fields
+        :param expected_status_code: Asserts the result's status code
+        :return: GET /v2/subscriptions/{device_id}/{resource_path} response
+        """
+        api_url = '/{}/subscriptions/{}/{}'.format(self.api_version, device_id, resource_path)
+        r = self.cloud_api.get(api_url, headers, expected_status_code)
         return r
 
     def set_subscription_for_resource(self, device_id, resource_path, headers=None, expected_status_code=None):

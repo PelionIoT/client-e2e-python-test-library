@@ -1,6 +1,6 @@
 # pylint: disable=broad-except
 """
-Copyright 2019 ARM Limited
+Copyright 2019-2020 ARM Limited
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -17,7 +17,6 @@ import logging
 import json
 
 log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
 
 
 class ExternalConnection:
@@ -72,7 +71,10 @@ class ExternalConnection:
         self.resource = self.client.allocate(description, expiration_time, allocation_timeout, local_allocation)
         if self.resource:
             self.resource.open_connection(self.remote_module.SerialParameters(baudrate=baudrate))
-            self.resource.on_release('erase')
+            try:
+                self.resource.on_release('erase')
+            except Exception as ex:
+                log.debug('External connection on release event setting error: {}'.format(ex))
             self.flash(binary, force_flash=True)
         else:
             self.close()

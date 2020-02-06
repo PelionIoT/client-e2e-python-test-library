@@ -1,5 +1,5 @@
 """
-Copyright 2019 ARM Limited
+Copyright 2019-2020 ARM Limited
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -20,7 +20,6 @@ import string
 import mbed_lstools
 
 log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
 
 
 def get_bootstrap_time_and_execution_mode(cloud_api, endpoint_id, headers):

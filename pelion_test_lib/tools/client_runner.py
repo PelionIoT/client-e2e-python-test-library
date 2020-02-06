@@ -1,5 +1,5 @@
 """
-Copyright 2019 ARM Limited
+Copyright 2019-2020 ARM Limited
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -27,7 +27,6 @@ fh.setFormatter(formatter)
 flog.addHandler(fh)
 
 log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
 
 
 class Client:
@@ -62,7 +61,7 @@ class Client:
                 plain_line = utils.strip_escape(line)
                 if b'\r' in line and line.count(b'\r') > 1:
                     plain_line = plain_line.split(b'\r')[-2]
-                plain_line = plain_line.replace(b'\t', b'  ').decode('utf-8')
+                plain_line = plain_line.replace(b'\t', b'  ').decode('utf-8', 'replace')
                 flog.info('<--|D{}| {}'.format(self.name, plain_line.strip()))
                 if self.trace:
                     log.debug('Raw output: {}'.format(line))

@@ -1,5 +1,5 @@
 """
-Copyright 2019 ARM Limited
+Copyright 2019-2020 ARM Limited
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -18,9 +18,7 @@ from pelion_test_lib.helpers.connect_helper import get_async_device_request, put
 from pelion_test_lib.helpers.update_helper import wait_for_campaign_device_state, wait_for_campaign_state
 from pelion_test_lib.tools.utils import get_bootstrap_time_and_execution_mode
 
-logging.basicConfig(format="%(asctime)s:%(name)s:%(threadName)s:%(levelname)s: %(message)s")
 log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
 
 PATTERN = '1:2:3:4'
 PATTERN2 = '500:500:500:500'
@@ -56,7 +54,12 @@ def test_04_subscribe_resource(cloud, client, websocket, temp_api_key):
     headers = {'Authorization': 'Bearer {}'.format(temp_api_key['key'])}
     r = cloud.connect.set_subscription_for_resource(client.endpoint_id(), '3201/0/5853', headers,
                                                     expected_status_code=202)
-    log.info('Set subscription for resource "/3201/0/5853". Async-id: "{}"'.format(r.json()['async-response-id']))
+    async_id = r.json()['async-response-id']
+    log.info('Set subscription for resource "/3201/0/5853". Async-id: "{}"'.format(async_id))
+    async_response = websocket.wait_for_async_response(async_response_id=async_id, timeout=180, assert_errors=True)
+    assert async_response['status'] == 200, 'Invalid subscription status received from the device!'
+
+    cloud.connect.get_subscription_status(client.endpoint_id(), '3201/0/5853', headers, expected_status_code=200)
 
     async_id = put_async_device_request(cloud, RESOURCE_PATH, client.endpoint_id(), PATTERN2, headers)
     log.info('Put value "{}" to resource "{}". Async-id: "{}"'.format(PATTERN2, RESOURCE_PATH, async_id))
@@ -87,7 +90,7 @@ def test_05_factory_reset(cloud, client, websocket, temp_api_key):
 
     # wait for new device id and check if it changed
     # (it should change in developer mode, but should not in factory mode)
-    new_id = client.wait_for_output('Device ID: ', timeout=900, errors=['Error occurred'])
+    new_id = client.wait_for_output('Device ID: ', timeout=900)
     new_id = new_id.split()[2]
     if is_developer_device:
         assert endpoint_id != new_id

@@ -26,6 +26,7 @@ $ pip install -I pelion_test_lib*.whl
 - Tests use [Mbed LS](https://github.com/ARMmbed/mbed-os-tools/tree/master/packages/mbed-ls) to select the board from the serial port.
   - If you have only one board connected to the serial port, you don't need to select the device for the tests.
   - If there are multiple boards connected to the serial port, run `mbedls` to check the target board's ID, and use it in the test run's argument `--target_id=[id]`.
+- Tests can be also run with [linux build of the Device Management Client](https://www.pelion.com/docs/device-management/current/connecting/linux-on-pc.html) by giving the compiled binary in the `--local_binary=./mbedCloudClientExample.elf` argument. Note that the update test is not supported with the linux build.
 
 ```bash
 $ mbedls
@@ -56,9 +57,9 @@ pytest dev-client-tests.py -k test_03_get_resource
 ### Running the update test
 Before running the update test case create an authentication certificate with [manifest-tool's init](https://www.pelion.com/docs/device-management/current/updating-firmware/setting-up.html) command and [compile your update image](https://www.pelion.com/docs/device-management/current/updating-firmware/preparing-images.html).
 Update test uses the same manifest-tool to create the actual manifest for update campaign.
-Running the update test provide two mandatory arguments at startup:
+Running the update test provide mandatory update image path and optional manifest-tool init path arguments at startup:
 - `--update_bin=/home/user/mbed-cloud-client-example_update.bin` absolute path for the update image
-- `--manifest_tool=/home/user/mbed-os-example-pelion` absolute path where manifest-tool init is executed
+- `--manifest_tool=/home/user/mbed-os-example-pelion` absolute path where manifest-tool init is executed - defaults to current working directory
 
 If you want to leave the firmware image, manifest and campaign to your account after the test, add `--no_cleanup` startup argument.
 
