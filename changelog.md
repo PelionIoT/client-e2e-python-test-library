@@ -1,7 +1,7 @@
 # Pelion E2E Python Test Library Changelog
 
 
-## 0.2.2  2020-02-xx
+## 0.2.2  2020-02-06
 - Support for testing with linux binary.
 - Subscription test updated.
 - Set manifest-tool's default path to working directory
