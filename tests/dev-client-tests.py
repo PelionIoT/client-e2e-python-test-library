@@ -53,11 +53,12 @@ def test_03_get_resource(cloud, client, websocket, temp_api_key):
 def test_04_subscribe_resource(cloud, client, websocket, temp_api_key):
     headers = {'Authorization': 'Bearer {}'.format(temp_api_key['key'])}
     r = cloud.connect.set_subscription_for_resource(client.endpoint_id(), '3201/0/5853', headers,
-                                                    expected_status_code=202)
-    async_id = r.json()['async-response-id']
-    log.info('Set subscription for resource "/3201/0/5853". Async-id: "{}"'.format(async_id))
-    async_response = websocket.wait_for_async_response(async_response_id=async_id, timeout=180, assert_errors=True)
-    assert async_response['status'] == 200, 'Invalid subscription status received from the device!'
+                                                    expected_status_code=[200, 202])
+    if r.status_code == 202:
+        async_id = r.json()['async-response-id']
+        log.info('Set subscription for resource "/3201/0/5853". Async-id: "{}"'.format(async_id))
+        async_response = websocket.wait_for_async_response(async_response_id=async_id, timeout=180, assert_errors=True)
+        assert async_response['status'] == 200, 'Invalid subscription status received from the device!'
 
     cloud.connect.get_subscription_status(client.endpoint_id(), '3201/0/5853', headers, expected_status_code=200)
 
