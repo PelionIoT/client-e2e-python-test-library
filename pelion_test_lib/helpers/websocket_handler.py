@@ -321,7 +321,7 @@ class CallbackClient(WebSocketClient):
     WebSocket callback client class
     """
     def __init__(self, messaqe_queue, api, protocols):
-        super().__init__(api, protocols=protocols)
+        super(CallbackClient, self).__init__(api, protocols=protocols)
         self.message_queue = messaqe_queue
         self.api = api
 

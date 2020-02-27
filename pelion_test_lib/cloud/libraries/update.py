@@ -117,11 +117,11 @@ class UpdateAPI:
         :return: POST /firmware-images response
         """
         api_url = '/{}/firmware-images'.format(self.api_version)
-        if not headers:
-            headers = dict()
-        headers = {**{'Content-type': 'multipart/form-data'}, **headers}
+        _headers = {'Content-type': 'multipart/form-data'}
+        if headers:
+            _headers.update(headers)
         fw_image = {'datafile': open(firmware_binary_path, 'rb')}
-        r = self.cloud_api.post(api_url, request_data, headers, expected_status_code, files=fw_image)
+        r = self.cloud_api.post(api_url, request_data, _headers, expected_status_code, files=fw_image)
         return r
 
     def delete_firmware_image(self, firmware_id, headers=None, expected_status_code=None):
@@ -146,11 +146,11 @@ class UpdateAPI:
         :return: POST /firmware-manifests response
         """
         api_url = '/{}/firmware-manifests'.format(self.api_version)
-        if not headers:
-            headers = dict()
-        headers = {**{'Content-type': 'multipart/form-data'}, **headers}
+        _headers = {'Content-type': 'multipart/form-data'}
+        if headers:
+            _headers.update(headers)
         manifest_file = {'datafile': open(manifest_file_path, 'rb')}
-        r = self.cloud_api.post(api_url, request_data, headers, expected_status_code, files=manifest_file)
+        r = self.cloud_api.post(api_url, request_data, _headers, expected_status_code, files=manifest_file)
         return r
 
     def delete_firmware_manifest(self, manifest_id, headers=None, expected_status_code=None):
