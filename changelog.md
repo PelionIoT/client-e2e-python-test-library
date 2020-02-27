@@ -1,6 +1,9 @@
 # Pelion E2E Python Test Library Changelog
 
 
+## 0.2.4  2020-02-27
+- Completed the Python 2 support.
+
 ## 0.2.3  2020-02-10
 - Small update for subscription test.
 
