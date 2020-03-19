@@ -175,3 +175,82 @@ def update_device(cloud, client, request):
         if manifest_id:
             log.info('Deleting firmware manifest. ID: {}'.format(manifest_id))
             cloud.update.delete_firmware_manifest(manifest_id, expected_status_code=204)
+
+
+@pytest.fixture(scope='function')
+def update_campaign(cloud, request):
+    """
+    Fixture for running update campaign for multiple devices.
+    :param cloud: Cloud fixture
+    :param request: Request fixture
+    :return: Campaign ID
+    """
+    campaign_id = None
+    fw_image_id = None
+    manifest_id = None
+
+    binary_path = request.config.getoption('update_bin', None)
+    log.info('Update image: "{}"'.format(binary_path))
+
+    if request.config.getoption('local_binary', None):
+        skip_msg = 'Update test is not supported when using local linux binary!'
+        log.info(skip_msg)
+        pytest.skip(skip_msg)
+    if not binary_path:
+        skip_msg = 'Provide missing binary image in startup arguments to run update case\n' \
+                   '--update_bin={}'.format(binary_path if binary_path else 'MISSING!')
+        log.warning(skip_msg)
+        pytest.skip(skip_msg)
+
+    def create_campaign(device_filter):
+        nonlocal campaign_id
+        nonlocal fw_image_id
+        nonlocal manifest_id
+
+        fw_image = cloud.update.upload_firmware_image(binary_path, expected_status_code=201).json()
+        fw_image_id = fw_image['id']
+        log.info('Firmware image uploaded! Image ID: {}'.format(fw_image_id))
+
+        manifest_tool_path = request.config.getoption('manifest_tool')
+        log.info('Path for manifest-tool init: "{}"'.format(manifest_tool_path))
+
+        delta_manifest = request.config.getoption('delta_manifest', None)
+        manifest_file = manifest_tool.create_manifest(path=manifest_tool_path,
+                                                      firmware_url=fw_image['datafile'],
+                                                      update_image_path=binary_path,
+                                                      delta_manifest=delta_manifest)
+        assert manifest_file is not None, 'Manifest file was not created'
+
+        manifest = cloud.update.upload_firmware_manifest(manifest_file, expected_status_code=201).json()
+        manifest_id = manifest['id']
+        log.info('Firmware manifest uploaded! Manifest ID: {}'.format(manifest_id))
+
+        campaign_name = 'pelion_e2e_update_test_{}'.format(build_random_string(8, True))
+        campaign_data = {'name': campaign_name,
+                         'device_filter': device_filter,
+                         'root_manifest_id': manifest['id']}
+
+        campaign = cloud.update.create_update_campaign(campaign_data, expected_status_code=201).json()
+        campaign_id = campaign['id']
+        assert campaign['phase'] == 'draft'
+        log.info('Update campaign created! Campaign ID: {}'.format(campaign_id))
+
+        cloud.update.start_update_campaign(campaign['id'], expected_status_code=202)
+        log.info('Update campaign started! Campaign ID: {}'.format(campaign_id))
+
+        return campaign_id
+
+    yield create_campaign
+
+    if not request.config.getoption('no_cleanup', False):
+        if campaign_id:
+            cloud.update.stop_update_campaign(campaign_id, expected_status_code=[202, 409])
+            wait_for_campaign_phase(cloud, campaign_id, ['draft', 'stopped', 'archived'])
+            log.info('Deleting update campaign. ID: {}'.format(campaign_id))
+            cloud.update.delete_update_campaign(campaign_id, expected_status_code=204)
+        if fw_image_id:
+            log.info('Deleting firmware image. ID: {}'.format(fw_image_id))
+            cloud.update.delete_firmware_image(fw_image_id, expected_status_code=204)
+        if manifest_id:
+            log.info('Deleting firmware manifest. ID: {}'.format(manifest_id))
+            cloud.update.delete_firmware_manifest(manifest_id, expected_status_code=204)

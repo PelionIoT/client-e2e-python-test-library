@@ -1,6 +1,9 @@
 # Pelion E2E Python Test Library Changelog
 
 
+## 0.2.5  2020-03-xx
+- Added fixture for multi device update campaign.
+
 ## 0.2.4  2020-02-27
 - Completed the Python 2 support.
 
