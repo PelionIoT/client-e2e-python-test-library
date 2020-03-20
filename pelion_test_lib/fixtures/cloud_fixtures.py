@@ -50,49 +50,50 @@ def cloud():
 
     cloud_api = PelionCloud(api_gw, api_key)
 
-    payload = {'name': 'pelion_e2e_dynamic_api_key'}
-    r = cloud_api.account.create_api_key(payload, expected_status_code=201)
-    resp = r.json()
-    cloud_api.rest_api.set_default_api_key(resp['key'])
-
     yield cloud_api
 
-    log.debug('Cleaning out the Cloud API fixture')
-    headers = {'Authorization': 'Bearer {}'.format(api_key)}
-    cloud_api.account.delete_api_key(resp['id'], headers=headers, expected_status_code=204)
-
 
 @pytest.fixture(scope='module')
-def temp_api_key(cloud):
+def api_key(cloud, request):
     """
-    Create new temporary function level developer api key
-    :param cloud: Cloud API fixture
-    :return: Rest API response for new developer api key
+    Create new temporary module level developer API key
+    When running testset with 'use_one_apikey' argument this doesn't create new one but returns current API key!
+    :param cloud: Cloud fixture
+    :return: API key
     """
+    use_current = request.config.getoption('use_one_apikey', False)
+    temp_key_id = None
+
     payload = {'name': 'pelion_e2e_dynamic_api_key'}
-    r = cloud.account.create_api_key(payload, expected_status_code=201)
-    resp = r.json()
+    if use_current:
+        log.info('Using current API key, not creating temporary one')
+        key = cloud.rest_api.api_key
+    else:
+        log.info('Creating new developer API key')
+        r = cloud.account.create_api_key(payload, expected_status_code=201)
+        resp = r.json()
+        key = resp['key']
+        temp_key_id = resp['id']
+        log.info('Created new developer API key for the test run, ID: {}'.format(temp_key_id))
 
-    log.info('Created new developer api key for test case, id: {}'.format(resp['id']))
+    yield key
 
-    yield resp
-
-    log.info('Cleaning out the generated test case developer api key, id: {}'.format(resp['id']))
-    cloud.account.delete_api_key(resp['id'], expected_status_code=204)
+    if temp_key_id:
+        log.info('Cleaning out the generated test set developer API key, ID: {}'.format(temp_key_id))
+        cloud.account.delete_api_key(temp_key_id, expected_status_code=204)
 
 
 @pytest.fixture(scope='module')
-def websocket(cloud, temp_api_key):
+def websocket(cloud, api_key):
     log.info('Register and open WebSocket notification channel')
-    headers = {'Authorization': 'Bearer {}'.format(temp_api_key['key'])}
+    headers = {'Authorization': 'Bearer {}'.format(api_key)}
     cloud.connect.register_websocket_channel(headers=headers, expected_status_code=[200, 201])
     sleep(5)
     # Get host part from api address
     host = cloud.api_gw.split('//')[1]
 
     log.info('Opening WebSocket handler')
-    ws = websocket_handler.WebSocketRunner('wss://{}/v2/notification/websocket-connect'.format(host),
-                                           temp_api_key['key'])
+    ws = websocket_handler.WebSocketRunner('wss://{}/v2/notification/websocket-connect'.format(host), api_key)
     handler = websocket_handler.WebSocketHandler(ws)
     yield handler
 

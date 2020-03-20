@@ -23,6 +23,7 @@ $ pip install -I pelion_test_lib*.whl
 - The [API key](https://www.pelion.com/docs/device-management/current/integrate-web-app/api-keys.html) is used from Mbed's default `CLOUD_SDK_API_KEY` environment variable, but you can override it by defining a separate variable using a command-line command:
     - Linux: `export PELION_CLOUD_API_KEY=[api_key_here]`
     - Windows: `set PELION_CLOUD_API_KEY=[api_key_here]`
+- Test run will create temporary API key for the WebSocket callback channel by default. If you want to prevent that and use only the exported API key, add `--use_one_apikey` startup argument.
 - Tests use [Mbed LS](https://github.com/ARMmbed/mbed-os-tools/tree/master/packages/mbed-ls) to select the board from the serial port.
   - If you have only one board connected to the serial port, you don't need to select the device for the tests.
   - If there are multiple boards connected to the serial port, run `mbedls` to check the target board's ID, and use it in the test run's argument `--target_id=[id]`.

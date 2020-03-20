@@ -32,8 +32,8 @@ def test_01_get_device_id(cloud, client):
     cloud.device_directory.get_device(client.endpoint_id(), expected_status_code=200)
 
 
-def test_02_put_resource(cloud, client, websocket, temp_api_key):
-    headers = {'Authorization': 'Bearer {}'.format(temp_api_key['key'])}
+def test_02_put_resource(cloud, client, websocket, api_key):
+    headers = {'Authorization': 'Bearer {}'.format(api_key)}
     async_id = put_async_device_request(cloud, RESOURCE_PATH, client.endpoint_id(), PATTERN, headers)
     log.info('Put value "{}" to resource "{}". Async-id: "{}"'.format(PATTERN, RESOURCE_PATH, async_id))
 
@@ -41,8 +41,8 @@ def test_02_put_resource(cloud, client, websocket, temp_api_key):
     assert async_response['decoded_payload'] == b'', 'Invalid payload received from the device!'
 
 
-def test_03_get_resource(cloud, client, websocket, temp_api_key):
-    headers = {'Authorization': 'Bearer {}'.format(temp_api_key['key'])}
+def test_03_get_resource(cloud, client, websocket, api_key):
+    headers = {'Authorization': 'Bearer {}'.format(api_key)}
     async_id = get_async_device_request(cloud, RESOURCE_PATH, client.endpoint_id(), headers)
     log.info('Get value from resource "{}". Async-id: "{}"'.format(RESOURCE_PATH, async_id))
 
@@ -50,8 +50,8 @@ def test_03_get_resource(cloud, client, websocket, temp_api_key):
     assert async_response['decoded_payload'] == PATTERN.encode('ascii'), 'Invalid payload received from the device!'
 
 
-def test_04_subscribe_resource(cloud, client, websocket, temp_api_key):
-    headers = {'Authorization': 'Bearer {}'.format(temp_api_key['key'])}
+def test_04_subscribe_resource(cloud, client, websocket, api_key):
+    headers = {'Authorization': 'Bearer {}'.format(api_key)}
     r = cloud.connect.set_subscription_for_resource(client.endpoint_id(), '3201/0/5853', headers,
                                                     expected_status_code=[200, 202])
     if r.status_code == 202:
@@ -67,8 +67,8 @@ def test_04_subscribe_resource(cloud, client, websocket, temp_api_key):
     websocket.wait_for_notification(client.endpoint_id(), RESOURCE_PATH, PATTERN2, timeout=180, assert_errors=True)
 
 
-def test_05_factory_reset(cloud, client, websocket, temp_api_key):
-    headers = {'Authorization': 'Bearer {}'.format(temp_api_key['key'])}
+def test_05_factory_reset(cloud, client, websocket, api_key):
+    headers = {'Authorization': 'Bearer {}'.format(api_key)}
     endpoint_id = client.endpoint_id()
 
     # store bootstrap time and execution mode

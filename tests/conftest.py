@@ -37,6 +37,7 @@ def pytest_addoption(parser):
     parser.addoption('--delta_manifest', action='store', default=False,
                      help='set true if given update_bin is a delta image')
     parser.addoption('--local_binary', action='store', help='local linux client binary path')
+    parser.addoption('--use_one_apikey', action='store_true', default=False, help='do not create temp api key')
 
 
 def pytest_report_teststatus(report):

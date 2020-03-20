@@ -1,8 +1,10 @@
 # Pelion E2E Python Test Library Changelog
 
 
-## 0.2.5  2020-03-xx
+## 0.2.5  2020-03-20
 - Added fixture for multi device update campaign.
+- Option to run test set without creating temporary API key.
+- Breaking change: API key fixture name change and it returns only the key part.
 
 ## 0.2.4  2020-02-27
 - Completed the Python 2 support.
