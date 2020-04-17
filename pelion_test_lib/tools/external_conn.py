@@ -41,41 +41,34 @@ class ExternalConnection:
             log.error(error_msg)
             raise Exception(error_msg)
 
-        external_module = configs['module']
-        host = configs['host']
-        port = configs['port']
-        user = configs['user']
-        password = configs['password']
-        resource_type = configs['resource_type']
-        platform_name = configs['platform_name']
-        resource_tags = configs['resource_tags']
-        binary = configs['binary']
-        baudrate = configs['baudrate']
         expiration_time = configs.get('expiration_time', 1200)
         allocation_timeout = configs.get('allocation_timeout', 500)
         local_allocation = configs.get('local_allocation', False)
+        on_release = configs.get('on_release', 'erase')
 
         try:
-            self.remote_module = importlib.import_module(external_module)
+            self.remote_module = importlib.import_module(configs['module'])
         except ImportError as error:
-            log.error('Unable to load external "{}" module!'.format(external_module))
+            log.error('Unable to load external "{}" module!'.format(configs['module']))
             log.error(str(error))
             self.remote_module = None
             raise error
 
-        self.client = self.remote_module.create(host=host, port=port, user=user, passwd=password)
+        self.client = self.remote_module.create(host=configs['host'], port=configs['port'],
+                                                user=configs['user'], passwd=configs['password'])
 
-        description = {'resource_type': resource_type,
-                       'platform_name': platform_name,
-                       'tags': resource_tags}
+        description = {'resource_type': configs['resource_type'],
+                       'platform_name': configs['platform_name'],
+                       'tags': configs['resource_tags']}
+
         self.resource = self.client.allocate(description, expiration_time, allocation_timeout, local_allocation)
         if self.resource:
-            self.resource.open_connection(self.remote_module.SerialParameters(baudrate=baudrate))
+            self.resource.open_connection(self.remote_module.SerialParameters(baudrate=configs['baudrate']))
             try:
-                self.resource.on_release('erase')
+                self.resource.on_release(on_release)
             except Exception as ex:
                 log.debug('External connection on release event setting error: {}'.format(ex))
-            self.flash(binary, force_flash=True)
+            self.flash(configs['binary'], force_flash=True)
         else:
             self.close()
             error_msg = 'Could not allocate external resource'
