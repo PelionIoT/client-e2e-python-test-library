@@ -141,3 +141,14 @@ def get_path(path):
         p = os.path.join(os.sep, os.environ['WORKSPACE'], path)
         return p
     return path
+
+
+def remove_first_slash_from(resource_path):
+    """
+    Some REST API calls are written to have resource path without the '/' in the beginning, so this removes it
+    :param resource_path: e.g. /1/0/1
+    :return: Resource path without the first '/'
+    """
+    if resource_path[0] == '/':
+        return resource_path[1:]
+    return resource_path

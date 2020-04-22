@@ -73,7 +73,8 @@ def pytest_sessionfinish():
     """
     if pytest.global_test_results != []:
         log.info('-----  TEST RESULTS SUMMARY  -----')
-        log.info('[ check the complete fail reasons and code locations from this log or html report ]')
+        if any(resp['result'] == 'failed' for resp in pytest.global_test_results):
+            log.info('[ check the complete fail reasons and code locations from this log or html report ]')
         for resp in pytest.global_test_results:
             result = resp['result']
             if result == 'failed':
