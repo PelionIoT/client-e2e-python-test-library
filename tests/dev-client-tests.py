@@ -115,7 +115,7 @@ def test_05_factory_reset(cloud, client, websocket, api_key):
     else:
         assert endpoint_id == new_id
 
-    # check that bootstrap time is bigger now since factory reset should result in re-boostrapping
+    # check that bootstrap time is bigger now since factory reset should result in re-bootstrapping
     new_bootstrap_time, _ = get_bootstrap_time_and_execution_mode(cloud, new_id, headers)
     assert new_bootstrap_time > bootstrap_time, 'New bootstrap time not bigger than old'
 

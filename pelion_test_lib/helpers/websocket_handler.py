@@ -161,11 +161,14 @@ class WebSocketHandler:
         for _ in range(timeout):
             async_response = self.ws.async_responses.get(async_response_id)
             if async_response:
+                log.info('Async response received for async-id: "{}". Status: {}'.format(async_response_id,
+                                                                                         async_response['status']))
                 if 'payload' in async_response:
                     # decode original payload and append in received async response
                     async_response['decoded_payload'] = base64.b64decode(async_response['payload']).decode('utf-8',
                                                                                                            'replace')
-                log.info('Async response received at callback for async-id: "{}"'.format(async_response_id))
+                    log.info('Async response payload: "{}"'.format(async_response['decoded_payload']))
+
                 log.debug(async_response)
                 return async_response
             sleep(1)
