@@ -143,8 +143,7 @@ class WebSocketHandler:
             for item in self.ws.events['notifications']:
                 if item['ep'] == device_id and item['path'] == resource_path and \
                         base64.b64decode(item['payload']).decode('utf8') == expected_value:
-                    log.info('Notification value received: "{}"'.
-                             format(base64.b64decode(item['payload']).decode('utf8')))
+                    log.info('Expected notification value "{}" received at callback'.format(expected_value))
                     return item
             sleep(1)
         if assert_errors:
@@ -164,8 +163,10 @@ class WebSocketHandler:
             if async_response:
                 if 'payload' in async_response:
                     # decode original payload and append in received async response
-                    async_response['decoded_payload'] = base64.b64decode(async_response['payload'])
-                    log.info('Async response received: "{}"'.format(str(async_response['decoded_payload'])))
+                    async_response['decoded_payload'] = base64.b64decode(async_response['payload']).decode('utf-8',
+                                                                                                           'replace')
+                log.info('Async response received at callback for async-id: "{}"'.format(async_response_id))
+                log.debug(async_response)
                 return async_response
             sleep(1)
         if assert_errors:

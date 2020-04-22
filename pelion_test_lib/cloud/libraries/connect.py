@@ -11,6 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from pelion_test_lib.tools.utils import remove_first_slash_from
+
 
 class ConnectAPI:
     """
@@ -46,7 +48,7 @@ class ConnectAPI:
         :param expected_status_code: Asserts the result's status code
         :return: GET /v2/endpoints/{device_id} response
         """
-        api_url = '/{}/endpoints/{}/{}'.format(self.api_version, device_id, resource_path)
+        api_url = '/{}/endpoints/{}/{}'.format(self.api_version, device_id, remove_first_slash_from(resource_path))
         r = self.cloud_api.get(api_url, headers, expected_status_code)
         return r
 
@@ -61,7 +63,7 @@ class ConnectAPI:
         :param expected_status_code: Asserts the result's status code
         :return: PUT /v2/endpoints/{device_id}/{resourcePath} response
         """
-        api_url = '/{}/endpoints/{}/{}'.format(self.api_version, device_id, resource_path)
+        api_url = '/{}/endpoints/{}/{}'.format(self.api_version, device_id, remove_first_slash_from(resource_path))
 
         # Set text/plain to be default content type for this request - content type from parameters will override this
         _headers = {'Content-type': 'text/plain'}
@@ -79,7 +81,7 @@ class ConnectAPI:
         :param expected_status_code: Asserts the result's status code
         :return: GET /v2/subscriptions/{device_id}/{resource_path} response
         """
-        api_url = '/{}/subscriptions/{}/{}'.format(self.api_version, device_id, resource_path)
+        api_url = '/{}/subscriptions/{}/{}'.format(self.api_version, device_id, remove_first_slash_from(resource_path))
         r = self.cloud_api.get(api_url, headers, expected_status_code)
         return r
 
@@ -92,7 +94,7 @@ class ConnectAPI:
         :param expected_status_code: Asserts the result's status code
         :return: PUT /v2/subscriptions/{device_id}/{resource_path} response
         """
-        api_url = '/{}/subscriptions/{}/{}'.format(self.api_version, device_id, resource_path)
+        api_url = '/{}/subscriptions/{}/{}'.format(self.api_version, device_id, remove_first_slash_from(resource_path))
         r = self.cloud_api.put(api_url, headers=headers, expected_status_code=expected_status_code)
         return r
 

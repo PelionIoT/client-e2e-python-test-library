@@ -83,9 +83,9 @@ There are many ways to configure the test runs. Refer to the [full pytest docume
 | Test name                       | Main functions                                        | Notes                        |
 | ------------------------------- | ------------------------------------------------------| -----------------------------|
 | `test_01_get_device_id`         | Verify that the device is registered.                 |                              |
-| `test_02_put_resource`          | Verify that the device responds to PUT.               | Uses Resource `/3201/0/5853` |
-| `test_03_get_resource`          | Verify that the device responds to GET.               | Uses Resource `/3201/0/5853` |
-| `test_04_subscribe_resource`    | Verify the notification from the subscribed resource. | Uses Resource `/3201/0/5853` |
+| `test_02_get_resource`          | Verify that the device responds to GET.               | Uses Resource `/1/0/1`       |
+| `test_03_put_resource`          | Verify that the device responds to PUT.               | Uses Resource `/1/0/1`       |
+| `test_04_subscribe_resource`    | Verify the notification from the subscribed resource. | Uses Resource `/1/0/1`       |
 | `test_05_factory_reset`         | Verify the client's factory reset behaviour.          |                              |
 | `test_06_update_device`         | Verify the device firmware update.                    |                              |
 

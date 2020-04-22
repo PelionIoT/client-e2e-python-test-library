@@ -1,6 +1,9 @@
 # Pelion E2E Python Test Library Changelog
 
 
+## 0.2.6  2020-04-22
+- Device resource paths changed to support any client-library using application.
+
 ## 0.2.5  2020-03-20
 - Added fixture for multi device update campaign.
 - Option to run test set without creating temporary API key.
