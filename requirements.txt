@@ -1,4 +1,4 @@
-manifest-tool
+manifest-tool == 1.5.2
 mbed-ls
 pytest
 pytest-html
