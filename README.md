@@ -56,13 +56,15 @@ pytest dev-client-tests.py -k test_03_get_resource
 ```
 
 ### Running the update test
-Before running the update test case create an authentication certificate with [manifest-tool's init](https://www.pelion.com/docs/device-management/current/updating-firmware/setting-up.html) command and [compile your update image](https://www.pelion.com/docs/device-management/current/updating-firmware/preparing-images.html).
-Update test uses the same manifest-tool to create the actual manifest for update campaign.
-Running the update test provide mandatory update image path and optional manifest-tool init path arguments at startup:
+Before running the update test case create an authentication certificate with [manifest-dev-tool init](https://www.pelion.com/docs/device-management/current/updating-firmware/setting-up.html) command and [compile your update image](https://www.pelion.com/docs/device-management/current/updating-firmware/preparing-images.html).
+Update test uses the same manifest-dev-tool to create the actual manifest for update campaign.
+Running the update test provide mandatory update image path and optional manifest-dev-tool init path arguments at startup:
 - `--update_bin=/home/user/mbed-cloud-client-example_update.bin` absolute path for the update image
-- `--manifest_tool=/home/user/mbed-os-example-pelion` absolute path where manifest-tool init is executed - defaults to current working directory
+- `--manifest_tool=/home/user/mbed-os-example-pelion` absolute path where manifest-dev-tool init is executed - defaults to current working directory
 
 If you want to leave the firmware image, manifest and campaign to your account after the test, add `--no_cleanup` startup argument.
+New manifest-tool 2.0.0 supports two different versions of manifest schemas. Update test's manifest creation defaults to 'v1' manifest version, but you can set the version e.g to 'v3' by the `--manifest_version=v3` startup argument.
+Supported versions at the moment are 'v1' and 'v3'.
 
 
 ### Results output
