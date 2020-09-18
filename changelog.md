@@ -1,6 +1,9 @@
 # Pelion E2E Python Test Library Changelog
 
 
+## 0.2.7  2020-09-18
+- Manifest-tool 2.0.0 support.
+
 ## 0.2.6  2020-04-22
 - Device resource paths changed to support any client-library using application.
 
