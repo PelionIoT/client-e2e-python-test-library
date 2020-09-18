@@ -115,6 +115,7 @@ def update_device(cloud, client, request):
     """
     binary_path = request.config.getoption('update_bin', None)
     manifest_tool_path = request.config.getoption('manifest_tool')
+    manifest_version = request.config.getoption('manifest_version', 'v1')
     no_cleanup = request.config.getoption('no_cleanup', False)
     delta_manifest = request.config.getoption('delta_manifest', None)
     local_bin = request.config.getoption('local_binary', None)
@@ -142,7 +143,8 @@ def update_device(cloud, client, request):
     manifest_file = manifest_tool.create_manifest(path=manifest_tool_path,
                                                   firmware_url=fw_image['datafile'],
                                                   update_image_path=binary_path,
-                                                  delta_manifest=delta_manifest)
+                                                  delta_manifest=delta_manifest,
+                                                  manifest_version=manifest_version)
     assert manifest_file is not None, 'Manifest file was not created'
 
     manifest = cloud.update.upload_firmware_manifest(manifest_file, expected_status_code=201).json()
