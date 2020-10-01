@@ -66,7 +66,7 @@ If you want to leave the firmware image, manifest and campaign to your account a
 New manifest-tool 2.0.0 supports two different versions of manifest schemas. Update test's manifest creation defaults to 'v1' manifest version, but you can set the version e.g to 'v3' by the `--manifest_version=v3` startup argument.
 Supported versions at the moment are 'v1' and 'v3'.
 
-If you need to pass in an explicit firmware version, verses using a time-stamp-generated value, use the `--fw_version` option.
+If you need to pass in an explicit firmware version, versus using a time-stamp-generated value, use the `--fw_version` option.
 
 ### Results output
 
