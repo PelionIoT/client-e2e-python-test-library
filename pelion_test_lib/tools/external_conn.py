@@ -63,6 +63,7 @@ class ExternalConnection:
 
         self.resource = self.client.allocate(description, expiration_time, allocation_timeout, local_allocation)
         if self.resource:
+            log.info('Allocated device {}, id: {}'.format(self.resource.info().get('name', None), self.resource.resource_id))
             self.resource.open_connection(self.remote_module.SerialParameters(baudrate=configs['baudrate']))
             try:
                 self.resource.on_release(on_release)
