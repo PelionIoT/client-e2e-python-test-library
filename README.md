@@ -19,31 +19,33 @@ $ pip install -I pelion_test_lib*.whl
 
 ## Basic usage
 
-- Build the [Device Management Client example application](https://www.pelion.com/docs/device-management/current/connecting/device-management-client-tutorials.html) for your board and flash it.
-- The [API key](https://www.pelion.com/docs/device-management/current/integrate-web-app/api-keys.html) is used from Mbed's default `CLOUD_SDK_API_KEY` environment variable, but you can override it by defining a separate variable using a command-line command:
-    - Linux: `export PELION_CLOUD_API_KEY=[api_key_here]`
-    - Windows: `set PELION_CLOUD_API_KEY=[api_key_here]`
+- Build the [Device Management Client example application](https://developer.pelion.com/docs/device-management/current/connecting/mbed-os.html) for your board and flash it.
+- Set `PELION_CLOUD_API_KEY` environment variable with your [access key](https://developer.pelion.com/docs/device-management/current/user-account/application-access-keys.html).
+    - Linux: `export PELION_CLOUD_API_KEY=<access_key_here>`
+    - Windows: `set PELION_CLOUD_API_KEY=<access_key_here>`
 - Test run will create temporary API key for the WebSocket callback channel by default. If you want to prevent that and use only the exported API key, add `--use_one_apikey` startup argument.
 - Tests use [Mbed LS](https://github.com/ARMmbed/mbed-os-tools/tree/master/packages/mbed-ls) to select the board from the serial port.
   - If you have only one board connected to the serial port, you don't need to select the device for the tests.
   - If there are multiple boards connected to the serial port, run `mbedls` to check the target board's ID, and use it in the test run's argument `--target_id=[id]`.
-- Tests can be also run with [linux build of the Device Management Client](https://www.pelion.com/docs/device-management/current/connecting/linux-on-pc.html) by giving the compiled binary in the `--local_binary=./mbedCloudClientExample.elf` argument. Note that the update test is not supported with the linux build.
 
-```bash
-$ mbedls
-+---------------+----------------------+-------------+--------------+--------------------------------------------------+-----------------+
-| platform_name | platform_name_unique | mount_point | serial_port  | target_id                                        | daplink_version |
-+---------------+----------------------+-------------+--------------+--------------------------------------------------+-----------------+
-| K64F          | K64F[0]              | D:          | /dev/ttyACM0 | 0240000032044e4500257009997b00386781000097969900 | 0244            |
-+---------------+----------------------+-------------+--------------+--------------------------------------------------+-----------------+
-```
+  ```bash
+  $ mbedls
+  +---------------+----------------------+-------------+--------------+--------------------------------------------------+-----------------+
+  | platform_name | platform_name_unique | mount_point | serial_port  | target_id                                        | daplink_version |
+  +---------------+----------------------+-------------+--------------+--------------------------------------------------+-----------------+
+  | K64F          | K64F[0]              | D:          | /dev/ttyACM0 | 0240000032044e4500257009997b00386781000097969900 | 0244            |
+  +---------------+----------------------+-------------+--------------+--------------------------------------------------+-----------------+
+
+  ```
+
+- Tests can be also run with [Linux build of the Device Management Client](https://www.pelion.com/docs/device-management/current/connecting/linux-on-pc.html) by giving the compiled binary in the `--local_binary=./mbedCloudClientExample.elf` argument. **Note,** update test is not supported with Linux build.
 
 ### Running a test set
 
-To run a test set for Device Management Client, go to the `/tests` folder and use the command:
+To run a test set for Device Management Client use the command:
 
 ```bash
-pytest dev-client-tests.py
+pytest tests/dev-client-tests.py
 ```
 Read later instructions how to setup the update test to go with the test set.
 
@@ -52,11 +54,11 @@ Read later instructions how to setup the update test to go with the test set.
 To run a single test from the set, use the [`-k` argument](https://docs.pytest.org/en/latest/example/markers.html?highlight=keyword#using-k-expr-to-select-tests-based-on-their-name) to set the test name as a keyword:
 
 ```bash
-pytest dev-client-tests.py -k test_03_get_resource
+pytest tests/dev-client-tests.py -k get_resource
 ```
 
 ### Running the update test
-Before running the update test case create an authentication certificate with [manifest-dev-tool init](https://www.pelion.com/docs/device-management/current/updating-firmware/setting-up.html) command and [compile your update image](https://www.pelion.com/docs/device-management/current/updating-firmware/preparing-images.html).
+Before running the update test, make sure you create update-related configuration and initialize the developer environment proparly as describe [here](https://developer.pelion.com/docs/device-management/current/connecting/mbed-os.html).
 Update test uses the same manifest-dev-tool to create the actual manifest for update campaign.
 Running the update test provide mandatory update image path and optional manifest-dev-tool init path arguments at startup:
 - `--update_bin=/home/user/mbed-cloud-client-example_update.bin` absolute path for the update image
