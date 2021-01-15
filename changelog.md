@@ -1,5 +1,11 @@
 # Pelion E2E Python Test Library Changelog
 
+## 0.2.9  2021-01-15
+- Updated instructions
+- Updated python dependencies
+
+## 0.2.8  2020-12-15
+- Update copyrights to Pelion
 
 ## 0.2.7  2020-09-18
 - Manifest-tool 2.0.0 support.
