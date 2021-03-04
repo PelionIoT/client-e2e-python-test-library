@@ -122,6 +122,6 @@ def test_05_factory_reset(cloud, client, websocket, api_key):
 
 def test_06_update_device(cloud, client, update_device):
     campaign_id = update_device
-    wait_for_campaign_state(cloud, campaign_id)
+    wait_for_campaign_state(cloud, campaign_id, timeout=UPDATE_TIMEOUT)
     client_id = client.endpoint_id(120)
     wait_for_campaign_device_state(cloud, campaign_id, client_id)
