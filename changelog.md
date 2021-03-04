@@ -1,5 +1,8 @@
 # Pelion E2E Python Test Library Changelog
 
+## 0.2.10 2021-03-04
+- Update test doesn't depend on mbed bootloader anymore
+
 ## 0.2.9  2021-01-15
 - Updated instructions
 - Updated python dependencies
