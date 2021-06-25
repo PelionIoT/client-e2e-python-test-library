@@ -74,6 +74,7 @@ To leave the firmware image, manifest and campaign in your account after the tes
 
 Manifest tool 2.0.0 supports two manifest schema versions: `v1` and `v3`. By default, the update test creates `v1` manifests, but you can create `v3` manifests by passing the `--manifest_version=v3` startup argument.
 
+If you need to pass in an explicit firmware version, versus using a time-stamp-generated value, use the `--fw_version` option.
 
 ### Results output
 

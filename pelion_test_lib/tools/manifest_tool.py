@@ -60,7 +60,7 @@ def init(working_path, vendor_domain=None, model_name=None):
 
 
 def create_manifest(path, firmware_url, update_image_path, output='output.manifest', delta_manifest=None,
-                    manifest_version='v1'):
+                    manifest_version='v1', fw_version=None):
     """
     Create a manifest file
     :param path: Manifest-tool path
@@ -80,7 +80,11 @@ def create_manifest(path, firmware_url, update_image_path, output='output.manife
     if os.path.isfile(output):
         os.remove(output)
     if manifest_version == 'v1':
-        cmd = [MANIFEST_DEV_TOOL, 'create-v1', '-u', firmware_url, '-o', output]
+        if fw_version  is None:
+            cmd = [MANIFEST_DEV_TOOL, 'create-v1', '-u', firmware_url, '-o', output]
+        else:
+            cmd = [MANIFEST_DEV_TOOL, 'create-v1', '-u', firmware_url, '-o', output, '--fw-version', fw_version]
+
     elif manifest_version == 'v3':
         cmd = [MANIFEST_DEV_TOOL, 'create', '-u', firmware_url, '-o', output, '--sign-image']
     else:
