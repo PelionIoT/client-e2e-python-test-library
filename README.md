@@ -72,7 +72,7 @@ To run the update test, provide the mandatory update image path and optional man
 
 To leave the firmware image, manifest and campaign in your account after the test, add the `--no_cleanup` startup argument.
 
-Manifest tool 2.0.0 supports two manifest schema versions: `v1` and `v3`. By default, the update test creates `v1` manifests, but you can create `v3` manifests by passing the `--manifest_version=v3` startup argument.
+Manifest tool 2.0.0 supports two manifest schema versions: `v1` and `v3`. By default, the update test creates `v3` manifests, but you can create `v1` manifests by passing the `--manifest_version=v1` startup argument.
 
 
 ### Results output

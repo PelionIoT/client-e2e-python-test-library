@@ -115,7 +115,7 @@ def update_device(cloud, client, request):
     """
     binary_path = request.config.getoption('update_bin', None)
     manifest_tool_path = request.config.getoption('manifest_tool')
-    manifest_version = request.config.getoption('manifest_version', 'v1')
+    manifest_version = request.config.getoption('manifest_version', 'v3')
     no_cleanup = request.config.getoption('no_cleanup', False)
     delta_manifest = request.config.getoption('delta_manifest', None)
     local_bin = request.config.getoption('local_binary', None)
