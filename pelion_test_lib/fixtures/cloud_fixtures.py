@@ -119,6 +119,7 @@ def update_device(cloud, client, request):
     no_cleanup = request.config.getoption('no_cleanup', False)
     delta_manifest = request.config.getoption('delta_manifest', None)
     local_bin = request.config.getoption('local_binary', None)
+    
     if local_bin:
         skip_msg = 'Update test is not supported when using local linux binary!'
         log.info(skip_msg)
@@ -140,6 +141,8 @@ def update_device(cloud, client, request):
     fw_image_id = fw_image['id']
     log.info('Firmware image uploaded! Image ID: {}'.format(fw_image_id))
 
+    if not manifest_version:
+        manifest_version = 'v3'
     manifest_file = manifest_tool.create_manifest(path=manifest_tool_path,
                                                   firmware_url=fw_image['datafile'],
                                                   update_image_path=binary_path,
