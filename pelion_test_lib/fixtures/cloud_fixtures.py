@@ -120,11 +120,6 @@ def update_device(cloud, client, request):
     delta_manifest = request.config.getoption('delta_manifest', None)
     local_bin = request.config.getoption('local_binary', None)
     
-    if local_bin:
-        skip_msg = 'Update test is not supported when using local linux binary!'
-        log.info(skip_msg)
-        pytest.skip(skip_msg)
-
     log.info('Update image: "{}"'.format(binary_path))
     log.info('Path for manifest-tool init: "{}"'.format(manifest_tool_path))
     if not binary_path:
