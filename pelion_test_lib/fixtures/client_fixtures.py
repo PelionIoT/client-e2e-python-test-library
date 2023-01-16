@@ -24,35 +24,39 @@ from pelion_test_lib.tools.utils import get_serial_port_for_mbed
 log = logging.getLogger(__name__)
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def client_internal(request):
     """
     Initializes and starts up the cloud client.
     :return: Running client instance
     """
-    if request.config.getoption('ext_conn'):
-        log.info('Using external connection')
+    if request.config.getoption("ext_conn"):
+        log.info("Using external connection")
         conn = ExternalConnection()
         sleep(2)
-    elif request.config.getoption('local_binary'):
-        log.info('Using local binary process')
-        conn = LocalConnection(request.config.getoption('local_binary'))
+    elif request.config.getoption("local_binary"):
+        log.info("Using local binary process")
+        conn = LocalConnection(request.config.getoption("local_binary"))
     else:
-        address = get_serial_port_for_mbed(request.config.getoption('target_id'))
+        address = get_serial_port_for_mbed(
+            request.config.getoption("target_id")
+        )
         if address:
             conn = SerialConnection(address, 115200)
         else:
-            err_msg = 'No serial connection to open for test device'
+            err_msg = "No serial connection to open for test device"
             log.error(err_msg)
             assert False, err_msg
 
     cli = Client(conn)
 
     # reset the serial connection device
-    if not request.config.getoption('ext_conn') and not request.config.getoption('local_binary'):
+    if not request.config.getoption(
+        "ext_conn"
+    ) and not request.config.getoption("local_binary"):
         cli.reset()
 
-    cli.wait_for_output('Client registered', 300)
+    cli.wait_for_output("Client registered", 300)
     ep_id = cli.endpoint_id(120)
 
     yield cli
@@ -63,7 +67,7 @@ def client_internal(request):
     sleep(2)
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope="function")
 def client(client_internal):
     """
     Makes sure client output from previous test doesn't

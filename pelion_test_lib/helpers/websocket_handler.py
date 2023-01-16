@@ -40,9 +40,9 @@ class WebSocketHandler:
         :param device_id: string
         :return:
         """
-        for item in self.ws.events['registrations']:
+        for item in self.ws.events["registrations"]:
             # If asked device_id is found return its data. Otherwise return False
-            if item['ep'] == device_id:
+            if item["ep"] == device_id:
                 return item
         return False
 
@@ -52,9 +52,9 @@ class WebSocketHandler:
         :param device_id: string
         :return:
         """
-        for item in self.ws.events['de-registrations']:
+        for item in self.ws.events["de-registrations"]:
             # If asked device_id is found return its data. Otherwise return False
-            if item['ep'] == device_id:
+            if item["ep"] == device_id:
                 return item
         return False
 
@@ -64,9 +64,9 @@ class WebSocketHandler:
         :param device_id: string
         :return: False / dict
         """
-        for item in self.ws.events['reg-updates']:
+        for item in self.ws.events["reg-updates"]:
             # If asked device_id is found return its data. Otherwise return False
-            if item['ep'] == device_id:
+            if item["ep"] == device_id:
                 return item
         return False
 
@@ -76,9 +76,9 @@ class WebSocketHandler:
         :param device_id: string
         :return: False / dict
         """
-        for item in self.ws.events['registrations-expired']:
+        for item in self.ws.events["registrations-expired"]:
             # If asked device_id is found return its data. Otherwise return False
-            if item['ep'] == device_id:
+            if item["ep"] == device_id:
                 return item
         return False
 
@@ -87,7 +87,7 @@ class WebSocketHandler:
         Get all notifications from WebSocket data
         :return: dict
         """
-        return self.ws.events['notifications']
+        return self.ws.events["notifications"]
 
     def get_async_response(self, async_response_id):
         """
@@ -97,7 +97,13 @@ class WebSocketHandler:
         """
         return self.ws.async_responses.get(async_response_id)
 
-    def wait_for_multiple_notification(self, device_id, expected_notifications, timeout=30, assert_errors=False):
+    def wait_for_multiple_notification(
+        self,
+        device_id,
+        expected_notifications,
+        timeout=30,
+        assert_errors=False,
+    ):
         """
         Wait for given device id + resource path(s) + expected value(s) to appear in WEBSOCKET-HANDLER
         :param device_id: string
@@ -114,21 +120,37 @@ class WebSocketHandler:
         for _ in range(timeout):
             notifications = self.get_notifications()
             for item in notifications:
-                if item['ep'] == device_id:
+                if item["ep"] == device_id:
                     # Check if received notification contains any combinations defined in expected_notifications.
                     # If found, append item to item_list. If as many items are found as are expected, return list.
-                    if [expect_item for expect_item in expected_notifications if item['path'] in expect_item.keys()
-                            and base64.b64decode(item['payload']).decode('utf8') in expect_item.values()]:
+                    if [
+                        expect_item
+                        for expect_item in expected_notifications
+                        if item["path"] in expect_item.keys()
+                        and base64.b64decode(item["payload"]).decode("utf8")
+                        in expect_item.values()
+                    ]:
                         item_list.append(item)
                         if len(item_list) == len(expected_notifications):
                             return item_list
             sleep(1)
-        log.debug('Expected {}, found only {}!'.format(expected_notifications, item_list))
+        log.debug(
+            "Expected {}, found only {}!".format(
+                expected_notifications, item_list
+            )
+        )
         if assert_errors:
-            assert False, 'Failed to receive notifications'
+            assert False, "Failed to receive notifications"
         return False
 
-    def wait_for_notification(self, device_id, resource_path, expected_value, timeout=30, assert_errors=False):
+    def wait_for_notification(
+        self,
+        device_id,
+        resource_path,
+        expected_value,
+        timeout=30,
+        assert_errors=False,
+    ):
         """
         Wait for given device id + resource path + expected value to appear in WebSocket
         :param device_id: string
@@ -140,17 +162,27 @@ class WebSocketHandler:
         """
         expected_value = str(expected_value)
         for _ in range(timeout):
-            for item in self.ws.events['notifications']:
-                if item['ep'] == device_id and item['path'] == resource_path and \
-                        base64.b64decode(item['payload']).decode('utf8') == expected_value:
-                    log.info('Expected notification value "{}" received at callback'.format(expected_value))
+            for item in self.ws.events["notifications"]:
+                if (
+                    item["ep"] == device_id
+                    and item["path"] == resource_path
+                    and base64.b64decode(item["payload"]).decode("utf8")
+                    == expected_value
+                ):
+                    log.info(
+                        'Expected notification value "{}" received at callback'.format(
+                            expected_value
+                        )
+                    )
                     return item
             sleep(1)
         if assert_errors:
-            assert False, 'Failed to receive notification'
+            assert False, "Failed to receive notification"
         return False
 
-    def wait_for_async_response(self, async_response_id, timeout=30, assert_errors=False):
+    def wait_for_async_response(
+        self, async_response_id, timeout=30, assert_errors=False
+    ):
         """
         Wait for given async-response to appear in WebSocket data
         :param async_response_id: string
@@ -161,19 +193,27 @@ class WebSocketHandler:
         for _ in range(timeout):
             async_response = self.ws.async_responses.get(async_response_id)
             if async_response:
-                log.info('Async response received for async-id: "{}". Status: {}'.format(async_response_id,
-                                                                                         async_response['status']))
-                if 'payload' in async_response:
+                log.info(
+                    'Async response received for async-id: "{}". Status: {}'.format(
+                        async_response_id, async_response["status"]
+                    )
+                )
+                if "payload" in async_response:
                     # decode original payload and append in received async response
-                    async_response['decoded_payload'] = base64.b64decode(async_response['payload']).decode('utf-8',
-                                                                                                           'replace')
-                    log.info('Async response payload: "{}"'.format(async_response['decoded_payload']))
+                    async_response["decoded_payload"] = base64.b64decode(
+                        async_response["payload"]
+                    ).decode("utf-8", "replace")
+                    log.info(
+                        'Async response payload: "{}"'.format(
+                            async_response["decoded_payload"]
+                        )
+                    )
 
                 log.debug(async_response)
                 return async_response
             sleep(1)
         if assert_errors:
-            assert False, 'Failed to receive async response'
+            assert False, "Failed to receive async response"
         return False
 
     def wait_for_registration(self, device_id, timeout=30):
@@ -242,18 +282,29 @@ class WebSocketRunner:
 
     def __init__(self, api, api_key):
         self.async_responses = {}
-        self.events = {'registrations': [], 'notifications': [], 'reg-updates': [], 'de-registrations': [],
-                       'registrations-expired': []}
+        self.events = {
+            "registrations": [],
+            "notifications": [],
+            "reg-updates": [],
+            "de-registrations": [],
+            "registrations-expired": [],
+        }
         self.run = True
         self.exit = False
         self.message_queue = queue.Queue()
 
-        _it = threading.Thread(target=self._input_thread, args=(api, api_key),
-                               name='websocket_{}'.format(build_random_string(3)))
-        _ht = threading.Thread(target=self._handle_thread, name='messages_{}'.format(build_random_string(3)))
+        _it = threading.Thread(
+            target=self._input_thread,
+            args=(api, api_key),
+            name="websocket_{}".format(build_random_string(3)),
+        )
+        _ht = threading.Thread(
+            target=self._handle_thread,
+            name="messages_{}".format(build_random_string(3)),
+        )
         _it.setDaemon(True)
         _ht.setDaemon(True)
-        log.info('Starting WebSocket threads')
+        log.info("Starting WebSocket threads")
         _it.start()
         _ht.start()
 
@@ -265,20 +316,24 @@ class WebSocketRunner:
         """
         while self.run:
             try:
-                ws = CallbackClient(self.message_queue, api, protocols=['wss', 'pelion_{}'.format(api_key)])
-                log.debug('Connecting WebSocket')
+                ws = CallbackClient(
+                    self.message_queue,
+                    api,
+                    protocols=["wss", "pelion_{}".format(api_key)],
+                )
+                log.debug("Connecting WebSocket")
                 ws.connect()
-                log.debug('Run forever WebSocket handler')
+                log.debug("Run forever WebSocket handler")
                 ws.run_forever()
                 if self.exit:
-                    log.info('WebSocket handler exited')
+                    log.info("WebSocket handler exited")
                 else:
-                    log.error('WebSocket handler exited')
+                    log.error("WebSocket handler exited")
             except (WebSocketException, RuntimeError) as e:
-                log.warning('WebSocket failed, retrying! {}'.format(e))
+                log.warning("WebSocket failed, retrying! {}".format(e))
                 sleep(1)
             sleep(1)
-        log.info('WebSocket input thread was stopped.')
+        log.info("WebSocket input thread was stopped.")
 
     def _handle_thread(self):
         """
@@ -287,16 +342,16 @@ class WebSocketRunner:
         while self.run:
             data = self.message_queue.get()
             if data == {}:
-                log.info('Received message is empty')
+                log.info("Received message is empty")
             for notification_type, notification_value in data.items():
-                log.debug('Message contains %s', notification_type)
+                log.debug("Message contains %s", notification_type)
                 self._handle_content(notification_type, notification_value)
 
     def close(self):
         """
         Close WebSocket threads
         """
-        log.info('Closing WebSocket threads')
+        log.info("Closing WebSocket threads")
         self.exit = True
         self.run = False
 
@@ -307,15 +362,18 @@ class WebSocketRunner:
         :param data: Content data
         """
         for content in data:
-            date_now = datetime.datetime.utcnow().isoformat('T') + 'Z'
+            date_now = datetime.datetime.utcnow().isoformat("T") + "Z"
             # De-registrations is plain list, need to convert it to dict. Otherwise just add timestamp
-            if notification_type in ('de-registrations', 'registrations-expired'):
-                content = {'dt': date_now, 'ep': content}
+            if notification_type in (
+                "de-registrations",
+                "registrations-expired",
+            ):
+                content = {"dt": date_now, "ep": content}
             else:
-                content['dt'] = date_now
+                content["dt"] = date_now
             # Async-responses are saved by response, others are pushed to list
-            if notification_type == 'async-responses':
-                self.async_responses[content['id']] = content
+            if notification_type == "async-responses":
+                self.async_responses[content["id"]] = content
             else:
                 self.events[notification_type].append(content)
 
@@ -324,6 +382,7 @@ class CallbackClient(WebSocketClient):
     """
     WebSocket callback client class
     """
+
     def __init__(self, messaqe_queue, api, protocols):
         super(CallbackClient, self).__init__(api, protocols=protocols)
         self.message_queue = messaqe_queue
@@ -333,17 +392,21 @@ class CallbackClient(WebSocketClient):
         """
         WebSocket opened logging
         """
-        log.info('WebSocket opened to {}'.format(self.api))
+        log.info("WebSocket opened to {}".format(self.api))
 
     def closed(self, code, reason=None):
         """
         WebSocket closed logging
         """
-        log.info('WebSocket ({}) closed with code {} reason {}'.format(self.api, code, reason))
+        log.info(
+            "WebSocket ({}) closed with code {} reason {}".format(
+                self.api, code, reason
+            )
+        )
 
     def received_message(self, message):
         """
         WebSocket message received
         """
-        log.debug('WebSocket Received: {}'.format(message))
+        log.debug("WebSocket Received: {}".format(message))
         self.message_queue.put(json.loads(str(message)))

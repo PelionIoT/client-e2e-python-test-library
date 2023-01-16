@@ -1,6 +1,6 @@
-# Pelion E2E Python test library
+# Izuma E2E Python test library
 
-Pelion E2E tests verify that a target platform can perform essential Device Management Client operations.
+Izuma E2E tests verify that a target platform can perform essential Device Management Client operations.
 The library is designed to be used with the [pytest test framework](https://docs.pytest.org/en/latest/).
 
 ## Prerequisites
@@ -10,7 +10,7 @@ Python 3.5 or later.
 ## Installation
 
 ```bash
-$ git clone https://github.com/ArmMbed/pelion-e2e-python-test-library.git
+$ git clone https://github.com/PelionIoT/pelion-e2e-python-test-library.git
 $ pip install wheel
 $ python3 setup.py bdist_wheel
 $ cd dist/
@@ -19,8 +19,8 @@ $ pip install -I pelion_test_lib*.whl
 
 ## Basic usage
 
-- Build the [Device Management Client example application](https://developer.pelion.com/docs/device-management/current/connecting/mbed-os.html) for your board and flash it.
-- Set the `PELION_CLOUD_API_KEY` environment variable with your [access key](https://developer.pelion.com/docs/device-management/current/user-account/application-access-keys.html).
+- Build the [Device Management Client example application](https://developer.izumanetworks.com/docs/device-management/current/connecting/mbed-os.html) for your board and flash it.
+- Set the `PELION_CLOUD_API_KEY` environment variable with your [access key](https://developer.izumanetworks.com/docs/device-management/current/user-account/application-access-keys.html).
     - Linux: `export PELION_CLOUD_API_KEY=<access_key_here>`
     - Windows: `set PELION_CLOUD_API_KEY=<access_key_here>`
 - Default API address is `https://api.us-east-1.mbedcloud.com`. You can change this by defining `PELION_CLOUD_API_GW` environment variable in similar way as `PELION_CLOUD_API_KEY` is done above.
@@ -39,9 +39,7 @@ $ pip install -I pelion_test_lib*.whl
 
   ```
 
-- You can also run tests with the [Linux build of the Device Management Client](https://www.pelion.com/docs/device-management/current/connecting/linux-on-pc.html) by passing the compiled binary in the `--local_binary=./mbedCloudClientExample.elf` argument.
-
-**Note:** Testing of the update functionality is not supported with the Linux build.
+- You can also run tests with the [Linux build of the Device Management Client](https://developer.izumanetworks.com/docs/device-management/current/connecting/linux-on-pc.html) by passing the compiled binary in the `--local_binary=./mbedCloudClientExample.elf` argument.
 
 ### Running a test set
 
@@ -62,7 +60,7 @@ pytest tests/dev-client-tests.py -k get_resource
 
 ### Running the update test
 
-Before running the update test, make sure you create update-related configuration and initialize the developer environment properly, as describe [the Device Management Client example tutorial](https://developer.pelion.com/docs/device-management/current/connecting/mbed-os.html).
+Before running the update test, make sure you create update-related configuration and initialize the developer environment properly, as describe [the Device Management Client example tutorial](https://developer.izumanetworks.com/docs/device-management/current/connecting/mbed-os.html).
 
 The update test uses the `manifest-dev-tool` utility to create the actual manifest for update campaigns.
 
@@ -102,4 +100,4 @@ There are many ways to configure the test runs. Refer to the [full pytest docume
 
 ## License
 
-See the [license](https://github.com/ARMmbed/pelion-e2e-python-test-library/blob/master/LICENSE) agreement.
+See the [license](https://github.com/PelionIoT/pelion-e2e-python-test-library/blob/master/LICENSE) agreement.

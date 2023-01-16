@@ -22,11 +22,11 @@ import uuid
 
 log = logging.getLogger(__name__)
 
-BINARIES = 'bin'
-MANIFEST_TOOL = 'manifest-tool'
-MANIFEST_DEV_TOOL = 'manifest-dev-tool'
-UPDATE_DEFAULT_RESOURCES = 'update_default_resources.c'
-SETTINGS_FILE = '.manifest_tool.json'
+BINARIES = "bin"
+MANIFEST_TOOL = "manifest-tool"
+MANIFEST_DEV_TOOL = "manifest-dev-tool"
+UPDATE_DEFAULT_RESOURCES = "update_default_resources.c"
+SETTINGS_FILE = ".manifest_tool.json"
 
 
 def init(working_path, vendor_domain=None, model_name=None):
@@ -37,30 +37,50 @@ def init(working_path, vendor_domain=None, model_name=None):
     :param model_name: "product model identifier"
     :return: Path to update_default_resources.c path if it was created. Else None
     """
-    log.debug('{} init - START'.format(MANIFEST_DEV_TOOL))
+    log.debug("{} init - START".format(MANIFEST_DEV_TOOL))
     if vendor_domain is None:
-        vendor_domain = '{}.com'.format(uuid.uuid4().hex)
+        vendor_domain = "{}.com".format(uuid.uuid4().hex)
     if model_name is None:
         model_name = uuid.uuid4().hex
-    command = [MANIFEST_DEV_TOOL, 'init', '-d', vendor_domain, '-m', model_name, '-q', '-f']
+    command = [
+        MANIFEST_DEV_TOOL,
+        "init",
+        "-d",
+        vendor_domain,
+        "-m",
+        model_name,
+        "-q",
+        "-f",
+    ]
     log.debug(command)
-    p = subprocess.Popen(command, cwd=working_path, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen(
+        command,
+        cwd=working_path,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
     stdout, stderr = p.communicate()
     if stdout:
         log.debug(stdout)
     if stderr:
         log.warning(stderr)
-    log.debug('{} init - DONE'.format(MANIFEST_DEV_TOOL))
+    log.debug("{} init - DONE".format(MANIFEST_DEV_TOOL))
     f = os.path.join(os.sep, working_path, UPDATE_DEFAULT_RESOURCES)
     if os.path.isfile(f):
-        log.debug('Path to update_default_resources.c: {}'.format(f))
+        log.debug("Path to update_default_resources.c: {}".format(f))
         return os.path.abspath(f)
-    log.error('Could not find update_default_resources.c')
+    log.error("Could not find update_default_resources.c")
     return None
 
 
-def create_manifest(path, firmware_url, update_image_path, output='output.manifest', delta_manifest=None,
-                    manifest_version='v1'):
+def create_manifest(
+    path,
+    firmware_url,
+    update_image_path,
+    output="output.manifest",
+    delta_manifest=None,
+    manifest_version="v1",
+):
     """
     Create a manifest file
     :param path: Manifest-tool path
@@ -73,43 +93,60 @@ def create_manifest(path, firmware_url, update_image_path, output='output.manife
     :raises: OSError if invalid or inaccessible file name or path.
              ValueError if Popen is called with invalid arguments.
     """
-    log.info('Creating manifest for update campaign with manifest-tool...')
-    log.debug('{} create - START'.format(MANIFEST_DEV_TOOL))
+    log.info("Creating manifest for update campaign with manifest-tool...")
+    log.debug("{} create - START".format(MANIFEST_DEV_TOOL))
     path = os.path.abspath(path)
     # remove file if it exists
     if os.path.isfile(output):
         os.remove(output)
-    if manifest_version == 'v1':
-        cmd = [MANIFEST_DEV_TOOL, 'create-v1', '-u', firmware_url, '-o', output]
-    elif manifest_version == 'v3':
-        cmd = [MANIFEST_DEV_TOOL, 'create', '-u', firmware_url, '-o', output, '--sign-image']
+    if manifest_version == "v1":
+        cmd = [
+            MANIFEST_DEV_TOOL,
+            "create-v1",
+            "-u",
+            firmware_url,
+            "-o",
+            output,
+        ]
+    elif manifest_version == "v3":
+        cmd = [
+            MANIFEST_DEV_TOOL,
+            "create",
+            "-u",
+            firmware_url,
+            "-o",
+            output,
+            "--sign-image",
+        ]
     else:
         log.error('Only "v1" and "v3" manifest version are supported!')
         return None
     if delta_manifest:
-        log.debug('Specifying delta payload')
-        cmd.append('-i')
+        log.debug("Specifying delta payload")
+        cmd.append("-i")
         cmd.append(delta_manifest)
-        cmd.append('--payload-format')
-        cmd.append('bsdiff-stream')
+        cmd.append("--payload-format")
+        cmd.append("bsdiff-stream")
     else:
-        cmd.append('-p')
+        cmd.append("-p")
         cmd.append(update_image_path)
     log.debug(cmd)
-    p = subprocess.Popen(cmd, cwd=path, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen(
+        cmd, cwd=path, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
     stdout, stderr = p.communicate()
     if stdout:
         log.debug(stdout)
     if stderr:
         log.warning(stderr)
-    log.debug('{} create - DONE'.format(MANIFEST_DEV_TOOL))
+    log.debug("{} create - DONE".format(MANIFEST_DEV_TOOL))
     # return path to manifest file
     f = os.path.join(os.sep, path, output)
     if os.path.isfile(f):
         if os.path.getsize(f) <= 0:
-            log.error('Manifest file size is 0')
+            log.error("Manifest file size is 0")
             return None
-        log.info('Manifest created!')
+        log.info("Manifest created!")
         return os.path.abspath(f)
-    log.error('Could not find manifest file')
+    log.error("Could not find manifest file")
     return None

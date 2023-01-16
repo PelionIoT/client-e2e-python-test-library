@@ -34,12 +34,18 @@ def get_bootstrap_time_and_execution_mode(cloud_api, endpoint_id, headers):
              whether the queried device is developer device or not
     """
     response = cloud_api.device_directory.get_device(endpoint_id, headers)
-    assert_status(response, 'get_bootstrap_time_and_execution_mode', 200)
+    assert_status(response, "get_bootstrap_time_and_execution_mode", 200)
     response = response.json()
-    assert 'bootstrapped_timestamp' in response, 'Missing bootstrap time in device directory'
-    assert 'device_execution_mode' in response, 'Missing device execution mode in device directory'
-    bootstrap_time = datetime.strptime(response['bootstrapped_timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
-    is_developer_device = response['device_execution_mode'] == 1
+    assert (
+        "bootstrapped_timestamp" in response
+    ), "Missing bootstrap time in device directory"
+    assert (
+        "device_execution_mode" in response
+    ), "Missing device execution mode in device directory"
+    bootstrap_time = datetime.strptime(
+        response["bootstrapped_timestamp"], "%Y-%m-%dT%H:%M:%S.%fZ"
+    )
+    is_developer_device = response["device_execution_mode"] == 1
     return bootstrap_time, is_developer_device
 
 
@@ -52,14 +58,18 @@ def assert_status(response, func, expected_resp):
     :return: Nothing
     """
     if _assert_status(expected_resp, response) is False:
-        error_msg = 'ERROR: {} failed!\n' \
-                    'Expected result {} -> actual response was: {}\n\n' \
-                    'Response body: {}\n\n' \
-                    'Response headers: {}'.format(func,
-                                                  expected_resp,
-                                                  response.status_code,
-                                                  response.text,
-                                                  response.headers)
+        error_msg = (
+            "ERROR: {} failed!\n"
+            "Expected result {} -> actual response was: {}\n\n"
+            "Response body: {}\n\n"
+            "Response headers: {}".format(
+                func,
+                expected_resp,
+                response.status_code,
+                response.text,
+                response.headers,
+            )
+        )
         log.error(error_msg)
         assert False, error_msg
 
@@ -82,8 +92,10 @@ def build_random_string(str_length, use_digits=False, use_punctuations=False):
     if use_digits:
         letters = letters + string.digits
     if use_punctuations:
-        letters = letters + string.punctuation.replace(" ", "").replace("\\", "").replace("\"", "").replace("\'", "")
-    return ''.join(random.choice(letters) for c in range(str_length))
+        letters = letters + string.punctuation.replace(" ", "").replace(
+            "\\", ""
+        ).replace('"', "").replace("'", "")
+    return "".join(random.choice(letters) for c in range(str_length))
 
 
 def strip_escape(string_to_escape):
@@ -92,7 +104,7 @@ def strip_escape(string_to_escape):
     :param string_to_escape: string to work on
     :return: stripped string
     """
-    raw_ansi_pattern = r'\033\[((?:\d|;)*)([a-zA-Z])'
+    raw_ansi_pattern = r"\033\[((?:\d|;)*)([a-zA-Z])"
     ansi_pattern = raw_ansi_pattern.encode()
     ansi_eng = re.compile(ansi_pattern)
     matches = []
@@ -117,28 +129,38 @@ def get_serial_port_for_mbed(target_id):
     mbed_devices = mbeds.list_mbeds(unique_names=True)
     if target_id:
         for dev in mbed_devices:
-            if dev['target_id'] == target_id:
+            if dev["target_id"] == target_id:
                 selected_mbed = dev
                 break
     else:
         if mbed_devices:
-            log.debug('Found {} mbed device(s), taking the first one for test - '
-                      'give "--target_id" argument to get specific device'.format(len(mbed_devices)))
+            log.debug(
+                "Found {} mbed device(s), taking the first one for test - "
+                'give "--target_id" argument to get specific device'.format(
+                    len(mbed_devices)
+                )
+            )
             selected_mbed = mbed_devices[0]
 
     if selected_mbed:
-        log.info('Using "{}: {}" device at "{}" port for tests'.format(selected_mbed['platform_name_unique'],
-                                                                       selected_mbed['target_id'],
-                                                                       selected_mbed['serial_port']))
-        return selected_mbed['serial_port']
-    log.error('Could not find any mbed devices, please make sure you have connected one with power on')
+        log.info(
+            'Using "{}: {}" device at "{}" port for tests'.format(
+                selected_mbed["platform_name_unique"],
+                selected_mbed["target_id"],
+                selected_mbed["serial_port"],
+            )
+        )
+        return selected_mbed["serial_port"]
+    log.error(
+        "Could not find any mbed devices, please make sure you have connected one with power on"
+    )
     return None
 
 
 def get_path(path):
-    if 'WORKSPACE' in os.environ:
-        log.debug('$WORKSPACE: {}'.format(os.environ['WORKSPACE']))
-        p = os.path.join(os.sep, os.environ['WORKSPACE'], path)
+    if "WORKSPACE" in os.environ:
+        log.debug("$WORKSPACE: {}".format(os.environ["WORKSPACE"]))
+        p = os.path.join(os.sep, os.environ["WORKSPACE"], path)
         return p
     return path
 
@@ -149,6 +171,6 @@ def remove_first_slash_from(resource_path):
     :param resource_path: e.g. /1/0/1
     :return: Resource path without the first '/'
     """
-    if resource_path[0] == '/':
+    if resource_path[0] == "/":
         return resource_path[1:]
     return resource_path

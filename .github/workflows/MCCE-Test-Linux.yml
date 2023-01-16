@@ -1,0 +1,80 @@
+name: Mbed Cloud Client Example Test Linux
+# Note - primary/master version of this test is in the mcce-repo.
+
+on:
+  workflow_call:
+    inputs:
+      tested_branch: 
+        description: 'MCCE branch to pull'
+        default: 'master'
+        required: false
+        type: string      
+
+# This allows a subsequently queued workflow run to interrupt previous runs
+concurrency:
+  group: mcce-test-linux-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  MCCE-Test-Linux:
+    runs-on: ubuntu-22.04
+    env:
+      MCCE_ROOT_DIR: mbed-cloud-client-example-internal
+      SCRIPTS_INTERNAL_DIR: scripts-internal
+      DEV_CREDENTIALS_FILE: scripts-internal/client/credential_files/prod_sda_client_demo_account_cred_file.c
+      CLIENT_DEPLOY_FILE: scripts-internal/client/deploy_client.sh
+    steps:
+      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+      - name: Set access token
+        run: |
+          git config --global url."https://${{ secrets.ACCESS_TOKEN }}@github.com/".insteadOf "git@github.com:"
+          git config --global url."https://${{ secrets.ACCESS_TOKEN }}@github".insteadOf "https://github"
+      - name: Install mbed-cli
+        run: |
+          pip install mbed-cli
+      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+      - name: Check out scripts-internal repository code
+        uses: actions/checkout@v3
+        with:
+          repository: PelionIoT/scripts-internal
+          token: ${{ secrets.ACCESS_TOKEN }}
+          path: ${{ env.SCRIPTS_INTERNAL_DIR }}
+          ref: 'master'
+      - name: Check out MCCE repository code
+        uses: actions/checkout@v3
+        with:
+          repository: PelionIoT/mbed-cloud-client-example-internal
+          token: ${{ secrets.ACCESS_TOKEN }}
+          path: ${{ env.MCCE_ROOT_DIR }}
+      - name: Deploy the libraries
+        run: |
+          cp $CLIENT_DEPLOY_FILE $MCCE_ROOT_DIR
+          cd $MCCE_ROOT_DIR
+          mbed config root .
+          ./deploy_client.sh ${{ inputs.tested_branch }}
+      - name: Linux compilation
+        run: |
+          pip install manifest-tool
+          cp $DEV_CREDENTIALS_FILE $MCCE_ROOT_DIR/mbed_cloud_dev_credentials.c
+          cd $MCCE_ROOT_DIR
+          manifest-dev-tool init -a ${{ secrets.CLOUD_API_KEY }}
+          python pal-platform/pal-platform.py deploy --target=x86_x64_NativeLinux_mbedtls generate
+          cd __x86_x64_NativeLinux_mbedtls
+          cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_TOOLCHAIN_FILE=./../pal-platform/Toolchain/GCC/GCC.cmake -DEXTERNAL_DEFINE_FILE=./../define.txt
+          make mbedCloudClientExample.elf
+      - name: Linux testing
+        run: |
+          cd $MCCE_ROOT_DIR
+          cd TESTS/pelion-e2e-python-test-library/
+          git checkout master
+          cd ../../
+          pip install -r TESTS/pelion-e2e-python-test-library/requirements.txt
+          pip install git+https://${{ secrets.ACCESS_TOKEN }}@github.com/PelionIoT/raas-pyclient.git#egg=raas-client
+          export PELION_CLOUD_API_KEY=${{ secrets.CLOUD_API_KEY }}
+          pytest TESTS/pelion-e2e-python-test-library/tests/dev-client-tests.py --update_bin=__x86_x64_NativeLinux_mbedtls/Debug/mbedCloudClientExample.elf --local_binary=__x86_x64_NativeLinux_mbedtls/Debug/mbedCloudClientExample.elf --log-cli-level=DEBUG
+      - run: echo "🍏 This job's status is ${{ job.status }}."
