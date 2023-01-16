@@ -20,7 +20,7 @@ from pelion_test_lib.tools.utils import assert_status
 
 log = logging.getLogger(__name__)
 
-urllib3_logger = logging.getLogger('urllib3')
+urllib3_logger = logging.getLogger("urllib3")
 urllib3_logger.setLevel(logging.WARNING)
 
 
@@ -34,21 +34,23 @@ class RestAPI:
     def __init__(self, api_gw, api_key):
         self.api_gw = api_gw
         self._api_key = api_key
-        user_agent = 'pelion-e2e-test-library'
-        default_content_type = 'application/json'
+        user_agent = "pelion-e2e-test-library"
+        default_content_type = "application/json"
 
-        self.headers = {'User-Agent': '{}'.format(user_agent),
-                        'Content-type': '{}'.format(default_content_type),
-                        'Authorization': 'Bearer {}'.format(self._api_key)}
+        self.headers = {
+            "User-Agent": "{}".format(user_agent),
+            "Content-type": "{}".format(default_content_type),
+            "Authorization": "Bearer {}".format(self._api_key),
+        }
 
     def set_default_api_key(self, key):
         """
         Set the default api key for REST API calls
         :param key: Api key
         """
-        log.debug('Set default api key to: {}...{}'.format(key[:5], key[-5:]))
+        log.debug("Set default api key to: {}...{}".format(key[:5], key[-5:]))
         self._api_key = key
-        self.headers['Authorization'] = 'Bearer {}'.format(self._api_key)
+        self.headers["Authorization"] = "Bearer {}".format(self._api_key)
 
     @property
     def api_key(self):
@@ -66,19 +68,21 @@ class RestAPI:
         """
         if req_body is not None:
             if isinstance(req_body, str):
-                split_body = req_body.split('&')
+                split_body = req_body.split("&")
                 for param in split_body:
-                    if 'password=' in param:
-                        pwd = param.split('=')[1]
-                        req_body = req_body.replace('password={}'.format(pwd), 'password=*')
+                    if "password=" in param:
+                        pwd = param.split("=")[1]
+                        req_body = req_body.replace(
+                            "password={}".format(pwd), "password=*"
+                        )
             if isinstance(req_body, bytes):
-                req_body = 'body content in binary data - removed from the log'
+                req_body = "body content in binary data - removed from the log"
         return req_body
 
     @staticmethod
     def _data_content(headers, data):
-        if 'Content-type' in headers and data:
-            if headers['Content-type'] == 'application/json':
+        if "Content-type" in headers and data:
+            if headers["Content-type"] == "application/json":
                 return json.dumps(data)
         return data
 
@@ -90,11 +94,13 @@ class RestAPI:
         :param api_url: API endpoint url where the response came from
         :param r: The response itself
         """
-        log.debug('Request headers: {}'.format(r.request.headers))
-        log.debug('Request body: {}'.format(r.request.body))
-        log.debug('Response headers: {}'.format(r.headers))
-        log.debug('Response: [{}]  {} {}'.format(r.status_code, method, api_url))
-        log.debug('Response text: {}'.format(r.text))
+        log.debug("Request headers: {}".format(r.request.headers))
+        log.debug("Request body: {}".format(r.request.body))
+        log.debug("Response headers: {}".format(r.headers))
+        log.debug(
+            "Response: [{}]  {} {}".format(r.status_code, method, api_url)
+        )
+        log.debug("Response text: {}".format(r.text))
 
     def _combine_headers(self, additional_header):
         """
@@ -120,13 +126,20 @@ class RestAPI:
         url = self.api_gw + api_url
         request_headers = self._combine_headers(headers)
         r = requests.get(url, headers=request_headers, **kwargs)
-        self._write_log_response('GET', api_url, r)
+        self._write_log_response("GET", api_url, r)
         if expected_status_code is not None:
             assert_status(r, inspect.stack()[1][3], expected_status_code)
 
         return r
 
-    def put(self, api_url, data=None, headers=None, expected_status_code=None, **kwargs):
+    def put(
+        self,
+        api_url,
+        data=None,
+        headers=None,
+        expected_status_code=None,
+        **kwargs
+    ):
         """
         PUT
         :param api_url: API URL
@@ -139,14 +152,23 @@ class RestAPI:
         url = self.api_gw + api_url
         request_headers = self._combine_headers(headers)
         request_data = self._data_content(request_headers, data)
-        r = requests.put(url, headers=request_headers, data=request_data, **kwargs)
-        self._write_log_response('PUT', api_url, r)
+        r = requests.put(
+            url, headers=request_headers, data=request_data, **kwargs
+        )
+        self._write_log_response("PUT", api_url, r)
         if expected_status_code is not None:
             assert_status(r, inspect.stack()[1][3], expected_status_code)
 
         return r
 
-    def post(self, api_url, data=None, headers=None, expected_status_code=None, **kwargs):
+    def post(
+        self,
+        api_url,
+        data=None,
+        headers=None,
+        expected_status_code=None,
+        **kwargs
+    ):
         """
         POST
         :param api_url: API URL
@@ -158,17 +180,21 @@ class RestAPI:
         """
         url = self.api_gw + api_url
         request_headers = self._combine_headers(headers)
-        if 'files' in kwargs:
-            request_headers.pop('Content-type')
+        if "files" in kwargs:
+            request_headers.pop("Content-type")
         request_data = self._data_content(request_headers, data)
-        r = requests.post(url, headers=request_headers, data=request_data, **kwargs)
-        self._write_log_response('POST', api_url, r)
+        r = requests.post(
+            url, headers=request_headers, data=request_data, **kwargs
+        )
+        self._write_log_response("POST", api_url, r)
         if expected_status_code is not None:
             assert_status(r, inspect.stack()[1][3], expected_status_code)
 
         return r
 
-    def delete(self, api_url, headers=None, expected_status_code=None, **kwargs):
+    def delete(
+        self, api_url, headers=None, expected_status_code=None, **kwargs
+    ):
         """
         DELETE
         :param api_url: API URL
@@ -180,7 +206,7 @@ class RestAPI:
         url = self.api_gw + api_url
         request_headers = self._combine_headers(headers)
         r = requests.delete(url, headers=request_headers, **kwargs)
-        self._write_log_response('DELETE', api_url, r)
+        self._write_log_response("DELETE", api_url, r)
         if expected_status_code is not None:
             assert_status(r, inspect.stack()[1][3], expected_status_code)
 

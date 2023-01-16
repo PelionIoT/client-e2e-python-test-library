@@ -29,14 +29,21 @@ def get_async_device_request(cloud, path, device_id, headers):
     :return: Async_id
     """
     async_id = str(uuid.uuid4())
-    request_params = {'async-id': async_id}
-    request_payload = {'method': 'GET', 'uri': path}
-    cloud.connect.send_device_request(device_id, request_payload, request_params, headers=headers,
-                                      expected_status_code=202)
+    request_params = {"async-id": async_id}
+    request_payload = {"method": "GET", "uri": path}
+    cloud.connect.send_device_request(
+        device_id,
+        request_payload,
+        request_params,
+        headers=headers,
+        expected_status_code=202,
+    )
     return async_id
 
 
-def put_async_device_request(cloud, path, device_id, request_data, headers, content_type="text/plain"):
+def put_async_device_request(
+    cloud, path, device_id, request_data, headers, content_type="text/plain"
+):
     """
     Sends PUT async request to device
     https://www.pelion.com/docs/device-management/current/service-api-references/device-management-connect.html#createAsyncRequest
@@ -51,10 +58,19 @@ def put_async_device_request(cloud, path, device_id, request_data, headers, cont
     async_id = str(uuid.uuid4())
     payload_data = base64.b64encode(str.encode(request_data)).decode()
     request_params = {"async-id": async_id}
-    request_payload = {"method": "PUT", "uri": path, "content-type": content_type,
-                       "payload-b64": payload_data}
-    cloud.connect.send_device_request(device_id, request_payload, request_params, headers=headers,
-                                      expected_status_code=202)
+    request_payload = {
+        "method": "PUT",
+        "uri": path,
+        "content-type": content_type,
+        "payload-b64": payload_data,
+    }
+    cloud.connect.send_device_request(
+        device_id,
+        request_payload,
+        request_params,
+        headers=headers,
+        expected_status_code=202,
+    )
     return async_id
 
 
@@ -69,10 +85,15 @@ def post_async_device_request(cloud, path, device_id, headers):
     :return: Async_id
     """
     async_id = str(uuid.uuid4())
-    request_params = {'async-id': async_id}
-    request_payload = {'method': 'POST', 'uri': path}
-    cloud.connect.send_device_request(device_id, request_payload, request_params, headers=headers,
-                                      expected_status_code=202)
+    request_params = {"async-id": async_id}
+    request_payload = {"method": "POST", "uri": path}
+    cloud.connect.send_device_request(
+        device_id,
+        request_payload,
+        request_params,
+        headers=headers,
+        expected_status_code=202,
+    )
     return async_id
 
 
@@ -86,12 +107,17 @@ def device_resource_exists(cloud, path, device_id, headers):
     :return: False if cloud returns 400, RESOURCE_NOT_FOUND
     """
     async_id = str(uuid.uuid4())
-    request_params = {'async-id': async_id}
-    request_payload = {'method': 'GET', 'uri': path}
-    r = cloud.connect.send_device_request(device_id, request_payload, request_params, headers=headers,
-                                          expected_status_code=[202, 400])
+    request_params = {"async-id": async_id}
+    request_payload = {"method": "GET", "uri": path}
+    r = cloud.connect.send_device_request(
+        device_id,
+        request_payload,
+        request_params,
+        headers=headers,
+        expected_status_code=[202, 400],
+    )
     if r.status_code == 400:
-        if r.text == 'RESOURCE_NOT_FOUND':
+        if r.text == "RESOURCE_NOT_FOUND":
             return False
         log.error(r.text)
     return True

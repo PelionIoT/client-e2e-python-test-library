@@ -18,11 +18,13 @@ import threading
 from time import time
 import pelion_test_lib.tools.utils as utils
 
-flog = logging.getLogger('ClientRunner')
+flog = logging.getLogger("ClientRunner")
 flog.setLevel(logging.DEBUG)
-fh = logging.FileHandler('client.log')
+fh = logging.FileHandler("client.log")
 fh.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s:%(name)s:%(threadName)s:%(levelname)s: %(message)s')
+formatter = logging.Formatter(
+    "%(asctime)s:%(name)s:%(threadName)s:%(levelname)s: %(message)s"
+)
 fh.setFormatter(formatter)
 flog.addHandler(fh)
 
@@ -37,7 +39,7 @@ class Client:
     :param name: Logging name for the client
     """
 
-    def __init__(self, dut, trace=False, name='0'):
+    def __init__(self, dut, trace=False, name="0"):
         self._ep_id = None
         self.name = name
         self.trace = trace
@@ -45,8 +47,10 @@ class Client:
         self.iq = queue.Queue()
         self.dut = dut
 
-        input_thread_name = '<-- D{}'.format(name)
-        it = threading.Thread(target=self._input_thread, name=input_thread_name)
+        input_thread_name = "<-- D{}".format(name)
+        it = threading.Thread(
+            target=self._input_thread, name=input_thread_name
+        )
         it.setDaemon(True)
         log.info('Starting runner threads for client "D{}"'.format(self.name))
         it.start()
@@ -59,14 +63,16 @@ class Client:
             line = self.dut.readline()
             if line:
                 plain_line = utils.strip_escape(line)
-                if b'\r' in line and line.count(b'\r') > 1:
-                    plain_line = plain_line.split(b'\r')[-2]
-                plain_line = plain_line.replace(b'\t', b'  ').decode('utf-8', 'replace')
-                flog.info('<--|D{}| {}'.format(self.name, plain_line.strip()))
+                if b"\r" in line and line.count(b"\r") > 1:
+                    plain_line = plain_line.split(b"\r")[-2]
+                plain_line = plain_line.replace(b"\t", b"  ").decode(
+                    "utf-8", "replace"
+                )
+                flog.info("<--|D{}| {}".format(self.name, plain_line.strip()))
                 if self.trace:
-                    log.debug('Raw output: {}'.format(line))
-                if b'Error' in line:
-                    log.error('Output: {}'.format(line))
+                    log.debug("Raw output: {}".format(line))
+                if b"Error" in line:
+                    log.error("Output: {}".format(line))
                 self.iq.put(plain_line)
             else:
                 pass
@@ -106,14 +112,21 @@ class Client:
         :return: Endpoint id
         """
         if self._ep_id is None:
-            ep_id = self.wait_for_output('Device Id:', wait_for_response)
+            ep_id = self.wait_for_output("Device Id:", wait_for_response)
             if ep_id is not None:
                 ep_array = ep_id.split()
                 if len(ep_array) > 1:
                     self._ep_id = ep_array[2]
         return self._ep_id
 
-    def wait_for_output(self, search, timeout=60, assert_errors=True, ignore_case=True, errors=None):
+    def wait_for_output(
+        self,
+        search,
+        timeout=60,
+        assert_errors=True,
+        ignore_case=True,
+        errors=None,
+    ):
         """
         Wait for expected output response
         :param search: Expected response string
@@ -136,13 +149,19 @@ class Client:
             for i, error in enumerate(errors):
                 errors[i] = error.lower()
 
-        return self._do_wait_for_output(search, errors, timeout, assert_errors, ignore_case)
+        return self._do_wait_for_output(
+            search, errors, timeout, assert_errors, ignore_case
+        )
 
-    def _do_wait_for_output(self, search, errors, timeout, assert_errors, ignore_case):
+    def _do_wait_for_output(
+        self, search, errors, timeout, assert_errors, ignore_case
+    ):
         start = time()
         now = 0
         time_to_wait = timeout
-        timeout_error_msg = 'Didn\'t find {} in {} s'.format(search, time_to_wait)
+        timeout_error_msg = "Didn't find {} in {} s".format(
+            search, time_to_wait
+        )
 
         while True:
             try:
@@ -152,18 +171,28 @@ class Client:
                         line = line.lower()
                     if search in line:
                         end = time()
-                        log.debug('Expected string "{}" found! [time][{:.4f} s]'.format(search, end - start))
+                        log.debug(
+                            'Expected string "{}" found! [time][{:.4f} s]'.format(
+                                search, end - start
+                            )
+                        )
                         return line
                     for error in errors:
                         if error in line:
                             end = time()
-                            log.debug('Expected error string "{}" found! [time][{:.4f} s]'.format(error, end - start))
+                            log.debug(
+                                'Expected error string "{}" found! [time][{:.4f} s]'.format(
+                                    error, end - start
+                                )
+                            )
                             break
                     else:
                         continue
 
                     if assert_errors:
-                        assert False, 'Error string found from line "{}"'.format(line)
+                        assert (
+                            False
+                        ), 'Error string found from line "{}"'.format(line)
                     else:
                         return None
                 else:
@@ -176,8 +205,11 @@ class Client:
                             log.warning(timeout_error_msg)
                             break
                     if now - last > 1:
-                        log.debug('Waiting for "{}" string... Timeout in {:.0f} s'.format(search,
-                                                                                          abs(now - start - timeout)))
+                        log.debug(
+                            'Waiting for "{}" string... Timeout in {:.0f} s'.format(
+                                search, abs(now - start - timeout)
+                            )
+                        )
             except queue.Empty:
                 last = now
                 now = time()
@@ -188,5 +220,8 @@ class Client:
                         log.warning(timeout_error_msg)
                         break
                 if now - last > 1:
-                    log.debug('Waiting for "{}" string... Timeout in {:.0f} s'.format(search,
-                                                                                      abs(now - start - timeout)))
+                    log.debug(
+                        'Waiting for "{}" string... Timeout in {:.0f} s'.format(
+                            search, abs(now - start - timeout)
+                        )
+                    )

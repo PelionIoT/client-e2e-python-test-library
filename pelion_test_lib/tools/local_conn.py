@@ -36,7 +36,9 @@ class LocalConnection:
         """
         log.info('Starting local process: "{}"'.format(self.command))
         if not self.process:
-            self.process = Popen(self.command, stdin=PIPE, stdout=PIPE, stderr=PIPE, bufsize=0)
+            self.process = Popen(
+                self.command, stdin=PIPE, stdout=PIPE, stderr=PIPE, bufsize=0
+            )
 
     def readline(self):
         """

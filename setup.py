@@ -16,29 +16,33 @@ limitations under the License.
 from setuptools import setup
 
 PACKAGE_NAME = "pelion_test_lib"
-PACKAGE_LIST = ['pelion_test_lib',
-                'pelion_test_lib.cloud',
-                'pelion_test_lib.cloud.libraries',
-                'pelion_test_lib.cloud.libraries.rest_api',
-                'pelion_test_lib.fixtures',
-                'pelion_test_lib.helpers',
-                'pelion_test_lib.tools']
+PACKAGE_LIST = [
+    "pelion_test_lib",
+    "pelion_test_lib.cloud",
+    "pelion_test_lib.cloud.libraries",
+    "pelion_test_lib.cloud.libraries.rest_api",
+    "pelion_test_lib.fixtures",
+    "pelion_test_lib.helpers",
+    "pelion_test_lib.tools",
+]
 
-AUTHORS = 'DM devops and SRE'
-AUTHOR_EMAILS = 'opensource@izumanetworks.com'
+AUTHORS = "DM devops and SRE"
+AUTHOR_EMAILS = "opensource@izumanetworks.com"
 
-with open('requirements.txt') as f:
+with open("requirements.txt") as f:
     required = f.read().splitlines()
 
-setup(name=PACKAGE_NAME,
-      use_scm_version={'root': '.'},
-      setup_requires=['setuptools_scm==3.2.0'],
-      description="Izuma E2E Python Test Library",
-      author=AUTHORS,
-      author_email=AUTHOR_EMAILS,
-      maintainer=AUTHORS,
-      maintainer_email=AUTHOR_EMAILS,
-      url="git@github.com:PelionIoT/pelion-e2e-python-test-library.git",
-      license="Apache-2.0",
-      packages=PACKAGE_LIST,
-      install_requires=required)
+setup(
+    name=PACKAGE_NAME,
+    use_scm_version={"root": "."},
+    setup_requires=["setuptools_scm==3.2.0"],
+    description="Izuma E2E Python Test Library",
+    author=AUTHORS,
+    author_email=AUTHOR_EMAILS,
+    maintainer=AUTHORS,
+    maintainer_email=AUTHOR_EMAILS,
+    url="git@github.com:PelionIoT/pelion-e2e-python-test-library.git",
+    license="Apache-2.0",
+    packages=PACKAGE_LIST,
+    install_requires=required,
+)

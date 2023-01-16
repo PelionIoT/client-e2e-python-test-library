@@ -44,7 +44,7 @@ class SerialConnection:
             output = self.ser.readline()
             return output
         except SerialException as e:
-            log.debug('Serial connection read error: {}'.format(e))
+            log.debug("Serial connection read error: {}".format(e))
             return None
 
     def write(self, data):
@@ -55,7 +55,7 @@ class SerialConnection:
         try:
             self.ser.write(data)
         except SerialException as e:
-            log.debug('Serial connection write error: {}'.format(e))
+            log.debug("Serial connection write error: {}".format(e))
 
     def reset(self, duration=0.25):
         """
@@ -65,7 +65,7 @@ class SerialConnection:
         try:
             self.ser.send_break(duration)
         except SerialException as e:
-            log.debug('Serial connection send break error: {}'.format(e))
+            log.debug("Serial connection send break error: {}".format(e))
 
     def close(self):
         """
