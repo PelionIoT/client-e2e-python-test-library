@@ -51,3 +51,9 @@ jobs:
           python3 setup.py bdist_wheel
           cd dist/
           pip install -I pelion_test_lib*.whl
+  call-mcce-linux:
+    # Note - primary/master version of this test is in the mcce-repo.
+    uses: ./.github/workflows/MCCE-Test-Linux.yml
+    with:
+      tested_branch: ${{ github.GITHUB_REF }}
+    secrets: inherit
