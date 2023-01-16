@@ -22,3 +22,32 @@ jobs:
       # Lets not run pysh-check on itself (it already has PR job for it)
       - run: echo . >scripts-internal/.nopyshcheck
       - run: scripts-internal/pysh-check/pysh-check.sh --workdir .
+
+  install-on-ubuntu-22-04:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set access token
+        run: |
+          git config --global url."https://${{ secrets.ACCESS_TOKEN }}@github.com/".insteadOf "git@github.com:"
+          git config --global url."https://${{ secrets.ACCESS_TOKEN }}@github".insteadOf "https://github"
+      - name: Install e2e-python-test-library
+        run: |
+          pip install wheel
+          python3 setup.py bdist_wheel
+          cd dist/
+          pip install -I pelion_test_lib*.whl
+  install-on-ubuntu-20-04:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set access token
+        run: |
+          git config --global url."https://${{ secrets.ACCESS_TOKEN }}@github.com/".insteadOf "git@github.com:"
+          git config --global url."https://${{ secrets.ACCESS_TOKEN }}@github".insteadOf "https://github"
+      - name: Install e2e-python-test-library
+        run: |
+          pip install wheel
+          python3 setup.py bdist_wheel
+          cd dist/
+          pip install -I pelion_test_lib*.whl
