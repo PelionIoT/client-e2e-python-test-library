@@ -70,9 +70,6 @@ jobs:
       - name: Linux testing
         run: |
           cd $MCCE_ROOT_DIR
-          cd TESTS/pelion-e2e-python-test-library/
-          git checkout master
-          cd ../../
           pip install -r TESTS/pelion-e2e-python-test-library/requirements.txt
           pip install git+https://${{ secrets.ACCESS_TOKEN }}@github.com/PelionIoT/raas-pyclient.git#egg=raas-client
           export PELION_CLOUD_API_KEY=${{ secrets.CLOUD_API_KEY }}
