@@ -36,7 +36,7 @@ class RestAPI:
     def __init__(self, api_gw, api_key):
         self.api_gw = api_gw
         self._api_key = api_key
-        user_agent = "pelion-e2e-test-library"
+        user_agent = "client-e2e-test-library"
         default_content_type = "application/json"
 
         self.headers = {
