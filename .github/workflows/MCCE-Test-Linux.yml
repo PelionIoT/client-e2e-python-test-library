@@ -75,7 +75,7 @@ jobs:
           if [ -d TESTS/pelion-e2e-python-test-library ]; then
             cd TESTS/pelion-e2e-python-test-library
             git fetch
-            git checkout client-naming
+            git checkout eba8589ed0778695b8264c6a99e1b1ace3cce5b5
             cd ../..
             mv TESTS/pelion-e2e-python-test-library TESTS/client-e2e-python-test-library
           fi
