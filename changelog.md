@@ -1,10 +1,13 @@
 # Client E2E Python Test Library Changelog
 
-## 0.3.0 2023-12-12
+## 0.4.0 2023-12-12
 - Rename the library to client-e2e-python-test-library.
     - Rename `PELION_CLOUD_API_KEY` to `CLOUD_API_KEY`.
     - Rename `PELION_CLOUD_API_GW` also to `CLOUD_API_GW`.
 - Update `requests` to latest (2.31.0).
+
+## 0.3.0 2023-01-16
+- Izuma branding.
 
 ## 0.2.10 2021-03-04
 - Update test doesn't depend on mbed bootloader anymore
