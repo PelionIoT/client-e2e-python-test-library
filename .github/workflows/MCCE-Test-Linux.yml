@@ -70,8 +70,16 @@ jobs:
       - name: Linux testing
         run: |
           cd $MCCE_ROOT_DIR
+          export CLOUD_API_KEY=${{ secrets.CLOUD_API_KEY }}
+          # Workaround for naming change
+          if [ -d TESTS/pelion-e2e-python-test-library ]; then
+            cd TESTS/pelion-e2e-python-test-library
+            git fetch
+            git checkout client-naming
+            cd ../..
+            mv TESTS/pelion-e2e-python-test-library TESTS/client-e2e-python-test-library
+          fi
           pip install -r TESTS/client-e2e-python-test-library/requirements.txt
           pip install git+https://${{ secrets.ACCESS_TOKEN }}@github.com/PelionIoT/raas-pyclient.git#egg=raas-client
-          export CLOUD_API_KEY=${{ secrets.CLOUD_API_KEY }}
           pytest TESTS/client-e2e-python-test-library/tests/dev-client-tests.py --update_bin=__x86_x64_NativeLinux_mbedtls/Debug/mbedCloudClientExample.elf --local_binary=__x86_x64_NativeLinux_mbedtls/Debug/mbedCloudClientExample.elf --log-cli-level=DEBUG
       - run: echo "🍏 This job's status is ${{ job.status }}."
