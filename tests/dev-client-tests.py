@@ -1,5 +1,7 @@
 """
 Copyright 2019-2020 Pelion.
+Copyright (c) 2023 Izuma Networks
+
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -13,17 +15,17 @@ limitations under the License.
 
 import logging
 import pytest
-from pelion_test_lib.helpers.connect_helper import (
+from client_test_lib.helpers.connect_helper import (
     get_async_device_request,
     put_async_device_request,
     post_async_device_request,
     device_resource_exists,
 )
-from pelion_test_lib.helpers.update_helper import (
+from client_test_lib.helpers.update_helper import (
     wait_for_campaign_device_state,
     wait_for_campaign_state,
 )
-from pelion_test_lib.tools.utils import get_bootstrap_time_and_execution_mode
+from client_test_lib.tools.utils import get_bootstrap_time_and_execution_mode
 
 log = logging.getLogger(__name__)
 

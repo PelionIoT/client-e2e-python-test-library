@@ -36,7 +36,7 @@ jobs:
           pip install wheel
           python3 setup.py bdist_wheel
           cd dist/
-          pip install -I pelion_test_lib*.whl
+          pip install -I client_test_lib*.whl
   install-on-ubuntu-20-04:
     runs-on: ubuntu-20.04
     steps:
@@ -50,7 +50,7 @@ jobs:
           pip install wheel
           python3 setup.py bdist_wheel
           cd dist/
-          pip install -I pelion_test_lib*.whl
+          pip install -I client_test_lib*.whl
   call-mcce-linux:
     # Note - primary/master version of this test is in the mcce-repo.
     uses: ./.github/workflows/MCCE-Test-Linux.yml

@@ -1,6 +1,6 @@
-# Izuma E2E Python test library
+# Client E2E Python test library
 
-Izuma E2E tests verify that a target platform can perform essential Device Management Client operations.
+Izuma Client E2E tests verify that a target platform can perform essential Device Management Client operations.
 The library is designed to be used with the [pytest test framework](https://docs.pytest.org/en/latest/).
 
 ## Prerequisites
@@ -10,20 +10,20 @@ Python 3.5 or later.
 ## Installation
 
 ```bash
-$ git clone https://github.com/PelionIoT/pelion-e2e-python-test-library.git
+$ git clone https://github.com/PelionIoT/client-e2e-python-test-library.git
 $ pip install wheel
 $ python3 setup.py bdist_wheel
 $ cd dist/
-$ pip install -I pelion_test_lib*.whl
+$ pip install -I client_test_lib*.whl
 ```
 
 ## Basic usage
 
 - Build the [Device Management Client example application](https://developer.izumanetworks.com/docs/device-management/current/connecting/mbed-os.html) for your board and flash it.
-- Set the `PELION_CLOUD_API_KEY` environment variable with your [access key](https://developer.izumanetworks.com/docs/device-management/current/user-account/application-access-keys.html).
-    - Linux: `export PELION_CLOUD_API_KEY=<access_key_here>`
-    - Windows: `set PELION_CLOUD_API_KEY=<access_key_here>`
-- Default API address is `https://api.us-east-1.mbedcloud.com`. You can change this by defining `PELION_CLOUD_API_GW` environment variable in similar way as `PELION_CLOUD_API_KEY` is done above.
+- Set the `CLOUD_API_KEY` environment variable with your [access key](https://developer.izumanetworks.com/docs/device-management/current/user-account/application-access-keys.html).
+    - Linux: `export CLOUD_API_KEY=<access_key_here>`
+    - Windows: `set CLOUD_API_KEY=<access_key_here>`
+- Default API address is `https://api.us-east-1.mbedcloud.com`. You can change this by defining `CLOUD_API_GW` environment variable in similar way as `CLOUD_API_KEY` is done above.
 - Test run will create temporary API key for the WebSocket callback channel by default. If you want to prevent that and use only the exported API key, add `--use_one_apikey` startup argument.
 - Tests use [Mbed LS](https://github.com/ARMmbed/mbed-os-tools/tree/master/packages/mbed-ls) to select the board from the serial port.
   - If you have only one board connected to the serial port, you don't need to select the device for the tests.
@@ -100,4 +100,4 @@ There are many ways to configure the test runs. Refer to the [full pytest docume
 
 ## License
 
-See the [license](https://github.com/PelionIoT/pelion-e2e-python-test-library/blob/master/LICENSE) agreement.
+See the [license](https://github.com/PelionIoT/client-e2e-python-test-library/blob/master/LICENSE) agreement.

@@ -1,5 +1,7 @@
 """
 Copyright 2019-2020 Pelion.
+Copyright (c) 2023 Izuma Networks
+
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -12,10 +14,10 @@ limitations under the License.
 """
 
 
-class AccountManagementAPI:
+class DeviceDirectoryAPI:
     """
-    A class that provides Account management related functionality.
-    https://www.pelion.com/docs/device-management/current/service-api-references/account-management.html
+    A class that provides Device directory related functionality.
+    https://www.pelion.com/docs/device-management/current/service-api-references/device-directory.html
     :param rest_api: RestAPI object
     """
 
@@ -23,32 +25,28 @@ class AccountManagementAPI:
         self.api_version = "v3"
         self.cloud_api = rest_api
 
-    def create_api_key(
-        self, request_data, headers=None, expected_status_code=None
-    ):
+    def get_device(self, device_id, headers=None, expected_status_code=None):
         """
-        Generate API key
-        :param request_data: API key payload
+        Get device
+        :param device_id: Device id
         :param headers: Override default header fields
         :param expected_status_code: Asserts the result's status code
-        :return: POST /api-key response
+        :return: GET /devices/{device_id} response
         """
-        api_url = "/{}/api-keys".format(self.api_version)
-        r = self.cloud_api.post(
-            api_url, request_data, headers, expected_status_code
-        )
+        api_url = "/{}/devices/{}".format(self.api_version, device_id)
+        r = self.cloud_api.get(api_url, headers, expected_status_code)
         return r
 
-    def delete_api_key(
-        self, api_key_id, headers=None, expected_status_code=None
+    def delete_device(
+        self, device_id, headers=None, expected_status_code=None
     ):
         """
-        Delete API key
-        :param api_key_id: API key id
+        Delete device
+        :param device_id: Device id
         :param headers: Override default header fields
         :param expected_status_code: Asserts the result's status code
-        :return: DELETE /api-keys/{api key_id} response
+        :return: DELETE /devices/{device_id} response
         """
-        api_url = "/{}/api-keys/{}".format(self.api_version, api_key_id)
+        api_url = "/{}/devices/{}".format(self.api_version, device_id)
         r = self.cloud_api.delete(api_url, headers, expected_status_code)
         return r
