@@ -1,6 +1,6 @@
 # Client E2E Python Test Library Changelog
 
-## 0.4.0 2023-12-12
+## 0.4.0 2023-12-11
 - Rename the library to client-e2e-python-test-library.
     - Rename `PELION_CLOUD_API_KEY` to `CLOUD_API_KEY`.
     - Rename `PELION_CLOUD_API_GW` also to `CLOUD_API_GW`.
