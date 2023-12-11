@@ -1,6 +1,8 @@
 # pylint: disable=redefined-outer-name
 """
 Copyright 2019-2020 Pelion.
+Copyright (c) 2023 Izuma Networks
+
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -16,11 +18,11 @@ import logging
 import os
 from time import sleep
 import pytest
-from pelion_test_lib.cloud.cloud import PelionCloud
-from pelion_test_lib.helpers.update_helper import wait_for_campaign_phase
-import pelion_test_lib.helpers.websocket_handler as websocket_handler
-import pelion_test_lib.tools.manifest_tool as manifest_tool
-from pelion_test_lib.tools.utils import build_random_string
+from client_test_lib.cloud.cloud import PelionCloud
+from client_test_lib.helpers.update_helper import wait_for_campaign_phase
+import client_test_lib.helpers.websocket_handler as websocket_handler
+import client_test_lib.tools.manifest_tool as manifest_tool
+from client_test_lib.tools.utils import build_random_string
 
 log = logging.getLogger(__name__)
 
@@ -35,23 +37,23 @@ def cloud():
     log.debug("Initializing Cloud API fixture")
 
     api_gw = os.environ.get(
-        "PELION_CLOUD_API_GW", "https://api.us-east-1.mbedcloud.com"
+        "CLOUD_API_GW", "https://api.us-east-1.mbedcloud.com"
     )
     if os.environ.get("CLOUD_SDK_API_KEY"):
         api_key = os.environ.get("CLOUD_SDK_API_KEY")
     else:
-        api_key = os.environ.get("PELION_CLOUD_API_KEY")
+        api_key = os.environ.get("CLOUD_API_KEY")
 
     if not api_gw or not api_key:
         pytest.exit(
             "Set missing API gateway URL and/or API key via "
             " environment variables before running tests!\n"
-            "API GW: PELION_CLOUD_API_GW={}\n"
+            "API GW: CLOUD_API_GW={}\n"
             "API KEY: CLOUD_SDK_API_KEY={} or "
-            "PELION_CLOUD_API_KEY={}".format(
-                os.environ.get("PELION_CLOUD_API_GW", "MISSING!"),
+            "CLOUD_API_KEY={}".format(
+                os.environ.get("CLOUD_API_GW", "MISSING!"),
                 os.environ.get("CLOUD_SDK_API_KEY", "MISSING!"),
-                os.environ.get("PELION_CLOUD_API_KEY", "MISSING!"),
+                os.environ.get("CLOUD_API_KEY", "MISSING!"),
             )
         )
 

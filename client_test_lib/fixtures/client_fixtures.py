@@ -1,6 +1,8 @@
 # pylint: disable=redefined-outer-name
 """
 Copyright 2019-2020 Pelion.
+Copyright (c) 2023 Izuma Networks
+
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -15,11 +17,11 @@ limitations under the License.
 import logging
 from time import sleep
 import pytest
-from pelion_test_lib.tools.client_runner import Client
-from pelion_test_lib.tools.external_conn import ExternalConnection
-from pelion_test_lib.tools.local_conn import LocalConnection
-from pelion_test_lib.tools.serial_conn import SerialConnection
-from pelion_test_lib.tools.utils import get_serial_port_for_mbed
+from client_test_lib.tools.client_runner import Client
+from client_test_lib.tools.external_conn import ExternalConnection
+from client_test_lib.tools.local_conn import LocalConnection
+from client_test_lib.tools.serial_conn import SerialConnection
+from client_test_lib.tools.utils import get_serial_port_for_mbed
 
 log = logging.getLogger(__name__)
 

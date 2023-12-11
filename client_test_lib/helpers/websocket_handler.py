@@ -1,5 +1,7 @@
 """
 Copyright 2019-2020 Pelion.
+Copyright (c) 2023 Izuma Networks
+
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -20,7 +22,7 @@ import threading
 from time import sleep
 from ws4py.client.threadedclient import WebSocketClient
 from ws4py.exc import WebSocketException
-from pelion_test_lib.tools.utils import build_random_string
+from client_test_lib.tools.utils import build_random_string
 
 log = logging.getLogger(__name__)
 

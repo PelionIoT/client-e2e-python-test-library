@@ -1,5 +1,7 @@
 """
 Copyright 2019-2020 Pelion.
+Copyright (c) 2023 Izuma Networks
+
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -11,11 +13,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from pelion_test_lib.cloud.libraries.account import AccountManagementAPI
-from pelion_test_lib.cloud.libraries.connect import ConnectAPI
-from pelion_test_lib.cloud.libraries.device_directory import DeviceDirectoryAPI
-from pelion_test_lib.cloud.libraries.rest_api.rest_api import RestAPI
-from pelion_test_lib.cloud.libraries.update import UpdateAPI
+from client_test_lib.cloud.libraries.account import AccountManagementAPI
+from client_test_lib.cloud.libraries.connect import ConnectAPI
+from client_test_lib.cloud.libraries.device_directory import DeviceDirectoryAPI
+from client_test_lib.cloud.libraries.rest_api.rest_api import RestAPI
+from client_test_lib.cloud.libraries.update import UpdateAPI
 
 
 class PelionCloud:

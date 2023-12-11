@@ -1,5 +1,7 @@
 """
 Copyright 2019-2020 Pelion.
+Copyright (c) 2023 Izuma Networks
+
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -11,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from pelion_test_lib.tools.utils import remove_first_slash_from
+from client_test_lib.tools.utils import remove_first_slash_from
 
 
 class ConnectAPI:

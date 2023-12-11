@@ -1,5 +1,7 @@
 """
 Copyright 2019-2020 Pelion.
+Copyright (c) 2023 Izuma Networks
+
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -16,7 +18,7 @@ import inspect
 import json
 import logging
 import requests
-from pelion_test_lib.tools.utils import assert_status
+from client_test_lib.tools.utils import assert_status
 
 log = logging.getLogger(__name__)
 
@@ -34,7 +36,7 @@ class RestAPI:
     def __init__(self, api_gw, api_key):
         self.api_gw = api_gw
         self._api_key = api_key
-        user_agent = "pelion-e2e-test-library"
+        user_agent = "client-e2e-test-library"
         default_content_type = "application/json"
 
         self.headers = {

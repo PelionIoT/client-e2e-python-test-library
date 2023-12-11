@@ -1,5 +1,7 @@
 """
 Copyright 2019-2020 Pelion.
+Copyright (c) 2023 Izuma Networks
+
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -16,8 +18,8 @@ import os
 import pytest
 
 pytest_plugins = [
-    "pelion_test_lib.fixtures.client_fixtures",
-    "pelion_test_lib.fixtures.cloud_fixtures",
+    "client_test_lib.fixtures.client_fixtures",
+    "client_test_lib.fixtures.cloud_fixtures",
 ]
 
 log = logging.getLogger(__name__)
