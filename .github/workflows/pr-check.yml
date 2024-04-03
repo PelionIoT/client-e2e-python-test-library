@@ -12,7 +12,7 @@ jobs:
     runs-on: client
     steps:
       - uses: actions/checkout@v4
-      - run: sudo apt-get install black pycodestyle pydocstyle shellcheck python3
+      - run: sudo apt-get update && sudo apt-get install -y black pycodestyle pydocstyle shellcheck python3
       - run: black --version
       # We cannot use the one in the continuous-integration-repo, 
       # because public repos cannot use actions in private repos.
