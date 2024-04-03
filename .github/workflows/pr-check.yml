@@ -14,7 +14,12 @@ jobs:
       - uses: actions/checkout@v4
       - run: sudo apt-get install black pycodestyle pydocstyle shellcheck python3
       - run: black --version
-
+      # We cannot use the one in the continuous-integration-repo, 
+      # because public repos cannot use actions in private repos.
+      - name: Set access token
+        run: |
+          git config --global url."https://${{ secrets.ACCESS_TOKEN }}@github.com/".insteadOf "git@github.com:"
+          git config --global url."https://${{ secrets.ACCESS_TOKEN }}@github".insteadOf "https://github"
       - run: git clone https://github.com/PelionIoT/scripts-internal
       # Lets not run pysh-check on itself (it already has PR job for it)
       - run: echo . >scripts-internal/.nopyshcheck
