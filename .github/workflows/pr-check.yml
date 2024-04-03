@@ -9,48 +9,54 @@ concurrency:
   
 jobs:
   run-pysh-check:
-    runs-on: ubuntu-22.04
+    runs-on: client
     steps:
       - uses: actions/checkout@v3
       - run: sudo apt-get install black pycodestyle pydocstyle shellcheck python3
       - run: black --version
-      - name: Set access token
-        run: |
-          git config --global url."https://${{ secrets.ACCESS_TOKEN }}@github.com/".insteadOf "git@github.com:"
-          git config --global url."https://${{ secrets.ACCESS_TOKEN }}@github".insteadOf "https://github"
+      - uses: PelionIoT/continuous-integration/.github/actions/git-config@master
+        with:
+          github_token: ${{ secrets.ACCESS_TOKEN }}
       - run: git clone https://github.com/PelionIoT/scripts-internal
       # Lets not run pysh-check on itself (it already has PR job for it)
       - run: echo . >scripts-internal/.nopyshcheck
       - run: scripts-internal/pysh-check/pysh-check.sh --workdir .
+      - name: Cleanup .gitconfig
+        run: rm -f ~/.gitconfig
 
   install-on-ubuntu-22-04:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
-      - name: Set access token
-        run: |
-          git config --global url."https://${{ secrets.ACCESS_TOKEN }}@github.com/".insteadOf "git@github.com:"
-          git config --global url."https://${{ secrets.ACCESS_TOKEN }}@github".insteadOf "https://github"
+      - uses: PelionIoT/continuous-integration/.github/actions/git-config@master
+        with:
+          github_token: ${{ secrets.ACCESS_TOKEN }}
       - name: Install e2e-python-test-library
         run: |
           pip install wheel
           python3 setup.py bdist_wheel
           cd dist/
           pip install -I client_test_lib*.whl
+      - name: Cleanup .gitconfig
+        run: rm -f ~/.gitconfig
+  
   install-on-ubuntu-20-04:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
-      - name: Set access token
-        run: |
-          git config --global url."https://${{ secrets.ACCESS_TOKEN }}@github.com/".insteadOf "git@github.com:"
-          git config --global url."https://${{ secrets.ACCESS_TOKEN }}@github".insteadOf "https://github"
+      - name: Set access token for mbed deploy
+        uses: PelionIoT/continuous-integration/.github/actions/git-config@master
+        with:
+          github_token: ${{ secrets.ACCESS_TOKEN }}
       - name: Install e2e-python-test-library
         run: |
           pip install wheel
           python3 setup.py bdist_wheel
           cd dist/
           pip install -I client_test_lib*.whl
+      - name: Cleanup .gitconfig
+        run: rm -f ~/.gitconfig
+
   call-mcce-linux:
     # Note - primary/master version of this test is in the mcce-repo.
     uses: ./.github/workflows/MCCE-Test-Linux.yml
