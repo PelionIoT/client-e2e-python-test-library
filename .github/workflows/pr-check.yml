@@ -11,7 +11,7 @@ jobs:
   run-pysh-check:
     runs-on: client
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: sudo apt-get install black pycodestyle pydocstyle shellcheck python3
       - run: black --version
       - uses: PelionIoT/continuous-integration/.github/actions/git-config@master
@@ -27,7 +27,7 @@ jobs:
   install-on-ubuntu-22-04:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: PelionIoT/continuous-integration/.github/actions/git-config@master
         with:
           github_token: ${{ secrets.ACCESS_TOKEN }}
@@ -43,7 +43,7 @@ jobs:
   install-on-ubuntu-20-04:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set access token for mbed deploy
         uses: PelionIoT/continuous-integration/.github/actions/git-config@master
         with:
