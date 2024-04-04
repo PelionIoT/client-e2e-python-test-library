@@ -25,6 +25,7 @@ jobs:
       - run: echo . >scripts-internal/.nopyshcheck
       - run: scripts-internal/pysh-check/pysh-check.sh --workdir .
       - name: Cleanup .gitconfig
+        if: always()
         run: rm -f ~/.gitconfig
 
   install-on-ubuntu-22-04:
@@ -38,6 +39,7 @@ jobs:
           cd dist/
           pip install -I client_test_lib*.whl
       - name: Cleanup .gitconfig
+        if: always()
         run: rm -f ~/.gitconfig
   
   install-on-ubuntu-20-04:
@@ -51,6 +53,7 @@ jobs:
           cd dist/
           pip install -I client_test_lib*.whl
       - name: Cleanup .gitconfig
+        if: always()
         run: rm -f ~/.gitconfig
 
   call-mcce-linux:
