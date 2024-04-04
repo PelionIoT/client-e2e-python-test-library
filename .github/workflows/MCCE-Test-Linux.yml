@@ -27,7 +27,7 @@ jobs:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
       - name: Install Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.8'
       - name: Set access token
@@ -39,14 +39,14 @@ jobs:
           pip install mbed-cli
       - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
       - name: Check out scripts-internal repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: PelionIoT/scripts-internal
           token: ${{ secrets.ACCESS_TOKEN }}
           path: ${{ env.SCRIPTS_INTERNAL_DIR }}
           ref: 'master'
       - name: Check out MCCE repository code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: PelionIoT/mbed-cloud-client-example-internal
           token: ${{ secrets.ACCESS_TOKEN }}
