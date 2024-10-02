@@ -5,7 +5,7 @@ The library is designed to be used with the [pytest test framework](https://docs
 
 ## Prerequisites
 
-Python 3.5 or later.
+Python 3.8 or later.
 
 ## Installation
 
