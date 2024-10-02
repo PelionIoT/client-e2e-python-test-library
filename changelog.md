@@ -1,5 +1,10 @@
 # Client E2E Python Test Library Changelog
 
+## 0.5.0 2024-10-x
+- Update `pytest` to `7.4.4`.
+- Update `requests` to `2.32.3`.
+- Update `manifest-tool` to version 2.6.2 (due to `requests` `2.32.3`).
+
 ## 0.4.0 2023-12-11
 - Rename the library to client-e2e-python-test-library.
     - Rename `PELION_CLOUD_API_KEY` to `CLOUD_API_KEY`.
@@ -10,14 +15,14 @@
 - Izuma branding.
 
 ## 0.2.10 2021-03-04
-- Update test doesn't depend on mbed bootloader anymore
+- Update test does not depend on mbed bootloader anymore.
 
 ## 0.2.9  2021-01-15
-- Updated instructions
-- Updated python dependencies
+- Updated instructions.
+- Updated python dependencies.
 
 ## 0.2.8  2020-12-15
-- Update copyrights to Pelion
+- Update copyrights to Pelion.
 
 ## 0.2.7  2020-09-18
 - Manifest-tool 2.0.0 support.
