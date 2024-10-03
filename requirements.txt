@@ -1,7 +1,7 @@
-manifest-tool>=2.1.0
+manifest-tool==2.6.2
 mbed-ls==1.8.*
-pytest==6.2.*
+pytest==7.4.4
 pytest-html
 pyserial
-requests==2.31.0
+requests==2.32.3
 ws4py
