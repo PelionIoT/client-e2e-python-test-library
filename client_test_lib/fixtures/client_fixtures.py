@@ -21,7 +21,10 @@ from client_test_lib.tools.client_runner import Client
 from client_test_lib.tools.external_conn import ExternalConnection
 from client_test_lib.tools.local_conn import LocalConnection
 from client_test_lib.tools.serial_conn import SerialConnection
-from client_test_lib.tools.utils import get_serial_port_for_mbed
+from client_test_lib.tools.utils import (
+    get_serial_port_for_mbed,
+    get_serial_port_for_pyocd,
+)
 
 log = logging.getLogger(__name__)
 
@@ -40,23 +43,28 @@ def client_internal(request):
         log.info("Using local binary process")
         conn = LocalConnection(request.config.getoption("local_binary"))
     else:
-        address = get_serial_port_for_mbed(
+        # Try pyocd first, fall back to mbed-ls if needed
+        address = get_serial_port_for_pyocd(
             request.config.getoption("target_id")
         )
+        log.info("Serial connection address: {}".format(address))
         if address:
             conn = SerialConnection(address, 115200)
+            log.info("Serial connection opened successfully")
         else:
             err_msg = "No serial connection to open for test device"
             log.error(err_msg)
             assert False, err_msg
 
-    cli = Client(conn)
+    cli = Client(conn, trace=True)
 
     # reset the serial connection device
     if not request.config.getoption(
         "ext_conn"
     ) and not request.config.getoption("local_binary"):
+        log.info("Resetting device before test...")
         cli.reset()
+        sleep(2)  # Give device time to reset and stabilize
 
     cli.wait_for_output("Client registered", 300)
     ep_id = cli.endpoint_id(120)

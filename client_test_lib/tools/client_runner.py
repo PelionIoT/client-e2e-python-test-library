@@ -39,12 +39,14 @@ class Client:
     :param dut: Running client object
     :param trace: Log the raw client output
     :param name: Logging name for the client
+    :param filter_debug: Filter out debug messages to reduce log noise (default: True)
     """
 
-    def __init__(self, dut, trace=False, name="0"):
+    def __init__(self, dut, trace=False, name="0", filter_debug=True):
         self._ep_id = None
         self.name = name
         self.trace = trace
+        self.filter_debug = filter_debug
         self.run = True
         self.iq = queue.Queue()
         self.dut = dut
@@ -64,20 +66,119 @@ class Client:
         while self.run:
             line = self.dut.readline()
             if line:
-                plain_line = utils.strip_escape(line)
-                if b"\r" in line and line.count(b"\r") > 1:
-                    plain_line = plain_line.split(b"\r")[-2]
-                plain_line = plain_line.replace(b"\t", b"  ").decode(
-                    "utf-8", "replace"
-                )
-                flog.info("<--|D{}| {}".format(self.name, plain_line.strip()))
-                if self.trace:
-                    log.debug("Raw output: {}".format(line))
-                if b"Error" in line:
-                    log.error("Output: {}".format(line))
-                self.iq.put(plain_line)
+                plain_line = self._parse_serial_line(line)
+                if plain_line:  # Only process non-empty lines
+                    flog.info("<--|D{}| {}".format(self.name, plain_line.strip()))
+                    if self.trace:
+                        log.debug("Raw output: {}".format(line))
+                    self._check_for_errors(line, plain_line)
+                    self.iq.put(plain_line)
             else:
                 pass
+
+    def _parse_serial_line(self, line):
+        """
+        Parse serial line to extract clean content
+        :param line: Raw serial line bytes
+        :return: Cleaned string or None if line should be ignored
+        """
+        if not line or line == b'':
+            return None
+
+        # Strip escape sequences first
+        plain_line = utils.strip_escape(line)
+
+        # Handle multiple carriage returns and newlines
+        # Split on \r\n or \r\r\n patterns and take the last meaningful part
+        if b"\r" in plain_line:
+            # Split on carriage returns and filter out empty parts
+            parts = plain_line.split(b"\r")
+            # Find the last non-empty part that contains actual content
+            for part in reversed(parts):
+                if part.strip() and not part.startswith(b"\n"):
+                    plain_line = part
+                    break
+
+        # Remove leading/trailing newlines and whitespace
+        plain_line = plain_line.strip(b"\n\r\t ")
+
+        # Skip empty lines
+        if not plain_line:
+            return None
+
+        # Convert tabs to spaces and decode to string
+        plain_line = plain_line.replace(b"\t", b"  ").decode("utf-8", "replace")
+
+        # Skip lines that are just whitespace or control characters
+        if not plain_line.strip():
+            return None
+
+        # Filter debug output if enabled
+        if self.filter_debug and self._is_debug_line(plain_line):
+            return None
+
+        return plain_line
+
+    def _is_debug_line(self, line):
+        """
+        Check if a line is debug output that should be filtered
+        :param line: Parsed line string
+        :return: True if line should be filtered out
+        """
+        line_lower = line.lower().strip()
+
+        # log.info("Checking if line is debug: {}".format(line_lower))
+        # Common debug patterns to filter
+        debug_patterns = [
+            "[trace][paal]",
+            "debug: ",
+        ]
+
+        for pattern in debug_patterns:
+            if pattern in line_lower:
+                return True
+
+        return False
+
+    def _check_for_errors(self, raw_line, parsed_line):
+        """
+        Check for error conditions in the serial output
+        :param raw_line: Raw bytes from serial
+        :param parsed_line: Parsed string line
+        """
+        # Check for various error patterns (case insensitive)
+        error_patterns = [
+            b"Error ",
+            b"ERROR:",
+            b"error:",
+            b"Error:",
+            b"FAIL",
+            b"fail",
+            b"Exception",
+            b"exception",
+            b"Fatal",
+            b"fatal",
+            b"Critical",
+            b"critical"
+        ]
+
+        # Check raw line for error patterns
+        for pattern in error_patterns:
+            if pattern in raw_line:
+                log.error("Output: {}".format(raw_line))
+                return
+
+        # Also check parsed line for error keywords
+        parsed_lower = parsed_line.lower()
+        error_keywords = [
+            "error", "fail", "exception", "fatal", "critical",
+            "timeout", "abort", "crash", "panic"
+        ]
+
+        for keyword in error_keywords:
+            if keyword in parsed_lower:
+                log.error("Output: {}".format(raw_line))
+                return
 
     def _read_line(self, timeout):
         """
