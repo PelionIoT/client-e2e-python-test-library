@@ -21,7 +21,10 @@ from client_test_lib.tools.client_runner import Client
 from client_test_lib.tools.external_conn import ExternalConnection
 from client_test_lib.tools.local_conn import LocalConnection
 from client_test_lib.tools.serial_conn import SerialConnection
-from client_test_lib.tools.utils import get_serial_port_for_mbed, get_serial_port_for_pyocd
+from client_test_lib.tools.utils import (
+    get_serial_port_for_mbed,
+    get_serial_port_for_pyocd,
+)
 
 log = logging.getLogger(__name__)
 
