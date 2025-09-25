@@ -18,6 +18,7 @@ import random
 import re
 import string
 import mbed_lstools
+import serial.tools.list_ports
 
 log = logging.getLogger(__name__)
 
@@ -154,6 +155,115 @@ def get_serial_port_for_mbed(target_id):
     log.error(
         "Could not find any mbed devices, please make sure you have connected one with power on"
     )
+    return None
+
+
+def get_serial_port_for_pyocd(target_id):
+    """
+    Gets serial port address for the device using pyocd for device discovery
+    Falls back to mbed-ls if pyocd is not available or fails
+    :param target_id: device target_id (can be pyocd board ID or mbed target_id)
+    :return: Serial port address
+    """
+    try:
+        from pyocd.core.helpers import ConnectHelper
+
+        log.debug("Attempting to discover devices using pyocd")
+
+        # Try to create a session with pyocd
+        session = ConnectHelper.session_with_chosen_probe()
+
+        if session is None:
+            log.warning("No devices found with pyocd, falling back to mbed-ls")
+            return get_serial_port_for_mbed(target_id)
+
+        # Get the probe from the session
+        probe = session.probe
+        if probe:
+            # Map pyocd probe to serial port
+            serial_port = _map_pyocd_probe_to_serial_port(probe)
+            if serial_port:
+                log.info(
+                    'Using pyocd-discovered device "{}" at "{}" port for tests'.format(
+                        getattr(probe, 'unique_id', 'Unknown'),
+                        serial_port
+                    )
+                )
+                session.close()
+                return serial_port
+            else:
+                log.warning("Could not map pyocd probe to serial port, falling back to mbed-ls")
+                session.close()
+                return get_serial_port_for_mbed(target_id)
+        else:
+            log.warning("No probe found in pyocd session, falling back to mbed-ls")
+            session.close()
+            return get_serial_port_for_mbed(target_id)
+
+    except ImportError:
+        log.debug("pyocd not available, falling back to mbed-ls")
+        return get_serial_port_for_mbed(target_id)
+    except Exception as e:
+        log.warning("pyocd device discovery failed: {}, falling back to mbed-ls".format(e))
+        return get_serial_port_for_mbed(target_id)
+
+
+def _map_pyocd_probe_to_serial_port(probe):
+    """
+    Maps a pyocd probe to its corresponding serial port
+    :param probe: pyocd probe object
+    :return: Serial port path or None if not found
+    """
+    try:
+        # Get all available serial ports
+        ports = serial.tools.list_ports.comports()
+
+        # Try to match based on USB VID/PID if available
+        if hasattr(probe, 'vid') and hasattr(probe, 'pid'):
+            target_vid = probe.vid
+            target_pid = probe.pid
+
+            for port in ports:
+                if port.vid == target_vid and port.pid == target_pid:
+                    log.debug("Matched pyocd probe to serial port {} by VID/PID".format(port.device))
+                    return port.device
+
+        # Prioritize USB serial ports over system serial ports
+        # Common patterns for ARM development boards (in order of preference)
+        arm_patterns = [
+            'ttyACM',      # Linux USB CDC-ACM (most common for ARM boards)
+            'ttyUSB',      # Linux USB serial
+            'cu.usbmodem', # macOS USB
+            'COM',         # Windows
+        ]
+
+        # First pass: look for USB serial ports
+        for port in ports:
+            port_name = port.device.lower()
+            for pattern in arm_patterns:
+                if pattern in port_name:
+                    log.debug("Matched pyocd probe to USB serial port {} by name pattern".format(port.device))
+                    return port.device
+
+        # Second pass: exclude system serial ports and use first available USB port
+        usb_ports = []
+        for port in ports:
+            port_name = port.device.lower()
+            # Skip system serial ports (ttyS*) and virtual ports
+            if not any(skip in port_name for skip in ['ttys', 'pts', 'ttyprintk']):
+                usb_ports.append(port)
+
+        if usb_ports:
+            log.debug("Using first available USB serial port {} for pyocd probe".format(usb_ports[0].device))
+            return usb_ports[0].device
+
+        # Last resort: return None to fall back to mbed-ls
+        log.debug("No suitable USB serial port found for pyocd probe")
+        return None
+
+    except Exception as e:
+        log.debug("Error mapping pyocd probe to serial port: {}".format(e))
+
     return None
 
 
