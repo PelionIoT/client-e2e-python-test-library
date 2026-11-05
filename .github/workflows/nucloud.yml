@@ -1,0 +1,101 @@
+# Stamped from IzumaNetworks/nucloud templates/nucloud.yml; identical in every repo.
+# Calls Makefile.nucloud directly, so a repo Makefile target of the same name
+# (test, clean, help) never adds its own prerequisites.
+# Source changes on nucloud and pull requests build; workflow_dispatch forces a rebuild.
+# Developers build and deploy from their own checkout with make (docs/nucloud.md).
+name: nucloud
+
+on:
+  pull_request:
+    branches: [nucloud]
+    paths-ignore:
+      - 'docs/**'
+      - 'README*'
+      - '**/README*'
+      - '*.md'
+      - '**/*.md'
+      - 'Makefile'
+      - '**/Makefile'
+      - 'Makefile.nucloud'
+      - '**/Makefile.nucloud'
+      - 'makehelp-nucloud.sh'
+      - '**/makehelp-nucloud.sh'
+      - '.dockerignore'
+      - '**/.dockerignore'
+      - '.iz'
+      - '.izlocal'
+      - '.gitignore'
+      - '.github/workflows/nucloud.yml'
+  push:
+    branches: [nucloud]
+    paths-ignore:
+      - 'docs/**'
+      - 'README*'
+      - '**/README*'
+      - '*.md'
+      - '**/*.md'
+      - 'Makefile'
+      - '**/Makefile'
+      - 'Makefile.nucloud'
+      - '**/Makefile.nucloud'
+      - 'makehelp-nucloud.sh'
+      - '**/makehelp-nucloud.sh'
+      - '.dockerignore'
+      - '**/.dockerignore'
+      - '.iz'
+      - '.izlocal'
+      - '.gitignore'
+      - '.github/workflows/nucloud.yml'
+  workflow_dispatch:
+
+# A newer run on the same ref supersedes an older run that has not finished.
+concurrency:
+  group: nucloud-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  image:
+    runs-on: [self-hosted, nucloud]
+    permissions:
+      contents: read
+    env:
+      BUILD_NUMBER: ${{ github.run_number }}
+      FA_PRO_TOKEN: ${{ secrets.FA_PRO_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      # IZUMABOT_SSH_KEY reaches private repos only; a public repo builds without it.
+      - name: Check for the IzumaBOT SSH key
+        id: key
+        run: echo "present=${{ secrets.IZUMABOT_SSH_KEY != '' }}" >> "$GITHUB_OUTPUT"
+      - name: SSH agent for private git dependencies
+        if: steps.key.outputs.present == 'true'
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.IZUMABOT_SSH_KEY }}
+      - name: Build
+        run: make -f Makefile.nucloud image
+      # A test repo's suite needs a stage; CI builds and smokes its image.
+      - name: Test
+        run: grep -q '^KIND=tests' nucloud.env || make -f Makefile.nucloud test
+      - name: Smoke
+        run: make -f Makefile.nucloud smoke
+      - name: SBOM
+        run: make -f Makefile.nucloud sbom
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sbom-${{ github.run_number }}
+          path: sbom-*.spdx.json
+      - name: Push to GHCR
+        if: github.ref == 'refs/heads/nucloud'
+        env:
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+        run: |
+          if grep -q '^KIND=tests' nucloud.env; then exit 0; fi
+          echo "$ACCESS_TOKEN" | docker login ghcr.io -u IzumaBOT --password-stdin
+          make -f Makefile.nucloud push
+      # The runner builds any repo next: leave none of this job's images or build cache behind.
+      - name: Clean up
+        if: always()
+        run: |
+          make -f Makefile.nucloud images | awk '{print $2}' | xargs -r docker image rm -f
+          docker builder prune -af

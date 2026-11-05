@@ -5,3 +5,10 @@ dist/
 __pycache__/
 *.egg-info/
 *.pyc
+client.log
+pytest.log
+output.manifest
+
+.izlocal
+simulated_client/testapp.py
+simulated_client/provision.py

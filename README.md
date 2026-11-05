@@ -1,5 +1,14 @@
 # Client E2E Python test library
 
+<!-- nucloud:start -->
+[![nucloud](https://github.com/PelionIoT/client-e2e-python-test-library/actions/workflows/nucloud.yml/badge.svg?branch=nucloud)](https://github.com/PelionIoT/client-e2e-python-test-library/actions/workflows/nucloud.yml)
+[![nucloud branch](https://img.shields.io/badge/branch-nucloud-blue.svg)](https://github.com/IzumaNetworks/nucloud/blob/main/docs/standards.md)
+[![production](https://img.shields.io/badge/production-pre--nucloud-lightgrey.svg)](https://github.com/PelionIoT/client-e2e-python-test-library/releases/tag/archive/pre-nucloud)
+
+Build and deploy: [docs/nucloud.md](docs/nucloud.md).
+<!-- nucloud:end -->
+
+
 Izuma Client E2E tests verify that a target platform can perform essential Device Management Client operations.
 The library is designed to be used with the [pytest test framework](https://docs.pytest.org/en/latest/).
 
@@ -109,3 +118,16 @@ There are many ways to configure the test runs. Refer to the [full pytest docume
 ## License
 
 See the [license](https://github.com/PelionIoT/client-e2e-python-test-library/blob/master/LICENSE) agreement.
+
+## nucloud
+
+`make test MACHINE=k3s-golden ACCOUNT=clitest` runs `tests/dev-client-tests.py` with a simulated device as `--local_binary`, and `tests/read-only-tests.py`. `simulated_client/example.py` behaves as `mbedCloudClientExample.elf` does: it registers by itself, prints its device ID, keeps `/1/0/1`, and takes factory reset and reboot from the cloud. It bootstraps with a developer certificate created for the run, which the run deletes. See `scripts/nucloud-test.sh`.
+
+The image needs `make build` to reach the private device simulator and the internal `simulated_client/testapp.py`, so `nucloud.env` sets `SSH=1`. This repo is public, so neither enters git.
+
+The simulation does not prove:
+
+- A simulated device reads the firmware blocks and reports the update states, but applies nothing and checks no manifest signature. `--update_bin` holds random bytes.
+- Writing `/1/0/1` changes the stored value and notifies, and does not change the registration.
+
+`make test MACHINE=staging` skips the device cases, because bootstrapping is a write, and refuses every method but GET and OPTIONS at the `requests` layer. `test_guard_refuses_a_write` proves the guard on that stage.

@@ -1,0 +1,9 @@
+#!/bin/sh
+# The --local_binary of the suite. The simulator keeps the Python and the
+# OpenSSL 1.1 its pins were written for, beside the suite's own Python.
+PY=/opt/simulator-python
+export LD_LIBRARY_PATH=$PY/lib
+export PYTHONPATH=/opt/device-simulator:/opt/device-simulator/aiocoap:/opt/device-simulator/lwm2mclient
+export PYTHONNOUSERSITE=1
+unset PYTHONHOME
+exec "$PY/bin/python3.6" -u "$(dirname "$(readlink -f "$0")")/example.py"

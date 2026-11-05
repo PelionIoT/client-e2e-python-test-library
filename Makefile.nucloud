@@ -1,0 +1,106 @@
+# ============================================================================
+# nucloud image repo Makefile. Stamped from IzumaNetworks/nucloud
+# templates/Makefile; identical in every repo. Repo-specific values live in
+# nucloud.env. Change this file in nucloud, then re-stamp.
+# ============================================================================
+
+.DEFAULT_GOAL := help
+
+# Set by CI to the run number; empty for a local build (tag -nucloud.dev.<commit>)
+BUILD_NUMBER     ?=
+IMAGE_SUFFIX     ?=
+ENV              ?=
+# MACHINE names the stage, defined in .iz or .izlocal; ENV is its alias.
+# Unset, a stage target offers a picklist on a terminal and refuses elsewhere.
+MACHINE          ?= $(ENV)
+override ENV     := $(MACHINE)
+ONLY             ?=
+
+export BUILD_NUMBER IMAGE_SUFFIX ENV ONLY COLOR
+
+##@ General
+
+.PHONY: help
+help:  ## Show the targets, the variables they read and this repository's own targets
+	@./makehelp-nucloud.sh help
+
+.PHONY: images
+images:  ## List the images this repo builds and the tag each gets
+	@./makehelp-nucloud.sh images
+
+.PHONY: prereqs
+prereqs:  ## Check every tool, the Docker context, declared secrets and the stages, one line per check
+	@./makehelp-nucloud.sh prereqs
+
+##@ Build
+
+.PHONY: all
+all: build  ## Alias for build — build every image
+
+.PHONY: build
+build: image  ## Build every image on the current Docker context
+	@:
+
+.PHONY: image
+image:  ## Build every image (ONLY=<name> for one) on the current Docker context
+	@./makehelp-nucloud.sh image
+
+.PHONY: sbom
+sbom:  ## Write sbom-<name>.spdx.json per image with syft
+	@./makehelp-nucloud.sh sbom
+
+##@ Test
+
+.PHONY: test
+test:  ## Run the repo's unit tests inside the Dockerfile's test target, if it has one
+	@./makehelp-nucloud.sh test
+
+.PHONY: setup
+setup:  ## Put the stage in the condition the suite expects; safe to repeat: MACHINE=<stage>
+	@./makehelp-nucloud.sh setup
+
+.PHONY: smoke
+smoke:  ## Start each image briefly and check it runs
+	@./makehelp-nucloud.sh smoke
+
+##@ Deploy
+
+.PHONY: image-load
+image-load:  ## Import the images into the stage VM: MACHINE=<stage> (k3s ctr images import)
+	@./makehelp-nucloud.sh image-load
+
+.PHONY: stage-check
+stage-check:  ## Check the stage VM answers and its kubeconfig can be fetched: MACHINE=<stage>
+	@./makehelp-nucloud.sh stage-check
+
+.PHONY: kubeconfig
+kubeconfig:  ## Print the stage's kubeconfig fetched from its VM, written nowhere: MACHINE=<stage>
+	@./makehelp-nucloud.sh kubeconfig
+
+.PHONY: running
+running:  ## Table of this repo's releases on a stage and the build each workload runs: MACHINE=<stage>
+	@./makehelp-nucloud.sh running
+
+.PHONY: deploy
+deploy:  ## Build the images, import them and upgrade their releases on a stage: MACHINE=<stage>
+	@./makehelp-nucloud.sh deploy
+
+.PHONY: deploy-only
+deploy-only:  ## Import and deploy images already built; IMAGE_SUFFIX= selects an earlier build: MACHINE=<stage>
+	@./makehelp-nucloud.sh deploy-only
+
+.PHONY: push
+push:  ## Push CI-built -nucloud.<n> tags to ghcr.io/izumanetworks (refuses any other tag)
+	@./makehelp-nucloud.sh push
+
+##@ Development
+
+.PHONY: run
+run: build  ## Run the first image in the foreground (ARGS="..." passes arguments)
+	@./makehelp-nucloud.sh run $(ARGS)
+
+##@ Cleanup
+
+.PHONY: clean
+clean:  ## Remove SBOMs and local build output
+	@rm -f sbom-*.spdx.json
