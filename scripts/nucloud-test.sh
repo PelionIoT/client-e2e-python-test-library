@@ -5,21 +5,7 @@
 # environment variable.
 set -eu
 : "${NUCLOUD_API_URL:?make test sets it}" "${NUCLOUD_API_KEY:?make test sets it}"
-python3 - <<'PY'
-import json, os, sys, urllib.request
-from urllib.parse import urlparse
-
-api = os.environ['NUCLOUD_API_URL'].rstrip('/')
-# client_test_lib defaults to production; this suite never runs there.
-if (urlparse(api).hostname or '').endswith('mbedcloud.com'):
-    sys.exit('refusing production API ' + api)
-request = urllib.request.Request(api + '/v3/server-credentials',
-                                 headers={'Authorization': 'Bearer ' + os.environ['NUCLOUD_API_KEY']})
-with urllib.request.urlopen(request, timeout=30) as response:
-    bootstrap = json.load(response)['bootstrap']['url']
-if 'mbedcloud.com' in bootstrap:
-    sys.exit('refusing production bootstrap ' + bootstrap)
-PY
+scripts/nucloud-setup.py >/dev/null
 export CLOUD_API_GW="${NUCLOUD_API_URL%/}" CLOUD_API_KEY="$NUCLOUD_API_KEY"
 selection=
 for word in ${SUITES:-}; do
