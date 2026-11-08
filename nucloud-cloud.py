@@ -143,7 +143,7 @@ def facts(cloud):
     """{name: metadata row} for the cloud's facts (`izmachine fact list`); no values."""
     if cloud not in _FACTS:
         r = subprocess.run(['izmachine', 'fact', 'list', cloud, '--format', 'json'],
-                           capture_output=True, text=True, timeout=60)
+                           capture_output=True, text=True, timeout=60, stdin=subprocess.DEVNULL)
         if r.returncode:
             raise Problem('izmachine fact list ' + cloud + ' failed')
         _FACTS[cloud] = {row['name']: row for row in json.loads(r.stdout or '{}').get('facts', [])}
@@ -160,7 +160,7 @@ def read_fact(cloud, name, secret):
     with tempfile.TemporaryDirectory(prefix='nucloud-fact-') as d:
         path = Path(d) / 'value'
         r = subprocess.run(['izmachine', 'fact', 'get', cloud, name, '--file', str(path), '--format', 'json'],
-                           capture_output=True, text=True, timeout=120)
+                           capture_output=True, text=True, timeout=120, stdin=subprocess.DEVNULL)
         if r.returncode or not path.is_file():
             raise Problem('izmachine fact get ' + cloud + ' ' + name + ' failed')
         return path.read_text().rstrip('\n')
@@ -175,20 +175,21 @@ def api(cloud, root='.'):
 
 
 def lan_address(cloud, root='.'):
-    """The machine's LAN address: the source of its default route (guest.ip is a CNI address on k3s)."""
-    row = machines(root).get(cloud)
-    if not row:
+    """The machine's LAN address: the source of its default route (guest.ip is a CNI address on k3s).
+    The guest and its remote come from `izmachine info`, as stage_vm reads them."""
+    info = ['izmachine', 'info', cloud, '--format', 'json'] + (['-f', '.iz'] if (Path(root) / '.iz').is_file() else [])
+    r = subprocess.run(info, capture_output=True, text=True, timeout=60, cwd=root, stdin=subprocess.DEVNULL)
+    hit = next((g for g in (json.loads(r.stdout).get('guests', []) if not r.returncode and r.stdout.strip() else [])
+                if g.get('definition') == cloud and g.get('remote')), None)
+    if not hit:
         raise Problem(cloud + ' kubeconfig names the loopback address and ' + cloud + ' is no machine in .iz or .izlocal')
-    guest, remote = str(row['fields'].get('name', cloud)), str(row['fields'].get('remote', ''))
-    cmd = ['izmachine', 'direct', 'run', guest, '--format', 'json']
-    if row['fields'].get('provider'):
-        cmd += ['--provider', str(row['fields']['provider'])]
-    if remote:
-        cmd += ['--remote', remote]
-    r = subprocess.run(cmd + ['--', 'ip', '-4', 'route', 'get', '1.1.1.1'], capture_output=True, text=True, timeout=60)
+    guest, remote = hit.get('guest', cloud), hit['remote']
+    r = subprocess.run(['izmachine', 'direct', 'run', guest, '--provider', 'incus', '--remote', remote, '--format', 'json',
+                        '--', 'ip', '-4', 'route', 'get', '1.1.1.1'], capture_output=True, text=True, timeout=180,
+                       stdin=subprocess.DEVNULL)
     m = re.search(r'\bsrc (\d+\.\d+\.\d+\.\d+)', json.loads(r.stdout or '{}').get('stdout', '') if not r.returncode else '')
     if not m:
-        raise Problem('cannot read ' + guest + "'s address on " + (remote or 'its remote') + '; is the VM running? (izmachine list)')
+        raise Problem('cannot read ' + guest + "'s address on " + remote + '; is the VM running? (izmachine list)')
     return m.group(1)
 
 
@@ -303,6 +304,6 @@ def main(argv):
 if __name__ == '__main__':
     try:
         sys.exit(main(sys.argv[1:]))
-    except Problem as exc:
+    except (Problem, subprocess.TimeoutExpired) as exc:
         print('error: ' + str(exc), file=sys.stderr)
         sys.exit(1)
