@@ -13,9 +13,17 @@
 #   SMOKE_CMD=(...)               # command run by `make smoke`, default: none (image must start)
 #   SMOKE_<name>=(...)            # per-image override; <name> with every non-alphanumeric as _ (SMOKE_iam_policies)
 #   KIND=tests                    # a test repo: one image holds the suite, which runs against a stage's API
-#   SETUP_CMD=(...)               # tests: puts the stage in the condition the suite expects; safe to repeat
-#   TEST_CMD=(...)                # tests: runs the suite
+#   SETUP_CMD=(...)               # tests: in the image, creates or verifies the suite's own fixtures; safe to repeat;
+#                                 # make test runs it first, and a failure is reported as setup, never as a test result
+#   HOST_SETUP_CMD=(...)          # tests: the same preparation run on this host (it needs host access, e.g. kubectl)
+#   TEST_CMD=(...)                # tests: runs the suite in the image
+#   HOST_TEST_CMD=(...)           # tests: runs the suite from this host instead
 #   TEST_STAGE=no                 # tests: TEST_CMD needs no stage (a library's own tests)
+#   CREDENTIALS=(API_KEY)         # tests: the encrypted izmachine facts make prereqs requires on each cloud, default
+#                                 # API_KEY; any of API_KEY USER PASSWORD ROOT_USER ROOT_PASSWORD CONFIG_JSON ACCOUNT_ID
+#                                 # KUBECONFIG. The suite receives every one of them the cloud holds.
+#   HOST_TOOLS=("kubectl|hsm setup" "py:yaml|kubeconfig parsing")  # tools and python modules this repo needs on the host
+#   PREREQS_CMD=(...)             # a read-only repository check run last by make prereqs
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")"
 ENV="${MACHINE:-${ENV:-}}"
@@ -51,25 +59,15 @@ else
     C_OK= C_FAIL= C_WARN= C_NAME= C_BOLD= C_DIM= C_OFF=
 fi
 
-stage_list() { # stage_list: "<stage>\t<file>\t<remote>\t<note>" per [machine.<stage>] in .iz then .izlocal
-    local f
-    for f in .iz .izlocal; do
-        [[ -f $f ]] || continue
-        awk -v f="$f" '
-            function flush() { if (name) print name "\t" f "\t" remote "\t" n; name = "" }
-            /^#/ { note = $0; sub(/^# */, "", note); next }
-            /^\[machine\./ { flush(); name = $0; sub(/^\[machine\./, "", name); sub(/\].*/, "", name); remote = ""; n = note; next }
-            /^\[/ { flush(); next }
-            /^remote/ { remote = $0; sub(/^[^"]*"/, "", remote); sub(/".*/, "", remote) }
-            /^$/ { note = "" }
-            END { flush() }' "$f"
-    done
-}
-production_stages() { # the stages listed under [nucloud] production = [...] in .iz or .izlocal
-    local f; for f in .iz .izlocal; do if [[ -f $f ]]; then cat "$f"; fi; done | awk '/^\[/ { sec = $0; next } sec == "[nucloud]" && /^production[ \t]*=/ { s = $0; sub(/^[^=]*=/, "", s); gsub(/[]["[:space:]]/, "", s); n = split(s, a, ","); for (i = 1; i <= n; i++) if (a[i] != "") print a[i] }'
-}
-endpoint_stages() { # "<stage>\t<api url>" per entry of [nucloud] endpoints: stages with an API and no VM here
-    local f; for f in .iz .izlocal; do if [[ -f $f ]]; then cat "$f"; fi; done | awk '/^\[/ { sec = $0; next } sec == "[nucloud]" && /^endpoints[ \t]*=/ { s = $0; sub(/^[^=]*=/, "", s); gsub(/[]["[:space:]]/, "", s); n = split(s, a, ","); for (i = 1; i <= n; i++) { e = index(a[i], "="); if (e) print substr(a[i], 1, e - 1) "\t" substr(a[i], e + 1) } }'
+# Clouds come from .iz then .izlocal parsed as structured TOML by nucloud-cloud.py,
+# stamped beside this file: top-level [machine.<stage>] entries only; their nested
+# .labels/.facts/.functions tables are metadata, never stages.
+CLOUD=(python3 ./nucloud-cloud.py)
+stage_list() { "${CLOUD[@]}" stages; }            # "<stage>\t<file>\t<remote>\t<note>" per machine
+production_stages() { "${CLOUD[@]}" production; } # the stages in [nucloud] production
+endpoint_stages() { "${CLOUD[@]}" endpoints; }    # "<stage>\t<api url>" per [nucloud] endpoints entry
+api_only_stages() { # "<stage>\t<api url>" per endpoint with no machine: nucloud reaches it through its API alone
+    endpoint_stages | awk -F'\t' -v m=" $(stage_list | cut -f1 | tr '\n' ' ') " 'index(m, " " $1 " ") == 0'
 }
 
 show_help() { # make help: the nucloud targets, the variables they read, and a wrapper repo's own targets
@@ -86,7 +84,7 @@ show_help() { # make help: the nucloud targets, the variables they read, and a w
             printf "  %s%-14s%s %s\n", C, $1, O, d }' Makefile.nucloud
     prod=$(production_stages | tr '\n' ' '); prod=${prod% }
     stages=$(stage_list | cut -f1 | grep -vxF "$(production_stages; echo __none__)" | tr '\n' ' '); stages=${stages% }
-    endpoints=$(endpoint_stages | cut -f1 | tr '\n' ' '); endpoints=${endpoints% }
+    endpoints=$(api_only_stages | cut -f1 | tr '\n' ' '); endpoints=${endpoints% }
     [[ $kind != tests || -z $endpoints ]] || stages+=" $endpoints"
     printf '\n%sVariables%s\n' "$C_BOLD" "$C_OFF"
     printf '  %s%-14s%s %s\n' "$C_NAME" "MACHINE=" "$C_OFF" "the stage for stage targets: ${stages:-none in .iz or .izlocal}"
@@ -118,6 +116,7 @@ fi
 [[ -f nucloud.env ]] || { echo "error: nucloud.env missing" >&2; exit 1; }
 REGISTRY=ghcr.io/izumanetworks
 SECRETS=() SSH=0 PLATFORM=linux/amd64 SMOKE_CMD=() KIND=image SETUP_CMD=() TEST_CMD=() TEST_STAGE=yes
+CREDENTIALS=(API_KEY) HOST_TOOLS=() PREREQS_CMD=() HOST_SETUP_CMD=() HOST_TEST_CMD=()
 # shellcheck disable=SC1091
 source nucloud.env
 ONLY="${ONLY:-}"
@@ -138,13 +137,13 @@ die() { echo "error: $*" >&2; exit 1; }
 say() { printf '==> %s\n' "$*"; }
 need_stage() { # need_stage [change|api]: MACHINE= names the stage; otherwise a picklist on a terminal, a refusal elsewhere.
     # With "change" (image-load, deploy, deploy-only) a production stage is refused and left out of the picklist.
-    # With "api" (setup, test in a test repo) the endpoint stages join the list; every other mode refuses them.
+    # With "api" (prereqs, setup, test in a test repo) the API-only stages join the list; every other mode refuses them.
     local -a stages=() files=() remotes=() notes=()
     local s f r n i choice prod endpoints
     prod=" $(production_stages | tr '\n' ' ') "
-    endpoints=" $(endpoint_stages | cut -f1 | tr '\n' ' ') "
+    endpoints=" $(api_only_stages | cut -f1 | tr '\n' ' ') "
     if [[ -n $ENV ]]; then
-        [[ ${1:-} == api || $endpoints != *" $ENV "* ]] || die "$ENV is an endpoint-only stage: nucloud reaches it through its API and has no VM to act on"
+        [[ ${1:-} == api || $endpoints != *" $ENV "* ]] || die "$ENV is an API-only stage: nucloud reaches it through its API and has no VM to act on"
         [[ ${1:-} != change || $prod != *" $ENV "* ]] || die "$ENV is production; nucloud builds are never deployed there (.iz [nucloud] production)"
         return 0
     fi
@@ -158,7 +157,7 @@ need_stage() { # need_stage [change|api]: MACHINE= names the stage; otherwise a 
     if [[ ${1:-} == api ]]; then
         while IFS=$'\t' read -r s r; do
             [[ -n $s ]] && { stages+=("$s"); files+=(""); remotes+=(""); notes+=("API only: $r"); }
-        done < <(endpoint_stages)
+        done < <(api_only_stages)
     fi
     [[ ${#stages[@]} -gt 0 ]] || die "no [machine.<stage>] in .iz or .izlocal"
     [[ -t 0 && -t 2 ]] || die "MACHINE=<stage> is required; stages: ${stages[*]}"
@@ -250,29 +249,13 @@ WORK=
 work_dir() { [[ -n $WORK ]] || { WORK=$(mktemp -d); trap 'rm -rf "$WORK"' EXIT; }; }
 
 STAGE_KC=
-stage_kubeconfig() { # fetch the stage's admin kubeconfig from its VM into $STAGE_KC (mode 600, removed on exit)
-    local hit remote guest ip out
+stage_kubeconfig() { # the stage's kubeconfig fact into $STAGE_KC (mode 600, removed on exit), API at its LAN address
+    local hit
     [[ -z $STAGE_KC ]] || return 0
-    hit=$(stage_vm); remote=${hit%%:*}; guest=${hit#*:}
+    hit=$(stage_vm)
     work_dir
-    # the VM's own guest.ip is a CNI address on k3s; the default route's source is the LAN address
-    ip=$(izmachine direct run "$guest" --provider incus --remote "$remote" --format json -- ip -4 route get 1.1.1.1 | python3 -c '
-import json, re, sys
-m = re.search(r"\bsrc (\d+\.\d+\.\d+\.\d+)", json.load(sys.stdin).get("stdout", ""))
-print(m.group(1) if m else "")') || ip=
-    [[ -n $ip ]] || die "cannot read $guest's address on $remote; is the VM running? (izmachine list)"
-    out="$WORK/$ENV.kubeconfig"
-    izmachine direct run "$guest" --provider incus --remote "$remote" --format json -- cat /etc/rancher/k3s/k3s.yaml | python3 -c '
-import json, re, sys
-ip, stage = sys.argv[1:3]
-d = json.load(sys.stdin)
-if d.get("exit_code") != 0 or not d.get("stdout", "").startswith("apiVersion"):
-    sys.exit("k3s.yaml not readable: " + d.get("stderr", "")[:200])
-t = d["stdout"].replace("https://127.0.0.1:", "https://" + ip + ":")
-t = re.sub(r"(?m)^(\s*(?:- )?(?:name|cluster|user)|current-context): default$", lambda m: m.group(1) + ": " + stage, t)
-sys.stdout.write(t)' "$ip" "$ENV" > "$out" || die "cannot fetch $ENV's kubeconfig from $guest on $remote"
-    chmod 600 "$out"
-    STAGE_KC=$out
+    "${CLOUD[@]}" kubeconfig "$ENV" "$WORK/$ENV.kubeconfig" || die "cannot fetch $ENV's kubeconfig (machine ${hit#*:} on ${hit%%:*})"
+    STAGE_KC=$WORK/$ENV.kubeconfig
 }
 
 release_chart() { # release_chart <kubeconfig> <release> <namespace> <dir>: write the installed chart from its newest release record
@@ -521,68 +504,99 @@ i_push() {
 }
 
 PREREQ_FAIL=()
-# A test repo's stage credential: NUCLOUD_API_KEY_<STAGE> in the environment, else
-# API_KEY= in ${XDG_CONFIG_HOME:-~/.config}/nucloud/<stage>.env, which may also set API_URL=,
-# and USER=, PASSWORD=, ROOT_USER=, ROOT_PASSWORD= for suites that log in.
-stage_env_file() { echo "${XDG_CONFIG_HOME:-$HOME/.config}/nucloud/$1.env"; }
-stage_env_get() { # stage_env_get <stage> <key>
-    local f; f=$(stage_env_file "$1")
-    if [[ -f $f ]]; then sed -n "s/^$2=//p" "$f" | tail -1 | sed "s/^['\"]//; s/['\"]\$//"; fi
-}
-stage_key_var() { local s=${1^^}; echo "NUCLOUD_API_KEY_${s//-/_}"; }
-stage_key() { local v; v=$(stage_key_var "$1"); if [[ -n ${!v:-} ]]; then echo "${!v}"; else stage_env_get "$1" API_KEY; fi; }
-stage_api() { # the stage's API: API_URL in its env file, else [nucloud] endpoints, else https://api.<stage>.izuma.io
-    local u; u=$(stage_env_get "$1" API_URL)
-    [[ -n $u ]] || u=$(endpoint_stages | awk -F'\t' -v s="$1" '$1 == s { print $2 }')
-    echo "${u:-https://api.$1.izuma.io}"
+# A test repo's credentials are encrypted izmachine facts on each cloud, read
+# through nucloud-cloud.py: CREDENTIALS= in nucloud.env names the fields the suite
+# reads (API_KEY USER PASSWORD ROOT_USER ROOT_PASSWORD CONFIG_JSON ACCOUNT_ID
+# KUBECONFIG), as cloud.<field> facts; ACCOUNT=<name> selects cloud.accounts.<name>.*.
+stage_api() { "${CLOUD[@]}" api "$1"; } # API_URL fact, else [nucloud] endpoints, else https://api.<stage>.izuma.io
+stage_value() { "${CLOUD[@]}" value "$1" "$2"; }
+wants() { local c; for c in ${CREDENTIALS[@]+"${CREDENTIALS[@]}"}; do [[ $c == "$1" ]] && return 0; done; return 1; }
+suite_env() { # export NUCLOUD_STAGE, NUCLOUD_API_URL and NUCLOUD_<field> for every credential fact the cloud holds
+    local f v
+    need_stage api
+    NUCLOUD_STAGE=$ENV NUCLOUD_API_URL=$(stage_api "$ENV") || die "cannot resolve $ENV's API URL"
+    export NUCLOUD_STAGE NUCLOUD_API_URL
+    for f in API_KEY USER PASSWORD ROOT_USER ROOT_PASSWORD CONFIG_JSON ACCOUNT_ID; do
+        v=$(stage_value "$ENV" "$f") || die "cannot read $ENV's ${f,,} fact${ACCOUNT:+ (ACCOUNT=$ACCOUNT)}"
+        export "NUCLOUD_$f=$v"
+    done
+    if wants API_KEY && [[ -z $NUCLOUD_API_KEY ]]; then
+        die "$ENV has no encrypted cloud.${ACCOUNT:+accounts.$ACCOUNT.}api_key fact: izmachine fact set $ENV cloud.${ACCOUNT:+accounts.$ACCOUNT.}api_key - --secret"
+    fi
 }
 suite() { # suite <verb> <command...>: run a command of the suite image against the stage's API
     local verb=$1 ref; shift
-    need_stage api
-    local cred=$ENV${ACCOUNT:+-$ACCOUNT} # ACCOUNT=<name> reads <stage>-<name>.env, a second test account on the stage
-    NUCLOUD_API_KEY=$(stage_key "$cred")
-    [[ -n $NUCLOUD_API_KEY ]] || die "no API key for $cred: put API_KEY=<key> in $(stage_env_file "$cred") or set $(stage_key_var "$cred")"
-    NUCLOUD_STAGE=$ENV NUCLOUD_API_URL=$(stage_env_get "$cred" API_URL)
-    [[ -n $NUCLOUD_API_URL ]] || NUCLOUD_API_URL=$(stage_api "$ENV")
-    NUCLOUD_USER=$(stage_env_get "$cred" USER) NUCLOUD_PASSWORD=$(stage_env_get "$cred" PASSWORD)
-    NUCLOUD_ROOT_USER=$(stage_env_get "$cred" ROOT_USER) NUCLOUD_ROOT_PASSWORD=$(stage_env_get "$cred" ROOT_PASSWORD)
-    NUCLOUD_CONFIG_JSON=$(stage_env_get "$cred" CONFIG_JSON)
-    export NUCLOUD_STAGE NUCLOUD_API_URL NUCLOUD_API_KEY NUCLOUD_USER NUCLOUD_PASSWORD NUCLOUD_ROOT_USER NUCLOUD_ROOT_PASSWORD NUCLOUD_CONFIG_JSON
+    suite_env
     IFS='|' read -r n t _ <<<"${IMAGES[0]}"; ref=$REGISTRY/$n:$t-$SUFFIX
     docker image inspect "$ref" >/dev/null 2>&1 || each i_build
     say "$verb on $ENV ($NUCLOUD_API_URL)"
     # The client is backgrounded so the trap runs on a signal; a killed client alone leaves the container calling the stage.
     SUITE_CONTAINER=nucloud-suite-$$
     docker run --rm --init --name "$SUITE_CONTAINER" --platform "$PLATFORM" -e NUCLOUD_STAGE -e NUCLOUD_API_URL -e NUCLOUD_API_KEY \
-        -e NUCLOUD_USER -e NUCLOUD_PASSWORD -e NUCLOUD_ROOT_USER -e NUCLOUD_ROOT_PASSWORD -e NUCLOUD_CONFIG_JSON -e SUITES "$ref" "$@" &
+        -e NUCLOUD_USER -e NUCLOUD_PASSWORD -e NUCLOUD_ROOT_USER -e NUCLOUD_ROOT_PASSWORD -e NUCLOUD_CONFIG_JSON -e NUCLOUD_ACCOUNT_ID \
+        -e SUITES "$ref" "$@" &
     local client=$! rc=0
     trap 'trap "" HUP INT TERM; docker stop "$SUITE_CONTAINER" >/dev/null 2>&1 || true; exit 143' HUP INT TERM
     wait "$client" || rc=$?
     trap - HUP INT TERM
     return "$rc"
 }
+run_setup() { # the suite's own preparation; a failure is reported as setup, apart from prereqs and test results
+    local rc=0
+    if [[ ${#HOST_SETUP_CMD[@]} -gt 0 ]]; then
+        suite_env; export MACHINE=$ENV; say "setup on $ENV (host)"; "${HOST_SETUP_CMD[@]}" || rc=$?
+    elif [[ ${#SETUP_CMD[@]} -gt 0 ]]; then
+        suite setup "${SETUP_CMD[@]}" || rc=$?
+    else
+        return 0
+    fi
+    [[ $rc -eq 0 ]] || { printf '%ssetup: %s failed on %s (exit %d); the suite did not run%s\n' "$C_FAIL" "$REPO" "$ENV" "$rc" "$C_OFF" >&2; exit 3; }
+}
 
-chk_ok()   { printf '  %sok%s    %s%-10s%s %s\n' "$C_OK" "$C_OFF" "$C_NAME" "$1" "$C_OFF" "$2"; }
-chk_fail() { printf '  %sFAIL%s  %s%-10s%s %s%s%s\n' "$C_FAIL" "$C_OFF" "$C_NAME" "$1" "$C_OFF" "$C_FAIL" "$2" "$C_OFF"; PREREQ_FAIL+=("$1"); }
-chk_note() { printf '  %snote%s  %s%-10s%s %s\n' "$C_WARN" "$C_OFF" "$C_NAME" "$1" "$C_OFF" "$2"; }
+chk_ok()   { printf '  %sok%s    %s%-11s%s %s\n' "$C_OK" "$C_OFF" "$C_NAME" "$1" "$C_OFF" "$2"; }
+chk_fail() { printf '  %sFAIL%s  %s%-11s%s %s%s%s\n' "$C_FAIL" "$C_OFF" "$C_NAME" "$1" "$C_OFF" "$C_FAIL" "$2" "$C_OFF"; PREREQ_FAIL+=("$1"); }
+chk_note() { printf '  %snote%s  %s%-11s%s %s\n' "$C_WARN" "$C_OFF" "$C_NAME" "$1" "$C_OFF" "$2"; }
 chk_tool() { # chk_tool <name> <what needs it> <version command...>: on PATH, with the version it prints
     local path ver
     path=$(command -v "$1") || { chk_fail "$1" "not installed; needed by $2"; return 0; }
-    ver=$("${@:3}" 2>/dev/null | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?' | head -1)
+    ver=$("${@:3}" 2>&1 | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?' | head -1) || ver=
     chk_ok "$1" "$path${ver:+ $ver}"
 }
-check_prereqs() { # one line per check; every failure listed at the end, exit 1
-    local s v ctx endpoint engine stages prod src remotes r st usable=() unusable=()
-    say "prereqs for $REPO: ${#IMAGES[@]} image(s), $PLATFORM"
+check_prereqs() { # host tools, then the Docker runtime, then izmachine and each cloud's credentials; exit 1 on a failure
+    local s v ctx endpoint engine stages prod src remotes r st t name why ref usable=() unusable=() clouds=() started=$SECONDS
+    say "prereqs for $REPO: ${#IMAGES[@]} image(s), $PLATFORM${ENV:+, $ENV}"
     chk_ok bash "$BASH $BASH_VERSION"
     chk_tool git "image tags" git --version
     chk_tool python3 "every target" python3 --version
-    chk_tool docker "build, smoke, run, image-load" docker --version
+    if python3 -c 'import tomllib' 2>/dev/null || python3 -c 'import tomli' 2>/dev/null; then
+        chk_ok toml "python3 tomllib reads .iz and .izlocal"
+    else
+        chk_fail toml "python3 3.11+ (tomllib) or the tomli module; reads .iz and .izlocal"
+    fi
+    chk_tool docker "build, smoke, run, test" docker --version
     if command -v docker >/dev/null && docker buildx version >/dev/null 2>&1; then
         chk_ok buildx "$(docker buildx version | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' | head -1)"
     else
         chk_fail buildx "docker buildx missing; needed by build"
     fi
+    [[ $KIND == tests ]] || chk_tool syft "sbom" syft --version
+    if [[ $KIND != tests ]]; then
+        chk_tool incus "image-load, deploy" incus --version
+        chk_tool kubectl "running, deploy" kubectl version --client
+        chk_tool helm "running, deploy" helm version --short
+    fi
+    for t in ${HOST_TOOLS[@]+"${HOST_TOOLS[@]}"}; do # "<tool>|<what needs it>"; python modules as "py:<module>|<why>"
+        name=${t%%|*} why=${t#*|}
+        if [[ $name == py:* ]]; then
+            if python3 -c "import ${name#py:}" 2>/dev/null; then chk_ok "${name#py:}" "python3 module; $why"; else chk_fail "${name#py:}" "python3 module missing; needed by $why"; fi
+        else
+            chk_tool "$name" "$why" "$name" --version
+        fi
+    done
+    for s in ${SECRETS[@]+"${SECRETS[@]}"}; do
+        v="${s#*=}"
+        if [[ -n "${!v:-}" ]]; then chk_ok secret "${s%%=*} from \$$v"; else chk_fail secret "${s%%=*} needs \$$v set; needed by build"; fi
+    done
     if ctx=$(docker context show 2>/dev/null); then
         endpoint=$(docker context inspect "$ctx" --format '{{.Endpoints.docker.Host}}' 2>/dev/null || echo '?')
         src=${CONTEXT_FROM:-the current docker context}
@@ -592,33 +606,35 @@ check_prereqs() { # one line per check; every failure listed at the end, exit 1
             chk_fail context "$ctx ($endpoint, from $src): engine $engine; builds need a Linux engine"
         else
             chk_ok context "$ctx ($endpoint, from $src) engine $engine, builds $PLATFORM$([[ $engine == "$PLATFORM" ]] || echo ", emulated (slower)")"
+            # The suite's own libraries live in its image; a built image is checked there, an unbuilt one builds on first use.
+            IFS='|' read -r n t _ <<<"${IMAGES[0]}"; ref=$REGISTRY/$n:$t-$SUFFIX
+            if [[ $KIND == tests && ${#SMOKE_CMD[@]} -gt 0 ]] && docker image inspect "$ref" >/dev/null 2>&1; then
+                if docker run --rm --platform "$PLATFORM" "$ref" "${SMOKE_CMD[@]}" >/dev/null 2>&1; then chk_ok runtime "$ref: suite libraries import"
+                else chk_fail runtime "$ref: SMOKE_CMD failed inside the image; make image rebuilds it"; fi
+            fi
         fi
     else
         chk_fail context "no docker context; needed by build"
     fi
-    chk_tool syft "sbom" syft --version
-    if [[ $KIND != tests ]]; then
-        chk_tool izmachine "stage-check, kubeconfig, running, image-load, deploy" izmachine --version
-        chk_tool incus "image-load, deploy" incus --version
-        chk_tool kubectl "running, deploy" kubectl version --client
-        chk_tool helm "running, deploy" helm version --short
-    fi
-    for s in ${SECRETS[@]+"${SECRETS[@]}"}; do
-        v="${s#*=}"
-        if [[ -n "${!v:-}" ]]; then chk_ok secret "${s%%=*} from \$$v"; else chk_fail secret "${s%%=*} needs \$$v set; needed by build"; fi
-    done
-    stages=$(stage_list | cut -f1 | tr '\n' ' '); prod=$(production_stages | tr '\n' ' ')
-    if [[ -n $stages ]]; then
-        chk_ok stages "${stages% }${prod:+ (production: ${prod% })}; MACHINE=<stage>${ENV:+, now $ENV}"
-    else
-        chk_fail stages "no [machine.<stage>] in .iz or .izlocal; needed by every stage target"
-    fi
-    if [[ $KIND == tests ]]; then
-        while read -r st; do
-            [[ -n $st ]] || continue
-            if [[ -n $(stage_key "$st") ]]; then chk_ok credential "$st present"
-            else chk_note credential "$st absent: API_KEY=<key> in $(stage_env_file "$st") or \$$(stage_key_var "$st")"; fi
-        done < <({ stage_list | cut -f1; endpoint_stages | cut -f1; })
+    chk_tool izmachine "clouds, kubeconfig, credentials" izmachine --version
+    [[ $KIND != tests ]] || chk_tool curl "cloud API access check" curl --version
+    if command -v izmachine >/dev/null && stages=$(stage_list 2>&1); then
+        stages=$( { printf '%s\n' "$stages" | cut -f1; api_only_stages | cut -f1; } | awk 'NF' | tr '\n' ' '); prod=$(production_stages | tr '\n' ' ')
+        if [[ -n $stages ]]; then
+            chk_ok stages "${stages% }${prod:+ (production: ${prod% })}"
+        else
+            chk_fail stages "no [machine.<stage>] in .iz or .izlocal; needed by every stage target"
+        fi
+        if [[ $KIND == tests && $TEST_STAGE != no ]]; then
+            if [[ -n $ENV ]]; then clouds=("$ENV"); else read -r -a clouds <<<"$stages"; fi
+            while IFS= read -r st; do
+                [[ $st == *FAIL* ]] && PREREQ_FAIL+=("${st#*FAIL*  }")
+                printf '%s\n' "$st"
+            done < <(NUCLOUD_CREDENTIALS="${CREDENTIALS[*]-}" NUCLOUD_CHECK_OK="$C_OK" NUCLOUD_CHECK_FAIL="$C_FAIL" NUCLOUD_CHECK_NAME="$C_NAME" NUCLOUD_CHECK_OFF="$C_OFF" \
+                "${CLOUD[@]}" check "${clouds[@]}" 2>&1)
+        fi
+    elif command -v izmachine >/dev/null; then
+        chk_fail stages "$stages"
     fi
     # each stage's incus remote must be registered here; a stage on a remote this machine lacks is noted, not failed
     if [[ -n $stages && $KIND != tests ]] && command -v incus >/dev/null; then
@@ -631,11 +647,15 @@ check_prereqs() { # one line per check; every failure listed at the end, exit 1
         else chk_fail remotes "no stage's incus remote is registered; incus remote add <name> <url>"; fi
         [[ ${#unusable[@]} -eq 0 ]] || chk_note remotes "$(printf '%s, ' "${unusable[@]}" | sed 's/, $//'); those stages are unusable here"
     fi
+    if [[ ${#PREREQS_CMD[@]} -gt 0 ]]; then
+        export NUCLOUD_CHECK_OK="$C_OK" NUCLOUD_CHECK_FAIL="$C_FAIL" NUCLOUD_CHECK_NAME="$C_NAME" NUCLOUD_CHECK_OFF="$C_OFF" NUCLOUD_CHECK_WARN="$C_WARN"
+        if ! "${PREREQS_CMD[@]}"; then chk_fail suite "repository prerequisites failed; see above"; fi
+    fi
     if [[ ${#PREREQ_FAIL[@]} -gt 0 ]]; then
-        printf '%s==> %d check(s) failed:%s %s\n' "$C_FAIL" "${#PREREQ_FAIL[@]}" "$C_OFF" "${PREREQ_FAIL[*]}" >&2
+        printf '%s==> %d check(s) failed in %ds:%s %s\n' "$C_FAIL" "${#PREREQ_FAIL[@]}" "$((SECONDS - started))" "$C_OFF" "${PREREQ_FAIL[*]}" >&2
         exit 1
     fi
-    printf '%s==> all checks passed:%s context %s, %d image(s)\n' "$C_OK" "$C_OFF" "$ctx" "${#IMAGES[@]}"
+    printf '%s==> all checks passed in %ds:%s context %s, %d image(s)\n' "$C_OK" "$((SECONDS - started))" "$C_OFF" "$ctx" "${#IMAGES[@]}"
 }
 
 if [[ $KIND == tests ]]; then
@@ -659,11 +679,14 @@ case "${1:-}" in
     image) each i_build ;;
     sbom) each i_sbom ;;
     setup)
-        if [[ ${#SETUP_CMD[@]} -gt 0 ]]; then suite setup "${SETUP_CMD[@]}"; else say "no setup in nucloud.env"; fi ;;
+        if [[ ${#SETUP_CMD[@]} -gt 0 || ${#HOST_SETUP_CMD[@]} -gt 0 ]]; then run_setup; else say "no setup in nucloud.env"; fi ;;
     test)
         if [[ $KIND == tests ]]; then
-            [[ ${#TEST_CMD[@]} -gt 0 ]] || die "TEST_CMD missing from nucloud.env"
-            if [[ $TEST_STAGE == no ]]; then
+            [[ ${#TEST_CMD[@]} -gt 0 || ${#HOST_TEST_CMD[@]} -gt 0 ]] || die "TEST_CMD missing from nucloud.env"
+            [[ $TEST_STAGE == no ]] || run_setup  # the suite prepares its own fixtures before the cases
+            if [[ ${#HOST_TEST_CMD[@]} -gt 0 ]]; then
+                suite_env; export MACHINE=$ENV; "${HOST_TEST_CMD[@]}"
+            elif [[ $TEST_STAGE == no ]]; then
                 IFS='|' read -r n t _ <<<"${IMAGES[0]}"
                 docker image inspect "$REGISTRY/$n:$t-$SUFFIX" >/dev/null 2>&1 || each i_build
                 docker run --rm --platform "$PLATFORM" "$REGISTRY/$n:$t-$SUFFIX" "${TEST_CMD[@]}"

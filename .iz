@@ -1,8 +1,18 @@
-# Stage placement for `make deploy MACHINE=<stage>`; stamped from IzumaNetworks/nucloud
-# templates/iz, identical in every repo. izmachine reads global.iz, then this file,
-# then the untracked .izlocal beside it; a later layer replaces an earlier one per machine.
-# Private machines (k3s-cypress on cypressLinux) live in .izlocal.
+# Clouds for `make prereqs|setup|test|deploy MACHINE=<stage>`; stamped from
+# IzumaNetworks/nucloud templates/iz, identical in every repo. izmachine reads
+# global.iz, then this file, then the untracked .izlocal beside it; a later layer
+# replaces an earlier one field by field. This file holds the shared clouds, their
+# placement and the production boundary; .izlocal holds private machines and
+# local overrides.
+#
+# A Kubernetes cloud carries labels class = "kubernetes" and its distribution,
+# and a kubeconfig_path fact. The class attaches the shared fetchKubeconfig
+# producer from global.iz, which caches the encrypted kubeconfig fact; an
+# operator-supplied `izmachine fact set <stage> kubeconfig --secret` is enough
+# without it. Test credentials are encrypted facts on each cloud
+# (cloud.api_key, cloud.api_url, ...); see docs/nucloud.md.
 
+# K3s development cloud.
 [machine.k3s-ed]
 provider  = "incus"
 remote    = "D71"
@@ -10,7 +20,10 @@ kind      = "vm"
 os        = "ubuntu"
 osversion = "22.04"
 image     = "images:ubuntu/jammy/cloud"
+labels    = { class = "kubernetes", distribution = "k3s" }
+facts     = { kubeconfig_path = "/etc/rancher/k3s/k3s.yaml" }
 
+# K3s development cloud.
 [machine.k3s-trav]
 provider  = "incus"
 remote    = "D71"
@@ -18,8 +31,10 @@ kind      = "vm"
 os        = "ubuntu"
 osversion = "22.04"
 image     = "images:ubuntu/jammy/cloud"
+labels    = { class = "kubernetes", distribution = "k3s" }
+facts     = { kubeconfig_path = "/etc/rancher/k3s/k3s.yaml" }
 
-# Production stage: listed under [nucloud] production below.
+# Production K3s cloud: tests only.
 [machine.k3s-golden]
 provider  = "incus"
 remote    = "D71"
@@ -27,11 +42,23 @@ kind      = "vm"
 os        = "ubuntu"
 osversion = "22.04"
 image     = "images:ubuntu/jammy/cloud"
+labels    = { class = "kubernetes", distribution = "k3s" }
+facts     = { kubeconfig_path = "/etc/rancher/k3s/k3s.yaml" }
 
-# Stages nucloud never deploys to. Stage targets that change a stage (image-load,
-# deploy, deploy-only) refuse these and leave them out of the picklist.
+# Production Kubernetes (k8s) cloud: tests only, reached at its API endpoint below.
+[machine.staging]
+name      = "izstaging-dm-kmaster2"
+provider  = "incus"
+remote    = "D71"
+kind      = "vm"
+os        = "ubuntu"
+osversion = "22.04"
+labels    = { class = "kubernetes", distribution = "k8s" }
+facts     = { kubeconfig_path = "/etc/kubernetes/admin.conf" }
+
 [nucloud]
-production = ["k3s-golden"]
-# Stages reached through their API alone, <stage>=<api url>: test repos run suites
-# against them, and nucloud has no VM there to act on.
+# Production clouds: stage targets that change a stage (image-load, deploy,
+# deploy-only) refuse them and leave them out of the picklist; suites still run.
+production = ["k3s-golden", "staging"]
+# <stage>=<api url> for a cloud whose API is not https://api.<stage>.izuma.io.
 endpoints = ["staging=https://api.izuma.io"]

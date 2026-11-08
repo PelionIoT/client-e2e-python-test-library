@@ -29,7 +29,7 @@ images:  ## List the images this repo builds and the tag each gets
 	@./makehelp-nucloud.sh images
 
 .PHONY: prereqs
-prereqs:  ## Check every tool, the Docker context, declared secrets and the stages, one line per check
+prereqs:  ## Check host tools, the Docker runtime, izmachine and each cloud's credentials, one line per check
 	@./makehelp-nucloud.sh prereqs
 
 ##@ Build
@@ -56,7 +56,7 @@ test:  ## Run the repo's unit tests inside the Dockerfile's test target, if it h
 	@./makehelp-nucloud.sh test
 
 .PHONY: setup
-setup:  ## Put the stage in the condition the suite expects; safe to repeat: MACHINE=<stage>
+setup:  ## Create or verify the suite's own fixtures on a stage (make test runs it first): MACHINE=<stage>
 	@./makehelp-nucloud.sh setup
 
 .PHONY: smoke

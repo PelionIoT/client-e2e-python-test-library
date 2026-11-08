@@ -12,12 +12,15 @@ the stages in [nucloud setup](https://github.com/IzumaNetworks/nucloud/blob/main
 
 ```sh
 make help                # targets, the variables they read, this repo's own targets
-make prereqs             # one line per tool, the Docker engine, secrets and stages
+make prereqs             # host tools, the Docker engine, izmachine, stages and each cloud's credentials
 ```
 
-`make prereqs` prints each check with the tool's path and version and lists
-every failure at the end, exiting 1. A stage whose incus remote this machine
-lacks is noted, not failed. Output is colored only on a terminal;
+`make prereqs` prints each check with the tool's path and version: host
+tools first, then the Docker engine, then izmachine and the stages. In a test
+repo it ends with one line per cloud (`MACHINE=<stage>` checks one) for the
+credentials the suite needs and a read-only API check. It lists every failure
+at the end with the elapsed time, exiting 1. A stage whose incus remote this
+machine lacks is noted, not failed. Output is colored only on a terminal;
 `NO_COLOR=1` or `COLOR=never` turns color off and `COLOR=always` forces it.
 The helper needs bash 4.3 or newer first on `PATH` (on macOS,
 `brew install bash`).
@@ -80,21 +83,28 @@ command never builds, pulls or pushes images. `make deploy` rejects
 `IMAGE_SUFFIX` so a build cannot overwrite an earlier build's selected tag.
 
 `deploy` finds the stage's incus remote and VM in `.iz`, which every repo
-carries. `.iz` defines `k3s-ed`, `k3s-trav` and `k3s-golden` on the `D71`
-remote and lists `k3s-golden` under `[nucloud] production`: `deploy`,
-`deploy-only` and `image-load` refuse a production stage and leave it out of
-the list, while `running`, `stage-check` and `kubeconfig` read it.
-`.izlocal` beside it holds private machines, such as `k3s-cypress`
-on the `cypressLinux` remote, is never committed, and is created once from
-the template and left as you edit it. izmachine reads `~/.config/izmachine/global.iz`,
-then `.iz`, then `.izlocal`; a later file replaces an earlier definition of
-the same stage whole. A stage that no file defines, a checkout without
+carries. `.iz` defines the shared clouds: the K3s clouds `k3s-ed`, `k3s-trav`
+and `k3s-golden` and the Kubernetes (k8s) cloud `staging`, all on the `D71`
+remote, and lists `k3s-golden` and `staging` under `[nucloud] production`:
+`deploy`, `deploy-only` and `image-load` refuse a production stage and leave
+it out of the list, while `running`, `stage-check` and `kubeconfig` read it.
+`.izlocal` beside it holds private machines, such as `k3s-cypress` on the
+`cypressLinux` remote, and local overrides; it is never committed, and is
+created once from the template and left as you edit it. izmachine reads
+`~/.config/izmachine/global.iz`, then `.iz`, then `.izlocal`; a later file
+replaces an earlier one field by field. The helper reads the same files as
+structured TOML (`nucloud-cloud.py`): a stage is a top-level
+`[machine.<stage>]` entry, and its nested `labels`, `facts` and `functions`
+tables are its metadata. A stage that no file defines, a checkout without
 `.iz` and a machine without izmachine on `PATH` each stop the run before
 anything is built or imported.
 
-The stage's kubeconfig comes from its VM: izmachine reads
-`/etc/rancher/k3s/k3s.yaml` there and `deploy` points it at the VM's
-address. The kubeconfig lives in a private temporary file for the run and is
+Each Kubernetes cloud carries `labels = { class = "kubernetes", distribution
+= "k3s" }` (or `"k8s"`) and a `kubeconfig_path` fact. The class attaches the
+shared `fetchKubeconfig` producer in `global.iz`, which caches the cloud's
+kubeconfig as an encrypted izmachine fact; a kubeconfig stored with
+`izmachine fact set <stage> kubeconfig - --secret` is enough without it.
+`deploy` points the kubeconfig at the VM's LAN address. The kubeconfig lives in a private temporary file for the run and is
 never written into the repo. The chart of each release comes from the
 release's newest record in the cluster, and the upgrade keeps the release's
 current values and namespace, sets this repo's image tags and waits for its
@@ -121,16 +131,29 @@ images link to GitHub.
 A repo whose `nucloud.env` sets `KIND=tests` holds a suite instead of a service:
 
 ```sh
-make setup MACHINE=staging   # put the stage in the condition the suite expects; safe to repeat
-make test MACHINE=staging    # run the suite against the stage's API
+make prereqs MACHINE=staging # host tools, Docker, izmachine and staging's credentials; changes nothing
+make setup MACHINE=staging   # create or verify the suite's own fixtures; safe to repeat
+make test MACHINE=staging    # run setup, then the suite against the stage's API
 ```
 
-Without `MACHINE=`, a terminal offers the stages, including `staging`, which has
-no VM. `make test` reads the stage's key from `NUCLOUD_API_KEY_<STAGE>`, else
-`API_KEY=` in `~/.config/nucloud/<stage>.env`. That file may also set `USER=`,
-`PASSWORD=`, `ROOT_USER=` and `ROOT_PASSWORD=` for suites that log in.
-`SUITES=<paths>` narrows the run to those folders or tests, for suites that read it. `ACCOUNT=<name>` runs as another test account on the stage, from `<stage>-<name>.env`. The deploy targets refuse a
-test repo. See [standards](https://github.com/IzumaNetworks/nucloud/blob/main/docs/standards.md#test-repos).
+Without `MACHINE=`, a terminal offers the stages. Credentials are encrypted
+izmachine facts on each cloud, never files: `cloud.api_key`, and for suites
+that log in `cloud.admin_user`, `cloud.admin_password`, `cloud.root_user` and
+`cloud.root_password`; `cloud.api_url` names an API other than
+`https://api.<stage>.izuma.io`. Store one with
+`izmachine fact set <stage> cloud.api_key - --secret`, which reads the value
+from standard input. `CREDENTIALS=` in `nucloud.env` names the ones
+`make prereqs` requires; the suite receives every one the cloud holds as
+`NUCLOUD_API_KEY`, `NUCLOUD_USER` and so on. `ACCOUNT=<name>` runs as another
+test account on the stage, from its `cloud.accounts.<name>.*` facts.
+`SUITES=<paths>` narrows the run to those folders or tests, for suites that
+read it.
+
+`make test` runs the suite's setup first. Setup is the suite's own code: it
+creates or verifies the fixtures the suite owns, so a cloud with only its
+credentials needs no other preparation. A setup failure prints
+`setup: <repo> failed on <stage>` and the cases do not run, so it never reads
+as a test result. The deploy targets refuse a test repo. See [standards](https://github.com/IzumaNetworks/nucloud/blob/main/docs/standards.md#test-repos).
 
 ## Tags
 
@@ -145,7 +168,7 @@ runs.
 `.github/workflows/nucloud.yml` builds source changes on pull requests
 into `nucloud` and pushes to `nucloud`. Changes confined to `docs/`,
 README files, Markdown, `Makefile`, `Makefile.nucloud`,
-`makehelp-nucloud.sh`, `.dockerignore`, `.iz`, `.izlocal`, `.gitignore` and the workflow file skip CI.
+`makehelp-nucloud.sh`, `nucloud-cloud.py`, `.dockerignore`, `.iz`, `.izlocal`, `.gitignore` and the workflow file skip CI.
 `Dockerfile`, `nucloud.env` and code changes trigger it.
 
 Force a rebuild with `gh workflow run nucloud -R <org/repo> --ref nucloud`.
