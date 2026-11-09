@@ -648,7 +648,11 @@ check_prereqs() { # host tools, then the Docker runtime, then izmachine and each
         [[ ${#unusable[@]} -eq 0 ]] || chk_note remotes "$(printf '%s, ' "${unusable[@]}" | sed 's/, $//'); those stages are unusable here"
     fi
     if [[ ${#PREREQS_CMD[@]} -gt 0 ]]; then
+        # A bash PREREQS_CMD calls chk_ok/chk_fail/chk_note/chk_tool and exits 1 on a failure; any other
+        # language colors its lines from NUCLOUD_CHECK_* and exits 1 on a failure.
         export NUCLOUD_CHECK_OK="$C_OK" NUCLOUD_CHECK_FAIL="$C_FAIL" NUCLOUD_CHECK_NAME="$C_NAME" NUCLOUD_CHECK_OFF="$C_OFF" NUCLOUD_CHECK_WARN="$C_WARN"
+        export C_OK C_FAIL C_WARN C_NAME C_OFF
+        export -f chk_ok chk_fail chk_note chk_tool
         if ! "${PREREQS_CMD[@]}"; then chk_fail suite "repository prerequisites failed; see above"; fi
     fi
     if [[ ${#PREREQ_FAIL[@]} -gt 0 ]]; then

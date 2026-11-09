@@ -149,6 +149,25 @@ test account on the stage, from its `cloud.accounts.<name>.*` facts.
 `SUITES=<paths>` narrows the run to those folders or tests, for suites that
 read it.
 
+The shared checks cover what every repo needs. `nucloud.env` adds this
+repo's own needs, and `make prereqs` runs them in the same colored format:
+
+- `HOST_TOOLS=("kubectl|hsm setup" "py:yaml|kubeconfig parsing")` lists host
+  tools and python3 modules, each with what needs it.
+- `CREDENTIALS=(API_KEY USER PASSWORD)` names the `cloud.*` facts each cloud
+  must hold.
+- `PREREQS_CMD=(scripts/nucloud-prereqs.sh)` runs last, read-only, for
+  anything else: repo-specific facts such as `bdd.hsm.signing_key`, or a
+  tool needed only for one feature. A bash script calls `chk_ok`,
+  `chk_fail`, `chk_note` and `chk_tool`; a script in another language prints
+  with the `NUCLOUD_CHECK_OK`, `NUCLOUD_CHECK_FAIL`, `NUCLOUD_CHECK_WARN`,
+  `NUCLOUD_CHECK_NAME` and `NUCLOUD_CHECK_OFF` colors. Either exits 1 on a
+  failure.
+
+`nucloud.env` is bash, so a check can depend on the run, for example
+`[[ ${FEATURE:-} != hsm_* ]] || HOST_TOOLS+=("incus|hsm helper image")`.
+Every file these checks use lives in this repo, so the repo runs on its own.
+
 `make test` runs the suite's setup first. Setup is the suite's own code: it
 creates or verifies the fixtures the suite owns, so a cloud with only its
 credentials needs no other preparation. A setup failure prints
