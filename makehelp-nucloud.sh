@@ -101,7 +101,13 @@ show_help() { # make help: the nucloud targets, the variables they read, and a w
     grep -q '^# nucloud entrypoint' Makefile 2>/dev/null || return 0
     printf '  %s%-14s%s %s\n' "$C_NAME" "NATIVE=1" "$C_OFF" "run this repository's own rule for a target nucloud also defines"
     shadow=" $(sed -n 's/^NUCLOUD_TARGETS := //p' Makefile) "
-    native=$(sed '/^# nucloud entrypoint/,/^else$/d' Makefile | grep -oE '^[a-zA-Z0-9_.-]+:([^=]|$)' | sed 's/:.*//' | grep -v '^\.' | sort -u)
+    # the repo's own rules: the Makefile outside the nucloud block, and the files its native branch includes
+    local own inc
+    own=$(sed '/^# nucloud entrypoint/,/^else$/d' Makefile)
+    for inc in $(printf '%s\n' "$own" | sed -nE 's/^-?include[[:space:]]+//p'); do
+        [[ -f $inc && $inc != Makefile.nucloud ]] && own+=$'\n'$(cat "$inc")
+    done
+    native=$(printf '%s\n' "$own" | { grep -oE '^[a-zA-Z0-9_.-]+:([^=]|$)' || true; } | sed 's/:.*//' | { grep -v '^\.' || true; } | sort -u)
     [[ -n $native ]] || return 0
     printf '\n%sRepository targets%s %s(this repository'"'"'s own Makefile; * also a nucloud target: NATIVE=1 make <target>)%s\n' "$C_BOLD" "$C_OFF" "$C_DIM" "$C_OFF"
     printf '%s\n' "$native" | awk -v sh="$shadow" '{ n = $0; if (index(sh, " " n " ")) n = n "*"
