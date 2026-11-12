@@ -24,6 +24,7 @@
 #                                 # KUBECONFIG. The suite receives every one of them the cloud holds.
 #   HOST_TOOLS=("kubectl|hsm setup" "py:yaml|kubeconfig parsing")  # tools and python modules this repo needs on the host
 #   PREREQS_CMD=(...)             # a read-only repository check run last by make prereqs
+#   EXTRA_ACCOUNTS=(staging=edge)  # tests: more accounts, as NUCLOUD_ACCOUNT_<NAME>_{API_KEY,USER,PASSWORD,CONFIG_JSON}
 #   TEST_FRAMEWORK=behave         # tests: how TAGS= reaches the suite: behave|cucumber|pytest|none (default)
 #   ACCOUNTS=(staging=edge)       # tests: the cloud.accounts.<name> a stage uses unless ACCOUNT= is given
 set -euo pipefail
@@ -124,7 +125,7 @@ fi
 [[ -f nucloud.env ]] || { echo "error: nucloud.env missing" >&2; exit 1; }
 REGISTRY=ghcr.io/izumanetworks
 SECRETS=() SSH=0 PLATFORM=linux/amd64 SMOKE_CMD=() KIND=image SETUP_CMD=() TEST_CMD=() TEST_STAGE=yes
-CREDENTIALS=(API_KEY) HOST_TOOLS=() PREREQS_CMD=() HOST_SETUP_CMD=() HOST_TEST_CMD=() TEST_FRAMEWORK=none ACCOUNTS=()
+CREDENTIALS=(API_KEY) EXTRA_ACCOUNTS=() HOST_TOOLS=() PREREQS_CMD=() HOST_SETUP_CMD=() HOST_TEST_CMD=() TEST_FRAMEWORK=none ACCOUNTS=()
 # shellcheck disable=SC1091
 source nucloud.env
 ONLY="${ONLY:-}"
@@ -551,6 +552,20 @@ stage_account() { # ACCOUNT from ACCOUNTS=(<stage>=<account>) for this stage, un
         if [[ ${p%%=*} == "$ENV" ]]; then ACCOUNT=${p#*=}; export ACCOUNT; say "account: $ACCOUNT (ACCOUNTS in nucloud.env)"; fi
     done
 }
+EXTRA_ENV=()
+extra_accounts() { # EXTRA_ACCOUNTS=(<stage>=<name>): export NUCLOUD_ACCOUNT_<NAME>_<FIELD> for each field that account holds
+    local p name var f v
+    for p in ${EXTRA_ACCOUNTS[@]+"${EXTRA_ACCOUNTS[@]}"}; do
+        [[ ${p%%=*} == "$ENV" ]] || continue
+        name=${p#*=} var=$(tr 'a-z-' 'A-Z_' <<<"${p#*=}")
+        for f in $("${CLOUD[@]}" extra-fields); do
+            v=$(ACCOUNT=$name stage_value "$ENV" "$f") || die "cannot read $ENV's cloud.accounts.$name ${f,,} fact (EXTRA_ACCOUNTS)"
+            [[ -n $v ]] || continue
+            export "NUCLOUD_ACCOUNT_${var}_$f=$v"; EXTRA_ENV+=(-e "NUCLOUD_ACCOUNT_${var}_$f")
+        done
+        say "extra account: $name"
+    done
+}
 suite_env() { # export NUCLOUD_STAGE, NUCLOUD_API_URL and NUCLOUD_<field> for every credential fact the cloud holds
     local f v
     need_stage api
@@ -564,6 +579,7 @@ suite_env() { # export NUCLOUD_STAGE, NUCLOUD_API_URL and NUCLOUD_<field> for ev
         v=$(stage_value "$ENV" "$f") || die "cannot read $ENV's ${f,,} fact${ACCOUNT:+ (ACCOUNT=$ACCOUNT)}"
         export "NUCLOUD_$f=$v"
     done
+    extra_accounts
     if wants API_KEY && [[ -z $NUCLOUD_API_KEY ]]; then
         die "$ENV has no encrypted cloud.${ACCOUNT:+accounts.$ACCOUNT.}api_key fact: izmachine fact set $ENV cloud.${ACCOUNT:+accounts.$ACCOUNT.}api_key - --secret"
     fi
@@ -581,7 +597,8 @@ tag_env() { # NUCLOUD_TAGS, NUCLOUD_EXCLUDE_TAGS and NUCLOUD_TAG_ARGS: this run'
 redact_secrets() { # stdin to stdout with this run's secret values, Izuma API keys and PEM private keys masked
     python3 -u -c '
 import os, re, sys
-vals = sorted({os.environ.get(k, "") for k in ("NUCLOUD_API_KEY", "NUCLOUD_PASSWORD", "NUCLOUD_ROOT_PASSWORD")} - {""}, key=len, reverse=True)
+keys = ["NUCLOUD_API_KEY", "NUCLOUD_PASSWORD", "NUCLOUD_ROOT_PASSWORD"] + [k for k in os.environ if re.fullmatch(r"NUCLOUD_ACCOUNT_\w+_(API_KEY|PASSWORD)", k)]
+vals = sorted({os.environ.get(k, "") for k in keys} - {""}, key=len, reverse=True)
 vals = [v for v in vals if len(v) >= 6]
 key, pem = re.compile(r"\bak_[0-9A-Za-z]{20,}"), False
 for line in sys.stdin:
@@ -622,7 +639,7 @@ suite() { # suite <verb> <command...>: run a command of the suite image against 
     # Output passes through redact_secrets: a suite that prints its key or password never leaves it in a log.
     (set -o pipefail; docker run --init --name "$SUITE_CONTAINER" --platform "$PLATFORM" -e NUCLOUD_STAGE -e NUCLOUD_API_URL -e NUCLOUD_API_KEY \
         -e NUCLOUD_USER -e NUCLOUD_PASSWORD -e NUCLOUD_ROOT_USER -e NUCLOUD_ROOT_PASSWORD -e NUCLOUD_CONFIG_JSON -e NUCLOUD_ACCOUNT_ID \
-        -e NUCLOUD_READ_ONLY -e NUCLOUD_TAGS -e NUCLOUD_EXCLUDE_TAGS -e NUCLOUD_TAG_ARGS -e SUITES \
+        -e NUCLOUD_READ_ONLY -e NUCLOUD_TAGS -e NUCLOUD_EXCLUDE_TAGS -e NUCLOUD_TAG_ARGS -e SUITES ${EXTRA_ENV[@]+"${EXTRA_ENV[@]}"} \
         -v /nucloud-logs -e NUCLOUD_LOGS=/nucloud-logs "$ref" "$@" 2>&1 | redact_secrets) &
     local client=$! rc=0
     trap 'trap "" HUP INT TERM; docker stop "$SUITE_CONTAINER" >/dev/null 2>&1 || true; suite_logs "$logs"; exit 143' HUP INT TERM

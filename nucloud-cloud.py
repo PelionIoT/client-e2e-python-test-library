@@ -15,6 +15,7 @@ Commands (tab-separated output):
   clouds                  every stage and endpoint, once each
   api <cloud>             the cloud's API URL
   value <cloud> <FIELD>   one credential value (FIELD as in FIELDS below)
+  extra-fields            the fields EXTRA_ACCOUNTS passes per extra account
   kubeconfig <cloud> <path>  the cloud's kubeconfig fact, written mode 600
   check <cloud>...        prereqs lines for each cloud's credentials and API access
 """
@@ -38,6 +39,9 @@ FIELDS = {'API_KEY': 'api_key', 'API_URL': 'api_url', 'USER': 'admin_user',
           'ROOT_PASSWORD': 'root_password', 'CONFIG_JSON': 'config_json',
           'ACCOUNT_ID': 'account_id'}
 PUBLIC = {'API_URL'}  # every other field must be an encrypted fact
+# EXTRA_ACCOUNTS=(<stage>=<name>) in nucloud.env: these fields of cloud.accounts.<name>. reach the suite
+# as NUCLOUD_ACCOUNT_<NAME>_<FIELD>, beside the run's own account.
+EXTRA_FIELDS = ('API_KEY', 'USER', 'PASSWORD', 'CONFIG_JSON')
 METADATA = {'labels', 'facts', 'functions', 'resources'}
 
 
@@ -301,6 +305,8 @@ def main(argv):
         print(api(args[0]))
     elif cmd == 'value' and len(args) == 2:
         print(value(*args), end='')
+    elif cmd == 'extra-fields':
+        print(' '.join(EXTRA_FIELDS))
     elif cmd == 'env' and len(args) == 1:
         # KEY=VALUE for each credential field the cloud (or ACCOUNT=<name>) holds, for scripts
         # that parse env-style input; read on stdin or a pipe, never written to a file
@@ -313,7 +319,7 @@ def main(argv):
     elif cmd == 'check' and args:
         return check(args)
     else:
-        raise Problem('usage: nucloud-cloud.py stages|production|read-only|endpoints|clouds|api <cloud>|value <cloud> <FIELD>|env <cloud>|kubeconfig <cloud> <path>|check <cloud>...')
+        raise Problem('usage: nucloud-cloud.py stages|production|read-only|endpoints|clouds|api <cloud>|value <cloud> <FIELD>|extra-fields|env <cloud>|kubeconfig <cloud> <path>|check <cloud>...')
     return 0
 
 

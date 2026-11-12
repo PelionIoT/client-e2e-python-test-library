@@ -148,6 +148,11 @@ from standard input. `CREDENTIALS=` in `nucloud.env` names the ones
 test account on the stage, from its `cloud.accounts.<name>.*` facts.
 `ACCOUNTS=(staging=edge k3s-golden=onprem)` in `nucloud.env` names the
 account a suite uses on each stage; `ACCOUNT=` on the command line wins.
+`EXTRA_ACCOUNTS=(k3s-golden=edge)` passes more accounts beside it: each
+encrypted `cloud.accounts.<name>.{api_key,admin_user,admin_password,config_json}`
+fact the stage holds reaches the suite as
+`NUCLOUD_ACCOUNT_<NAME>_{API_KEY,USER,PASSWORD,CONFIG_JSON}` (`<NAME>`
+upper-cased, `-` as `_`), masked in the output like the run's own key.
 `SUITES=<paths>` narrows the run to those folders or tests, for suites that
 read it. A suite copies its service logs to `$NUCLOUD_LOGS`, from an EXIT
 trap; when the container stops, make copies them to `.nucloud-logs/<stage>/`
