@@ -25,6 +25,7 @@
 #   HOST_TOOLS=("kubectl|hsm setup" "py:yaml|kubeconfig parsing")  # tools and python modules this repo needs on the host
 #   PREREQS_CMD=(...)             # a read-only repository check run last by make prereqs
 #   TEST_FRAMEWORK=behave         # tests: how TAGS= reaches the suite: behave|cucumber|pytest|none (default)
+#   ACCOUNTS=(staging=edge)       # tests: the cloud.accounts.<name> a stage uses unless ACCOUNT= is given
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")"
 ENV="${MACHINE:-${ENV:-}}"
@@ -123,7 +124,7 @@ fi
 [[ -f nucloud.env ]] || { echo "error: nucloud.env missing" >&2; exit 1; }
 REGISTRY=ghcr.io/izumanetworks
 SECRETS=() SSH=0 PLATFORM=linux/amd64 SMOKE_CMD=() KIND=image SETUP_CMD=() TEST_CMD=() TEST_STAGE=yes
-CREDENTIALS=(API_KEY) HOST_TOOLS=() PREREQS_CMD=() HOST_SETUP_CMD=() HOST_TEST_CMD=() TEST_FRAMEWORK=none
+CREDENTIALS=(API_KEY) HOST_TOOLS=() PREREQS_CMD=() HOST_SETUP_CMD=() HOST_TEST_CMD=() TEST_FRAMEWORK=none ACCOUNTS=()
 # shellcheck disable=SC1091
 source nucloud.env
 ONLY="${ONLY:-}"
@@ -543,9 +544,17 @@ PREREQ_FAIL=()
 stage_api() { "${CLOUD[@]}" api "$1"; } # API_URL fact, else [nucloud] endpoints, else https://api.<stage>.izuma.io
 stage_value() { "${CLOUD[@]}" value "$1" "$2"; }
 wants() { local c; for c in ${CREDENTIALS[@]+"${CREDENTIALS[@]}"}; do [[ $c == "$1" ]] && return 0; done; return 1; }
+stage_account() { # ACCOUNT from ACCOUNTS=(<stage>=<account>) for this stage, unless ACCOUNT= was given
+    local p
+    [[ -z ${ACCOUNT:-} ]] || return 0
+    for p in ${ACCOUNTS[@]+"${ACCOUNTS[@]}"}; do
+        if [[ ${p%%=*} == "$ENV" ]]; then ACCOUNT=${p#*=}; export ACCOUNT; say "account: $ACCOUNT (ACCOUNTS in nucloud.env)"; fi
+    done
+}
 suite_env() { # export NUCLOUD_STAGE, NUCLOUD_API_URL and NUCLOUD_<field> for every credential fact the cloud holds
     local f v
     need_stage api
+    stage_account
     NUCLOUD_STAGE=$ENV NUCLOUD_API_URL=$(stage_api "$ENV") || die "cannot resolve $ENV's API URL"
     export NUCLOUD_STAGE NUCLOUD_API_URL
     if "${CLOUD[@]}" read-only | grep -qxF "$ENV"; then NUCLOUD_READ_ONLY=1; else NUCLOUD_READ_ONLY=; fi
@@ -675,7 +684,7 @@ check_prereqs() { # host tools, then the Docker runtime, then izmachine and each
             while IFS= read -r st; do
                 [[ $st == *FAIL* ]] && PREREQ_FAIL+=("${st#*FAIL*  }")
                 printf '%s\n' "$st"
-            done < <(NUCLOUD_CREDENTIALS="${CREDENTIALS[*]-}" NUCLOUD_CHECK_OK="$C_OK" NUCLOUD_CHECK_FAIL="$C_FAIL" NUCLOUD_CHECK_NAME="$C_NAME" NUCLOUD_CHECK_OFF="$C_OFF" \
+            done < <(NUCLOUD_CREDENTIALS="${CREDENTIALS[*]-}" NUCLOUD_ACCOUNTS="${ACCOUNTS[*]-}" NUCLOUD_CHECK_OK="$C_OK" NUCLOUD_CHECK_FAIL="$C_FAIL" NUCLOUD_CHECK_NAME="$C_NAME" NUCLOUD_CHECK_OFF="$C_OFF" \
                 "${CLOUD[@]}" check "${clouds[@]}" 2>&1)
         fi
     elif command -v izmachine >/dev/null; then

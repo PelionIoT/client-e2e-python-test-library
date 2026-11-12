@@ -236,8 +236,15 @@ def line(ok, name, text):
 def check(names, root='.'):
     """One credential line and one access line per cloud; exit status 1 on any failure."""
     wanted = os.environ.get('NUCLOUD_CREDENTIALS', 'API_KEY').split()
+    given = os.environ.get('ACCOUNT')
+    per_stage = dict(p.split('=', 1) for p in os.environ.get('NUCLOUD_ACCOUNTS', '').split() if '=' in p)
     failed = 0
     for cloud in names:
+        account = given or per_stage.get(cloud)  # each stage's own account (ACCOUNTS in nucloud.env)
+        if account:
+            os.environ['ACCOUNT'] = account
+        else:
+            os.environ.pop('ACCOUNT', None)
         try:
             rows = facts(cloud)
             missing, plain = [], []

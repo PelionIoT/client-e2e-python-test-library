@@ -146,6 +146,8 @@ from standard input. `CREDENTIALS=` in `nucloud.env` names the ones
 `make prereqs` requires; the suite receives every one the cloud holds as
 `NUCLOUD_API_KEY`, `NUCLOUD_USER` and so on. `ACCOUNT=<name>` runs as another
 test account on the stage, from its `cloud.accounts.<name>.*` facts.
+`ACCOUNTS=(staging=edge k3s-golden=onprem)` in `nucloud.env` names the
+account a suite uses on each stage; `ACCOUNT=` on the command line wins.
 `SUITES=<paths>` narrows the run to those folders or tests, for suites that
 read it.
 
