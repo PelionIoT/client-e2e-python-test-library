@@ -598,6 +598,10 @@ for line in sys.stdin:
     sys.stdout.write(line)
 '
 }
+suite_logs() { # copy the stopped suite container's /nucloud-logs to $1, then remove the container and its volume
+    docker cp "$SUITE_CONTAINER":/nucloud-logs/. "$1"/ >/dev/null 2>&1 || true
+    docker rm -fv "$SUITE_CONTAINER" >/dev/null 2>&1 || true
+}
 suite() { # suite <verb> <command...>: run a command of the suite image against the stage's API
     local verb=$1 ref; shift
     suite_env
@@ -609,19 +613,22 @@ suite() { # suite <verb> <command...>: run a command of the suite image against 
     say "$verb on $ENV ($NUCLOUD_API_URL)"
     # The client is backgrounded so the trap runs on a signal; a killed client alone leaves the container calling the stage.
     SUITE_CONTAINER=nucloud-suite-$$
-    # /nucloud-logs ($NUCLOUD_LOGS in the container) is .nucloud-logs/<stage>/ here: a suite copies its service logs
-    # there, typically from an EXIT trap, so they outlive the --rm container.
+    # /nucloud-logs ($NUCLOUD_LOGS in the container) is an anonymous volume; a suite copies its service logs there,
+    # typically from an EXIT trap. Afterwards docker cp brings them to .nucloud-logs/<stage>/ here, which works on a
+    # remote Docker context where a bind mount would resolve on the engine's host.
     local logs=$PWD/.nucloud-logs/$ENV
-    mkdir -p "$logs" && chmod 777 "$logs"
+    mkdir -p "$logs"
+    docker rm -fv "$SUITE_CONTAINER" >/dev/null 2>&1 || true
     # Output passes through redact_secrets: a suite that prints its key or password never leaves it in a log.
-    (set -o pipefail; docker run --rm --init --name "$SUITE_CONTAINER" --platform "$PLATFORM" -e NUCLOUD_STAGE -e NUCLOUD_API_URL -e NUCLOUD_API_KEY \
+    (set -o pipefail; docker run --init --name "$SUITE_CONTAINER" --platform "$PLATFORM" -e NUCLOUD_STAGE -e NUCLOUD_API_URL -e NUCLOUD_API_KEY \
         -e NUCLOUD_USER -e NUCLOUD_PASSWORD -e NUCLOUD_ROOT_USER -e NUCLOUD_ROOT_PASSWORD -e NUCLOUD_CONFIG_JSON -e NUCLOUD_ACCOUNT_ID \
         -e NUCLOUD_READ_ONLY -e NUCLOUD_TAGS -e NUCLOUD_EXCLUDE_TAGS -e NUCLOUD_TAG_ARGS -e SUITES \
-        -v "$logs:/nucloud-logs" -e NUCLOUD_LOGS=/nucloud-logs "$ref" "$@" 2>&1 | redact_secrets) &
+        -v /nucloud-logs -e NUCLOUD_LOGS=/nucloud-logs "$ref" "$@" 2>&1 | redact_secrets) &
     local client=$! rc=0
-    trap 'trap "" HUP INT TERM; docker stop "$SUITE_CONTAINER" >/dev/null 2>&1 || true; exit 143' HUP INT TERM
+    trap 'trap "" HUP INT TERM; docker stop "$SUITE_CONTAINER" >/dev/null 2>&1 || true; suite_logs "$logs"; exit 143' HUP INT TERM
     wait "$client" || rc=$?
     trap - HUP INT TERM
+    suite_logs "$logs"
     return "$rc"
 }
 run_setup() { # the suite's own preparation; a failure is reported as setup, apart from prereqs and test results

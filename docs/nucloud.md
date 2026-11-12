@@ -149,9 +149,9 @@ test account on the stage, from its `cloud.accounts.<name>.*` facts.
 `ACCOUNTS=(staging=edge k3s-golden=onprem)` in `nucloud.env` names the
 account a suite uses on each stage; `ACCOUNT=` on the command line wins.
 `SUITES=<paths>` narrows the run to those folders or tests, for suites that
-read it. The suite container mounts `.nucloud-logs/<stage>/` at
-`$NUCLOUD_LOGS`; a suite copies its service logs there, from an EXIT trap,
-so they survive the container. The suite's output masks the key, the
+read it. A suite copies its service logs to `$NUCLOUD_LOGS`, from an EXIT
+trap; when the container stops, make copies them to `.nucloud-logs/<stage>/`
+here, also from a remote Docker context. The suite's output masks the key, the
 passwords, every `ak_` API key and every PEM private key.
 
 The shared checks cover what every repo needs. `nucloud.env` adds this

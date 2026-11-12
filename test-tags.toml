@@ -47,6 +47,12 @@ default = "exclude"
 source  = "classifier"
 means   = "Flaky or unverified; held out until its result is reproducible"
 
+[tags."lifecycle:flaky"]
+default = "include"
+source  = "classifier"
+means   = "Its verdict changed between two back-to-back runs; still runs, held for the flake detector"
+aliases = ["flaky"]
+
 [tags."risk:insecure"]
 default = "exclude"
 source  = "classifier"
