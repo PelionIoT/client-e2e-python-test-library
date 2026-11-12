@@ -145,6 +145,9 @@ def gherkin_cases():
                 feature_tags, pending = pending, []
             elif re.match(r'(Scenario Outline|Scenario Template|Scenario|Example):', s):
                 scenario = s.split(':', 1)[1].strip()
+                n, base = 2, scenario
+                while f'{rel}::{scenario}' in cases:  # a repeated scenario name keeps its own identity
+                    scenario, n = f'{base}#{n}', n + 1
                 scen_tags, pending, example = pending, [], 0
                 cases[f'{rel}::{scenario}'] = feature_tags + scen_tags
             elif re.match(r'(Examples|Scenarios):', s) and scenario:
@@ -186,16 +189,28 @@ def pytest_cases():
             if isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == 'pytestmark' for t in node.targets):
                 vals = node.value.elts if isinstance(node.value, (ast.List, ast.Tuple)) else [node.value]
                 module += marks(vals)
+        def fixture(fn):
+            return any('fixture' in ast.unparse(d) for d in fn.decorator_list)
+        classes = {n.name: n for n in tree.body if isinstance(n, ast.ClassDef)}
+
+        def methods(cls, seen=()):  # own test methods plus those inherited from classes in this file
+            out = {}
+            for base in cls.bases:
+                if isinstance(base, ast.Name) and base.id in classes and base.id not in seen:
+                    out.update(methods(classes[base.id], seen + (cls.name,)))
+            for item in cls.body:
+                if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)) and item.name.startswith('test') and not fixture(item):
+                    out[item.name] = item
+            return out
         for node in tree.body:
-            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name.startswith('test'):
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name.startswith('test') and not fixture(node):
                 cases[f'{rel}::{node.name}'] = module + marks(node.decorator_list)
             elif isinstance(node, ast.ClassDef) and (node.name.startswith('Test') or any(
                     (isinstance(base, ast.Attribute) and base.attr.endswith('TestCase')) or (isinstance(base, ast.Name) and base.id.endswith('TestCase'))
                     for base in node.bases)):
                 cls = marks(node.decorator_list)
-                for item in node.body:
-                    if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)) and item.name.startswith('test'):
-                        cases[f'{rel}::{node.name}::{item.name}'] = module + cls + marks(item.decorator_list)
+                for name, item in methods(node).items():
+                    cases[f'{rel}::{node.name}::{name}'] = module + cls + marks(item.decorator_list)
     return cases
 
 
@@ -203,7 +218,8 @@ def go_cases():
     cases = {}
     for f in sorted(source_files('*_test.go')):
         rel = f.relative_to(ROOT).as_posix()
-        for name in re.findall(r'^func (Test\w+)\(\w+ \*testing\.T\)', f.read_text(errors='replace'), re.M):
+        code = re.sub(r'`[^`]*`', '``', f.read_text(errors='replace'))  # fixture source inside raw strings is not a test
+        for name in re.findall(r'^func (Test\w+)\(\w+ \*testing\.T\)', code, re.M):
             cases[f'{rel}::{name}'] = []
     return cases
 
@@ -227,7 +243,7 @@ def js_cases():
     for pattern in ('*.test.js', '*.spec.js', '*.test.ts', '*.spec.ts'):
         for f in sorted(source_files(pattern)):
             rel = f.relative_to(ROOT).as_posix()
-            for name in re.findall(r'''\b(?:it|test)\s*\(\s*(['"`])(.+?)\1''', f.read_text(errors='replace')):
+            for name in re.findall(r'''\b(?:x?it|x?test)(?:\.(?:skip|only|todo))?\s*\(\s*(['"`])(.+?)\1''', f.read_text(errors='replace')):
                 cases[f'{rel}::{name[1]}'] = []
     return cases
 
