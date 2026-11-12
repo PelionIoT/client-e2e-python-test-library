@@ -49,7 +49,7 @@ def vocabulary():
     groups = set(v['groups'])
     prefix = None
     local = ROOT / 'test-tags.local.toml'
-    if local.exists():
+    if local.exists() and not os.environ.get('NUCLOUD_TAGS_NO_OVERLAY'):  # the classifier rebuilds it
         lv = tomllib.loads(local.read_text())
         prefix = lv.get('repo', {}).get('prefix')
         if not prefix or prefix in groups:
