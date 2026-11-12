@@ -5,8 +5,8 @@
 # environment variable.
 set -eu
 : "${NUCLOUD_API_URL:?make test sets it}" "${NUCLOUD_API_KEY:?make test sets it}"
-# The simulated device uses TCP unless the stage's TCP bootstrap host has no DNS answer; UDP reaches
-# the same bootstrap service.
+# The simulated device uses TCP. A TCP bootstrap host with no DNS answer is a stage fault: the run
+# stops there rather than switching transport.
 if [ -z "${MBED_CLOUD_CLIENT_TRANSPORT:-}" ] && ! python3 - <<'PY'
 import json, os, socket, sys, urllib.request
 from urllib.parse import urlsplit
@@ -18,11 +18,12 @@ uri = boot.get('urls', {}).get('coaps', {}).get('tcp') or boot['url']
 try:
     socket.getaddrinfo(urlsplit(uri).hostname, None)
 except socket.gaierror:
-    print('tcp bootstrap host does not resolve: ' + uri + ' - the simulated device uses UDP', file=sys.stderr)
+    print('tcp bootstrap host does not resolve: ' + uri, file=sys.stderr)
     sys.exit(1)
 PY
 then
-    export MBED_CLOUD_CLIENT_TRANSPORT=UDP
+    echo 'nucloud-test: fix the stage DNS for the TCP bootstrap host, or set MBED_CLOUD_CLIENT_TRANSPORT' >&2
+    exit 2
 fi
 scripts/nucloud-setup.py >/dev/null
 export CLOUD_API_GW="${NUCLOUD_API_URL%/}" CLOUD_API_KEY="$NUCLOUD_API_KEY"
