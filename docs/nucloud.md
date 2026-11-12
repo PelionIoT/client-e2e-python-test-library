@@ -184,8 +184,10 @@ has no separate setup; its `nucloud.env` says so in one line,
 ## Select and time test cases
 
 Every test case carries tags from `test-tags.toml`: whether it writes to the
-cloud (`cloud:read-only`, `cloud:writes`, `cloud:login`), what it needs
-(`needs:hsm`), what it proves (`kind:rejection`) and whether it runs by
+cloud and how (`cloud:read-only`, `cloud:apiwrites`, `cloud:login`, and
+`cloud:manipulator:pod`, `:kubectl`, `:ssh` or `:db` for each way it reaches
+the cloud outside its API), what it needs (`needs:hsm`, `needs:device`,
+`needs:offline` for a case that calls no cloud), what it proves (`kind:rejection`) and whether it runs by
 default (`lifecycle:deprecated`, `risk:insecure` and the other `exclude`
 tags do not). This repo's own tags use its prefix and live in
 `test-tags.local.toml`. The rules are in
@@ -193,16 +195,16 @@ tags do not). This repo's own tags use its prefix and live in
 
 ```sh
 make tags                                  # every case and its tags
-make tags MACHINE=staging                  # the cases a staging run takes (read-only only)
+make tags MACHINE=staging                  # the cases a staging run takes
 make tags TAGS=lifecycle:deprecated        # the cases that selection runs
-make test MACHINE=k3s-golden TAGS=needs:hsm EXCLUDE_TAGS=cloud:writes
+make test MACHINE=k3s-golden TAGS=needs:hsm EXCLUDE_TAGS=cloud:apiwrites
 make tags-check                            # fail on an unknown, ungrouped or dropped tag
 make test-timings                          # each test's measured average and tier
 ```
 
 `TAGS=` selects cases carrying any of the named tags, and an `exclude` tag
 runs only when it is named. `EXCLUDE_TAGS=` always wins. On a read-only
-stage (staging) only `cloud:read-only` cases run. `TEST_FRAMEWORK=` in
+stage only `cloud:read-only` and `needs:offline` cases run. `TEST_FRAMEWORK=` in
 `nucloud.env` (`behave`, `cucumber`, `pytest`) turns the selection into the
 framework's own arguments, which the suite receives as `NUCLOUD_TAG_ARGS`.
 Tags kept outside the original source sit in `test-tags.cases.tsv`; a tag a

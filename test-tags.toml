@@ -79,6 +79,7 @@ aliases = ["read-only", "readonly", "pytest.mark.readonly"]
 default = "include"
 source  = "classifier"
 means   = "Creates, changes or deletes cloud state through the cloud's API; refused on read-only stages"
+aliases = ["cloud:writes", "cloud.writes", "cloud_writes"]  # retired name, accepted in TAGS= and EXCLUDE_TAGS=
 
 [tags."cloud:manipulator:pod"]
 default = "include"

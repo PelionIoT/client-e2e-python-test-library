@@ -90,7 +90,7 @@ def split(value):
 
 def selection(voc):
     """(include, exclude) canonical tag sets for this run."""
-    include, exclude = split(os.environ.get('TAGS')), split(os.environ.get('EXCLUDE_TAGS'))
+    include, exclude = [[voc['alias'].get(t, t) for t in split(os.environ.get(v))] for v in ('TAGS', 'EXCLUDE_TAGS')]
     for t in include + exclude:
         if t not in voc['tags']:
             raise Problem(f'unknown tag {t}; see test-tags.toml (or test-tags.local.toml)')
