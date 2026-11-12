@@ -189,8 +189,12 @@ def pytest_cases():
             if isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == 'pytestmark' for t in node.targets):
                 vals = node.value.elts if isinstance(node.value, (ast.List, ast.Tuple)) else [node.value]
                 module += marks(vals)
-        def fixture(fn):
-            return any('fixture' in ast.unparse(d) for d in fn.decorator_list)
+        def fixture(fn):  # @pytest.fixture, @pytest.fixture(...), @fixture
+            for d in fn.decorator_list:
+                node = d.func if isinstance(d, ast.Call) else d
+                if (isinstance(node, ast.Attribute) and node.attr == 'fixture') or (isinstance(node, ast.Name) and node.id == 'fixture'):
+                    return True
+            return False
         classes = {n.name: n for n in tree.body if isinstance(n, ast.ClassDef)}
 
         def methods(cls, seen=()):  # own test methods plus those inherited from classes in this file
