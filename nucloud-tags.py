@@ -133,31 +133,49 @@ def source_files(pattern):
 
 
 def gherkin_cases():
-    """{case: [native tags]} from every .feature file: feature, rule, scenario and examples tags."""
+    """{case: [native tags]} from every .feature file, named as behave names them: a Scenario by its name,
+    each Scenario Outline row as "<name> -- @<table>.<row> <examples name>" with its <params> filled in.
+    Feature, Rule, Scenario and Examples tags all apply."""
     cases = {}
     for f in sorted(source_files('*.feature')):
-        rel, feature_tags, pending, scenario, scen_tags, example = f.relative_to(ROOT).as_posix(), [], [], None, [], 0
+        rel = f.relative_to(ROOT).as_posix()
+        feature_tags, pending, outline, outline_tags = [], [], None, []
+        table, header, row, examples_name, examples_tags = 0, None, 0, '', []
+
+        def add(name, tags):
+            n, base = 2, name
+            while f'{rel}::{name}' in cases:  # a repeated scenario name keeps its own identity
+                name, n = f'{base}#{n}', n + 1
+            cases[f'{rel}::{name}'] = tags
         for line in f.read_text(errors='replace').splitlines():
             s = line.strip()
             if s.startswith('@'):
                 pending += [t for t in s.split() if t.startswith('@')]
             elif re.match(r'(Feature|Funcionalidad|Fonctionnalité):', s):
                 feature_tags, pending = pending, []
-            elif re.match(r'(Scenario Outline|Scenario Template|Scenario|Example):', s):
-                scenario = s.split(':', 1)[1].strip()
-                n, base = 2, scenario
-                while f'{rel}::{scenario}' in cases:  # a repeated scenario name keeps its own identity
-                    scenario, n = f'{base}#{n}', n + 1
-                scen_tags, pending, example = pending, [], 0
-                cases[f'{rel}::{scenario}'] = feature_tags + scen_tags
-            elif re.match(r'(Examples|Scenarios):', s) and scenario:
-                example += 1
-                key = f'{rel}::{scenario}'
-                if pending:
-                    cases[f'{key}::examples-{example}'] = feature_tags + scen_tags + pending
+            elif re.match(r'Rule:', s):
                 pending = []
-            elif s and not s.startswith('#'):
-                pending = [] if not s.startswith('|') else pending
+            elif re.match(r'(Scenario Outline|Scenario Template):', s):
+                outline, outline_tags, pending, table = s.split(':', 1)[1].strip(), pending, [], 0
+            elif re.match(r'(Scenario|Example):', s):
+                outline = None
+                add(s.split(':', 1)[1].strip(), feature_tags + pending)
+                pending = []
+            elif re.match(r'(Examples|Scenarios):', s) and outline is not None:
+                table, header, row = table + 1, None, 0
+                examples_name, examples_tags, pending = s.split(':', 1)[1].strip(), pending, []
+            elif s.startswith('|') and outline is not None and table:
+                cells = [c.strip() for c in s.strip('|').split('|')]
+                if header is None:
+                    header = cells
+                else:
+                    row += 1
+                    name = outline
+                    for k, v in zip(header, cells):
+                        name = name.replace(f'<{k}>', v)
+                    add(f'{name} -- @{table}.{row} {examples_name}'.rstrip(), feature_tags + outline_tags + examples_tags)
+            elif s and not s.startswith('#') and not s.startswith('"""'):
+                pending = []
     return cases
 
 
