@@ -178,6 +178,38 @@ as a test result. A suite whose cases create and delete everything they use
 has no separate setup; its `nucloud.env` says so in one line,
 `# setup: none — <why>`. The deploy targets refuse a test repo. See [standards](https://github.com/IzumaNetworks/nucloud/blob/main/docs/standards.md#test-repos).
 
+## Select and time test cases
+
+Every test case carries tags from `test-tags.toml`: whether it writes to the
+cloud (`cloud:read-only`, `cloud:writes`, `cloud:login`), what it needs
+(`needs:hsm`), what it proves (`kind:rejection`) and whether it runs by
+default (`lifecycle:deprecated`, `risk:insecure` and the other `exclude`
+tags do not). This repo's own tags use its prefix and live in
+`test-tags.local.toml`. The rules are in
+[testing](https://github.com/IzumaNetworks/nucloud/blob/main/docs/testing.md#rules).
+
+```sh
+make tags                                  # every case and its tags
+make tags MACHINE=staging                  # the cases a staging run takes (read-only only)
+make tags TAGS=lifecycle:deprecated        # the cases that selection runs
+make test MACHINE=k3s-golden TAGS=needs:hsm EXCLUDE_TAGS=cloud:writes
+make tags-check                            # fail on an unknown, ungrouped or dropped tag
+make test-timings                          # each test's measured average and tier
+```
+
+`TAGS=` selects cases carrying any of the named tags, and an `exclude` tag
+runs only when it is named. `EXCLUDE_TAGS=` always wins. On a read-only
+stage (staging) only `cloud:read-only` cases run. `TEST_FRAMEWORK=` in
+`nucloud.env` (`behave`, `cucumber`, `pytest`) turns the selection into the
+framework's own arguments, which the suite receives as `NUCLOUD_TAG_ARGS`.
+Tags kept outside the original source sit in `test-tags.cases.tsv`; a tag a
+case loses needs a `# removed <case> <tag>: <why>` line in
+`test-tags.lock`, then `make tags-check UPDATE=1`.
+
+`make test-timings` reads TESTMASTER's measured runs: fast at 10 seconds or
+less, standard up to 120 seconds, slow above that, unmeasured with no
+completed run. Tiers are never written by hand.
+
 ## Tags
 
 A local build is tagged `<upstream>-nucloud.dev.<commit>`, plus a hash of
