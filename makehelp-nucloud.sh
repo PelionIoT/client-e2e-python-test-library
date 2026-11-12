@@ -631,14 +631,14 @@ suite() { # suite <verb> <command...>: run a command of the suite image against 
     suite_logs "$logs"
     return "$rc"
 }
-run_setup() { # the suite's own preparation; a failure is reported as setup, apart from prereqs and test results
+run_setup() { # the suite's own preparation, host step then container step; a failure is reported as setup
     local rc=0
+    [[ ${#HOST_SETUP_CMD[@]} -gt 0 || ${#SETUP_CMD[@]} -gt 0 ]] || return 0
     if [[ ${#HOST_SETUP_CMD[@]} -gt 0 ]]; then
         suite_env; export MACHINE=$ENV; say "setup on $ENV (host)"; "${HOST_SETUP_CMD[@]}" || rc=$?
-    elif [[ ${#SETUP_CMD[@]} -gt 0 ]]; then
+    fi
+    if [[ $rc -eq 0 && ${#SETUP_CMD[@]} -gt 0 ]]; then
         suite setup "${SETUP_CMD[@]}" || rc=$?
-    else
-        return 0
     fi
     [[ $rc -eq 0 ]] || { printf '%ssetup: %s failed on %s (exit %d); the suite did not run%s\n' "$C_FAIL" "$REPO" "$ENV" "$rc" "$C_OFF" >&2; exit 3; }
 }

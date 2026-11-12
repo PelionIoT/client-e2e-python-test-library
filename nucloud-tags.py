@@ -19,6 +19,7 @@ test-tags.lock records each case's tags; a tag a case loses needs a line
 `# removed <case> <tag>: <why>` in the lock, or check fails.
 """
 import ast
+import fnmatch
 import json
 import os
 import re
@@ -183,9 +184,47 @@ def gherkin_cases():
     return cases
 
 
+def pytest_config():
+    """[(directory, python_files, python_classes, python_functions)] from every pytest.ini, tox.ini, setup.cfg and
+    pyproject.toml in the repo; pytest's defaults for the repo root when none sets python_files."""
+    import configparser
+    out = []
+    for name, section in (('pytest.ini', 'pytest'), ('tox.ini', 'pytest'), ('setup.cfg', 'tool:pytest'), ('pyproject.toml', None)):
+        for path in source_files(name):
+            opts = {}
+            try:
+                if section is None:
+                    opts = tomllib.loads(path.read_text()).get('tool', {}).get('pytest', {}).get('ini_options', {})
+                    opts = {k: ' '.join(v) if isinstance(v, list) else str(v) for k, v in opts.items()}
+                else:
+                    cp = configparser.ConfigParser(interpolation=None)
+                    cp.read_string(path.read_text(errors='replace'))
+                    opts = dict(cp[section]) if cp.has_section(section) else {}
+            except Exception:
+                continue
+            if 'python_files' in opts:
+                out.append((path.parent, opts['python_files'].split(), opts.get('python_classes', 'Test').split(),
+                            opts.get('python_functions', 'test').split()))
+    covered = {d for d, *_ in out}
+    if ROOT not in covered:
+        out.append((ROOT, ['test_*.py', '*_test.py'], ['Test'], ['test']))
+    return out
+
+
+def _named(name, patterns):  # pytest: a pattern without a glob character is a prefix
+    return any(fnmatch.fnmatch(name, p) if any(ch in p for ch in '*?[') else name.startswith(p) for p in patterns)
+
+
 def pytest_cases():
     cases = {}
-    for f in sorted(list(source_files('test_*.py')) + list(source_files('*_test.py'))):
+    files = {}
+    for base, file_globs, class_globs, func_globs in sorted(pytest_config(), key=lambda c: len(c[0].parts)):
+        for g in file_globs:
+            for f in base.rglob(g):
+                if f.is_file() and f.suffix == '.py' and f.name != 'conftest.py' and not SKIP_DIRS.intersection(f.relative_to(ROOT).parts):
+                    files[f] = (class_globs, func_globs)  # the deepest config wins
+    for f in sorted(files):
+        class_globs, func_globs = files[f]
         try:
             tree = ast.parse(f.read_text(errors='replace'))
         except SyntaxError:
@@ -225,13 +264,13 @@ def pytest_cases():
                 if isinstance(base, ast.Name) and base.id in classes and base.id not in seen:
                     out.update(methods(classes[base.id], seen + (cls.name,)))
             for item in cls.body:
-                if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)) and item.name.startswith('test') and not fixture(item):
+                if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)) and _named(item.name, func_globs) and not fixture(item):
                     out[item.name] = item
             return out
         for node in tree.body:
-            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name.startswith('test') and not fixture(node):
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and _named(node.name, func_globs) and not fixture(node):
                 cases[f'{rel}::{node.name}'] = module + marks(node.decorator_list)
-            elif isinstance(node, ast.ClassDef) and (node.name.startswith('Test') or any(
+            elif isinstance(node, ast.ClassDef) and (_named(node.name, class_globs) or any(
                     (isinstance(base, ast.Attribute) and base.attr.endswith('TestCase')) or (isinstance(base, ast.Name) and base.id.endswith('TestCase'))
                     for base in node.bases)):
                 cls = marks(node.decorator_list)

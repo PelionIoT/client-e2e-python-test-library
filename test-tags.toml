@@ -132,7 +132,7 @@ means   = "Needs an administrator account on the cloud"
 [tags."needs:device"]
 default = "include"
 source  = "author"
-means   = "Needs a real or simulated device connected to the cloud"
+means   = "Needs hardware or an Edge gateway a run cannot create; a case that starts a simulated or process device does not"
 
 [tags."needs:lab"]
 default = "exclude"
