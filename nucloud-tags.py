@@ -4,11 +4,13 @@
 Stamped from IzumaNetworks/nucloud templates/nucloud-tags.py; identical in every repo.
 
   nucloud-tags.py args <framework>   selection arguments for TAGS=, EXCLUDE_TAGS= and a read-only stage
-  nucloud-tags.py cases              every case with its canonical tags, one per line: <case>\\t<tags>
+  nucloud-tags.py cases [--json]     every case with its canonical tags, one per line: <case>\\t<tags>
   nucloud-tags.py check [--update]   fail on unknown, ungrouped, hand-set tier or silently dropped tags
   nucloud-tags.py vocabulary         the merged vocabulary as JSON
 
-Frameworks: behave and cucumber (Gherkin @tags; cucumber is Cucumber-JVM run by JUnit), pytest (markers), none.
+Selection frameworks: behave and cucumber (Gherkin @tags; cucumber is Cucumber-JVM run by JUnit),
+pytest (markers), none. Cases are found statically in Gherkin, pytest, Go, JUnit and JS sources;
+a repo with none of them is one case, `suite`. Their tags come from the overlay.
 The vocabulary is test-tags.toml (shared) plus test-tags.local.toml (this repo's own tags,
 under its [repo] prefix). Cases come from the framework's source, read statically, plus the
 overlay test-tags.cases.tsv (<case>\\t<tag> <tag>…) for originals that must stay byte-identical.
@@ -27,9 +29,10 @@ try:
 except ModuleNotFoundError:  # Python < 3.11
     import tomli as tomllib
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(os.environ.get('NUCLOUD_TAGS_ROOT') or Path(__file__).resolve().parent)
 SKIP_DIRS = {'.git', 'node_modules', '.venv', 'venv', '.claude', '__pycache__', 'target', 'build', 'dist'}
-PYTEST_BUILTIN = {'parametrize', 'skipif', 'usefixtures', 'xfail', 'filterwarnings', 'timeout', 'flaky', 'asyncio', 'order', 'dependency', 'run'}
+PYTEST_BUILTIN = {'parametrize', 'skipif', 'usefixtures', 'xfail', 'filterwarnings', 'timeout', 'flaky', 'asyncio', 'order', 'dependency', 'run',
+                  'trylast', 'tryfirst', 'hookwrapper', 'optionalhook'}
 TAG = re.compile(r'^[a-z0-9]+(-[a-z0-9]+)*:[a-z0-9]+(-[a-z0-9]+)*$')
 
 
@@ -186,12 +189,50 @@ def pytest_cases():
         for node in tree.body:
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name.startswith('test'):
                 cases[f'{rel}::{node.name}'] = module + marks(node.decorator_list)
-            elif isinstance(node, ast.ClassDef) and node.name.startswith('Test'):
+            elif isinstance(node, ast.ClassDef) and (node.name.startswith('Test') or any(
+                    (isinstance(base, ast.Attribute) and base.attr.endswith('TestCase')) or (isinstance(base, ast.Name) and base.id.endswith('TestCase'))
+                    for base in node.bases)):
                 cls = marks(node.decorator_list)
                 for item in node.body:
                     if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)) and item.name.startswith('test'):
                         cases[f'{rel}::{node.name}::{item.name}'] = module + cls + marks(item.decorator_list)
     return cases
+
+
+def go_cases():
+    cases = {}
+    for f in sorted(source_files('*_test.go')):
+        rel = f.relative_to(ROOT).as_posix()
+        for name in re.findall(r'^func (Test\w+)\(\w+ \*testing\.T\)', f.read_text(errors='replace'), re.M):
+            cases[f'{rel}::{name}'] = []
+    return cases
+
+
+def junit_cases():
+    """JUnit 4/5 @Test methods; JUnit 5 @Tag values are their native tags."""
+    cases = {}
+    for f in sorted(source_files('*.java')):
+        text = f.read_text(errors='replace')
+        if '@Test' not in text:
+            continue
+        rel = f.relative_to(ROOT).as_posix()
+        for m in re.finditer(r'((?:@\w+(?:\([^)]*\))?\s*)+)(?:public\s+|protected\s+|private\s+)?(?:static\s+)?void\s+(\w+)\s*\(', text):
+            if re.search(r'@Test\b', m.group(1)):
+                cases[f'{rel}::{m.group(2)}'] = re.findall(r'@Tag\("([^"]+)"\)', m.group(1))
+    return cases
+
+
+def js_cases():
+    cases = {}
+    for pattern in ('*.test.js', '*.spec.js', '*.test.ts', '*.spec.ts'):
+        for f in sorted(source_files(pattern)):
+            rel = f.relative_to(ROOT).as_posix()
+            for name in re.findall(r'''\b(?:it|test)\s*\(\s*(['"`])(.+?)\1''', f.read_text(errors='replace')):
+                cases[f'{rel}::{name[1]}'] = []
+    return cases
+
+
+DETECTORS = {'gherkin': gherkin_cases, 'pytest': pytest_cases, 'go': go_cases, 'junit': junit_cases, 'js': js_cases}
 
 
 def framework():
@@ -200,11 +241,15 @@ def framework():
 
 def cases(voc):
     """{case: (canonical tags, unknown native tags)} from source plus the overlay."""
-    fw = framework()
-    found = {'behave': gherkin_cases, 'cucumber': gherkin_cases, 'pytest': pytest_cases}.get(fw, dict)()
+    found, kind = {}, {}
+    for name, detect in DETECTORS.items():
+        for case, tags in detect().items():
+            found[case], kind[case] = tags, name
+    if not found:  # a suite with no case-level source is one case: the suite
+        found['suite'], kind['suite'] = [], 'suite'
     overlay = ROOT / 'test-tags.cases.tsv'
     extra = {}
-    if overlay.exists():
+    if overlay.exists() and not os.environ.get('NUCLOUD_TAGS_NO_OVERLAY'):  # the classifier reads source tags only
         for line in overlay.read_text().splitlines():
             if line.strip() and not line.startswith('#'):
                 case, _, tags = line.partition('\t')
@@ -219,7 +264,11 @@ def cases(voc):
             else:
                 unknown.append(n)
         out[case] = (sorted(tags), unknown, extra.get(case, []))
+        KIND[case] = kind.get(case, 'overlay')
     return out
+
+
+KIND = {}
 
 
 def read_lock():
@@ -237,8 +286,8 @@ def read_lock():
 
 def check(voc, update):
     found, failures = cases(voc), []
-    gherkin_source = framework() in ('behave', 'cucumber')
-    natives = gherkin_cases() if gherkin_source else {}
+    gherkin_source = True
+    natives = gherkin_cases()
     for case, (tags, unknown, overlay) in found.items():
         for n in unknown:
             bare = n.lstrip('@')
@@ -284,7 +333,10 @@ def main(argv):
         print('\n'.join(args(argv[1], voc)))
     elif cmd == 'cases':
         for case, (tags, unknown, _) in cases(voc).items():
-            print(case + '\t' + ' '.join(tags) + ('\t?' + ' '.join(unknown) if unknown else ''))
+            if '--json' in argv:
+                print(json.dumps({'case': case, 'kind': KIND[case], 'tags': tags, 'unknown': unknown}))
+            else:
+                print(case + '\t' + ' '.join(tags) + ('\t?' + ' '.join(unknown) if unknown else ''))
     elif cmd == 'check':
         return check(voc, '--update' in argv)
     elif cmd == 'vocabulary':
