@@ -190,7 +190,7 @@ tags do not). This repo's own tags use its prefix and live in
 
 ```sh
 make tags                                  # every case and its tags
-make tags MACHINE=staging                  # the cases a staging run takes
+make tags MACHINE=staging                  # the cases a staging run takes (read-only only)
 make tags TAGS=lifecycle:deprecated        # the cases that selection runs
 make test MACHINE=k3s-golden TAGS=needs:hsm EXCLUDE_TAGS=cloud:writes
 make tags-check                            # fail on an unknown, ungrouped or dropped tag
@@ -198,8 +198,8 @@ make test-timings                          # each test's measured average and ti
 ```
 
 `TAGS=` selects cases carrying any of the named tags, and an `exclude` tag
-runs only when it is named. `EXCLUDE_TAGS=` always wins. On a stage listed
-under `[nucloud] read_only` only `cloud:read-only` cases run. `TEST_FRAMEWORK=` in
+runs only when it is named. `EXCLUDE_TAGS=` always wins. On a read-only
+stage (staging) only `cloud:read-only` cases run. `TEST_FRAMEWORK=` in
 `nucloud.env` (`behave`, `cucumber`, `pytest`) turns the selection into the
 framework's own arguments, which the suite receives as `NUCLOUD_TAG_ARGS`.
 Tags kept outside the original source sit in `test-tags.cases.tsv`; a tag a
