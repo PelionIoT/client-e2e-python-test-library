@@ -129,7 +129,6 @@ means   = "Measured average over 10 seconds, up to 120 seconds"
 default = "include"
 source  = "measured"
 means   = "Measured average over 120 seconds"
-aliases = ["long-test"]
 
 [tags."tier:unmeasured"]
 default = "include"
