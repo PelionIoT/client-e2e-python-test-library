@@ -12,3 +12,4 @@ output.manifest
 .izlocal
 simulated_client/testapp.py
 simulated_client/provision.py
+.nucloud-logs/

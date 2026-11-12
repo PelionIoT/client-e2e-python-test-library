@@ -578,17 +578,46 @@ tag_env() { # NUCLOUD_TAGS, NUCLOUD_EXCLUDE_TAGS and NUCLOUD_TAG_ARGS: this run'
     export NUCLOUD_TAGS NUCLOUD_EXCLUDE_TAGS NUCLOUD_TAG_ARGS
     [[ -z $NUCLOUD_TAG_ARGS ]] || say "tags: $NUCLOUD_TAG_ARGS"
 }
+redact_secrets() { # stdin to stdout with this run's secret values, Izuma API keys and PEM private keys masked
+    python3 -u -c '
+import os, re, sys
+vals = sorted({os.environ.get(k, "") for k in ("NUCLOUD_API_KEY", "NUCLOUD_PASSWORD", "NUCLOUD_ROOT_PASSWORD")} - {""}, key=len, reverse=True)
+vals = [v for v in vals if len(v) >= 6]
+key, pem = re.compile(r"\bak_[0-9A-Za-z]{20,}"), False
+for line in sys.stdin:
+    for v in vals:
+        line = line.replace(v, "<redacted>")
+    line = key.sub("ak_<redacted>", line)
+    if "PRIVATE KEY-----" in line:
+        pem = "BEGIN" in line
+        if not pem:
+            continue
+        line = re.sub(r"-----BEGIN ([A-Z ]*)PRIVATE KEY-----.*", r"<redacted \1private key>", line)
+    elif pem:
+        continue
+    sys.stdout.write(line)
+'
+}
 suite() { # suite <verb> <command...>: run a command of the suite image against the stage's API
     local verb=$1 ref; shift
     suite_env
     IFS='|' read -r n t _ <<<"${IMAGES[0]}"; ref=$REGISTRY/$n:$t-$SUFFIX
-    docker image inspect "$ref" >/dev/null 2>&1 || each i_build
+    # A remote BuildKit session can time out; one retry, then refuse rather than run a missing image.
+    docker image inspect "$ref" >/dev/null 2>&1 || each i_build || true
+    docker image inspect "$ref" >/dev/null 2>&1 || { say "build left no $ref; retrying once"; each i_build || true; }
+    docker image inspect "$ref" >/dev/null 2>&1 || die "cannot build $ref; $verb did not run on $ENV"
     say "$verb on $ENV ($NUCLOUD_API_URL)"
     # The client is backgrounded so the trap runs on a signal; a killed client alone leaves the container calling the stage.
     SUITE_CONTAINER=nucloud-suite-$$
-    docker run --rm --init --name "$SUITE_CONTAINER" --platform "$PLATFORM" -e NUCLOUD_STAGE -e NUCLOUD_API_URL -e NUCLOUD_API_KEY \
+    # /nucloud-logs ($NUCLOUD_LOGS in the container) is .nucloud-logs/<stage>/ here: a suite copies its service logs
+    # there, typically from an EXIT trap, so they outlive the --rm container.
+    local logs=$PWD/.nucloud-logs/$ENV
+    mkdir -p "$logs" && chmod 777 "$logs"
+    # Output passes through redact_secrets: a suite that prints its key or password never leaves it in a log.
+    (set -o pipefail; docker run --rm --init --name "$SUITE_CONTAINER" --platform "$PLATFORM" -e NUCLOUD_STAGE -e NUCLOUD_API_URL -e NUCLOUD_API_KEY \
         -e NUCLOUD_USER -e NUCLOUD_PASSWORD -e NUCLOUD_ROOT_USER -e NUCLOUD_ROOT_PASSWORD -e NUCLOUD_CONFIG_JSON -e NUCLOUD_ACCOUNT_ID \
-        -e NUCLOUD_READ_ONLY -e NUCLOUD_TAGS -e NUCLOUD_EXCLUDE_TAGS -e NUCLOUD_TAG_ARGS -e SUITES "$ref" "$@" &
+        -e NUCLOUD_READ_ONLY -e NUCLOUD_TAGS -e NUCLOUD_EXCLUDE_TAGS -e NUCLOUD_TAG_ARGS -e SUITES \
+        -v "$logs:/nucloud-logs" -e NUCLOUD_LOGS=/nucloud-logs "$ref" "$@" 2>&1 | redact_secrets) &
     local client=$! rc=0
     trap 'trap "" HUP INT TERM; docker stop "$SUITE_CONTAINER" >/dev/null 2>&1 || true; exit 143' HUP INT TERM
     wait "$client" || rc=$?

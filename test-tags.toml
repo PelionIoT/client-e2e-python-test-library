@@ -1,7 +1,8 @@
 # Shared test-case tag vocabulary. nucloud stamps this file into every test repo.
 # Rules: docs/testing.md#rules (nucloud) and docs/nucloud.md (each repo).
 #
-# Each tag is <group>:<name>, lowercase kebab-case. `default` is the selection
+# Each tag is <group>:<name>, lowercase kebab-case; a name may hold a further
+# :<part> (cloud:manipulator:pod). Gherkin writes every ":" as "." and pytest as "_". `default` is the selection
 # default: "include" runs with a plain `make test`; "exclude" runs only when
 # TAGS= names the tag. `source` is who may set it: "author" (a person or the
 # suite's source), "classifier" (repo code that derives it from the case), or
@@ -19,6 +20,9 @@ cloud     = "What the case does to the cloud it runs against"
 needs     = "Credentials, services or hardware the case requires"
 tier      = "Measured duration class"
 suite     = "A named selection the upstream suite defines (smoke, sanity)"
+
+[retired]  # tags no case carries; a case that lost one needs no "# removed" note in test-tags.lock
+"cloud:writes" = "split into cloud:apiwrites and cloud:manipulator:*"
 
 [tags."lifecycle:deprecated"]
 default = "exclude"
@@ -71,10 +75,30 @@ source  = "author"
 means   = "Makes only GET and OPTIONS requests; safe on staging"
 aliases = ["read-only", "readonly", "pytest.mark.readonly"]
 
-[tags."cloud:writes"]
+[tags."cloud:apiwrites"]
 default = "include"
 source  = "classifier"
-means   = "Creates, changes or deletes cloud state; refused on read-only stages"
+means   = "Creates, changes or deletes cloud state through the cloud's API; refused on read-only stages"
+
+[tags."cloud:manipulator:pod"]
+default = "include"
+source  = "classifier"
+means   = "Reaches into a cloud pod: kubectl exec, cp or port-forward, or the Kubernetes pod exec API"
+
+[tags."cloud:manipulator:kubectl"]
+default = "include"
+source  = "classifier"
+means   = "Runs kubectl or the Kubernetes client against a cloud cluster"
+
+[tags."cloud:manipulator:ssh"]
+default = "include"
+source  = "classifier"
+means   = "Logs in to a cloud host over SSH"
+
+[tags."cloud:manipulator:db"]
+default = "include"
+source  = "classifier"
+means   = "Connects straight to a cloud database"
 
 [tags."cloud:login"]
 default = "include"

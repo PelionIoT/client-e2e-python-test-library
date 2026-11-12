@@ -61,11 +61,11 @@ def vocabulary():
             tags[name] = row
     alias = {}
     for name, row in tags.items():
-        alias[name.replace(':', '.', 1)] = name  # the Gherkin spelling, @cloud.read-only (behave reads ':' as a limit)
+        alias[name.replace(':', '.')] = name  # the Gherkin spelling, @cloud.read-only (behave reads ':' as a limit)
         alias[re.sub(r'[^A-Za-z0-9_]', '_', name)] = name  # the pytest marker spelling, cloud_read_only
         for a in row.get('aliases', []):
             alias[a.removeprefix('pytest.mark.').lstrip('@')] = name
-    return {'tags': tags, 'groups': groups, 'prefix': prefix, 'alias': alias}
+    return {'tags': tags, 'groups': groups, 'prefix': prefix, 'alias': alias, 'retired': dict(v.get('retired', {}))}
 
 
 def canonical(native, voc):
@@ -81,7 +81,7 @@ def native_spellings(tag, voc, framework):
     names = [tag] + [a.removeprefix('pytest.mark.').lstrip('@') for a in voc['tags'].get(tag, {}).get('aliases', [])]
     if framework == 'pytest':
         return sorted({re.sub(r'[^A-Za-z0-9_]', '_', n) for n in names})
-    return sorted({n.replace(':', '.', 1) for n in names})
+    return sorted({n.replace(':', '.') for n in names})
 
 
 def split(value):
@@ -98,6 +98,9 @@ def selection(voc):
     return include, sorted(set(exclude) | set(held))
 
 
+SAFE = ('cloud:read-only', 'needs:offline')  # what a read-only stage runs: reads only, or no cloud at all
+
+
 def args(framework, voc):
     include, exclude = selection(voc)
     read_only = os.environ.get('NUCLOUD_READ_ONLY') == '1'
@@ -107,7 +110,7 @@ def args(framework, voc):
         if include:
             out.append('--tags=' + ','.join('@' + n for t in include for n in sp(t)))
         if read_only:
-            out.append('--tags=' + ','.join('@' + n for n in sp('cloud:read-only')))
+            out.append('--tags=' + ','.join('@' + n for t in SAFE for n in sp(t)))
         out += ['--tags=~@' + n for t in exclude for n in sp(t)]
         return out
     if framework in ('cucumber', 'pytest'):
@@ -116,7 +119,7 @@ def args(framework, voc):
         if include:
             terms.append('(' + ' or '.join(at + n for t in include for n in sp(t)) + ')')
         if read_only:
-            terms.append('(' + ' or '.join(at + n for n in sp('cloud:read-only')) + ')')
+            terms.append('(' + ' or '.join(at + n for t in SAFE for n in sp(t)) + ')')
         terms += ['not ' + at + n for t in exclude for n in sp(t)]
         expr = ' and '.join(terms)
         if framework == 'cucumber':  # Cucumber-JVM 2-6 read tag expressions from cucumber.options
@@ -346,7 +349,7 @@ def check(voc, update):
     for case, before in lock.items():
         now = set(found.get(case, ([], [], []))[0])
         for t in sorted(before - now):
-            if (case, t) not in removed:
+            if (case, t) not in removed and t not in voc['retired']:
                 failures.append(f'{case}: lost {t}; record "# removed {case} {t}: <why>" in test-tags.lock')
     if update and not failures:
         notes = [l for l in (path.read_text().splitlines() if path.exists() else []) if l.startswith('#')]
@@ -356,7 +359,7 @@ def check(voc, update):
     bad, ok, off = ('\033[1;31m', '\033[32m', '\033[0m') if color else ('', '', '')
     for f in failures:
         print(f'  {bad}FAIL{off}  {f}')
-    untagged = sum(1 for t, _, _ in found.values() if not any(x.startswith('cloud:') for x in t))
+    untagged = sum(1 for t, _, _ in found.values() if not any(x.startswith('cloud:') for x in t) and 'needs:offline' not in t)
     if failures:
         print(f'{bad}==> {len(failures)} tag problem(s) in {len(found)} case(s){off}', file=sys.stderr)
         return 1
@@ -375,7 +378,7 @@ def main(argv):
         read_only = os.environ.get('NUCLOUD_READ_ONLY') == '1'
         for case, (tags, _, _) in cases(voc).items():
             t = set(tags)
-            if (not include or t & set(include)) and not t & set(exclude) and (not read_only or 'cloud:read-only' in t):
+            if (not include or t & set(include)) and not t & set(exclude) and (not read_only or t & set(SAFE)):
                 print(case)
     elif cmd == 'cases':
         for case, (tags, unknown, _) in cases(voc).items():
