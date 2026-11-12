@@ -1,13 +1,13 @@
 # Stamped from IzumaNetworks/nucloud templates/nucloud.yml; identical in every repo.
 # Calls Makefile.nucloud directly, so a repo Makefile target of the same name
 # (test, clean, help) never adds its own prerequisites.
-# Source changes on nucloud and pull requests build; workflow_dispatch forces a rebuild.
+# Source changes on the development branch (nucloud, or main in a repo without one) and pull requests build; workflow_dispatch forces a rebuild.
 # Developers build and deploy from their own checkout with make (docs/nucloud.md).
 name: nucloud
 
 on:
   pull_request:
-    branches: [nucloud]
+    branches: [nucloud, main]
     paths-ignore:
       - 'docs/**'
       - 'README*'
@@ -28,7 +28,7 @@ on:
       - '.gitignore'
       - '.github/workflows/nucloud.yml'
   push:
-    branches: [nucloud]
+    branches: [nucloud, main]
     paths-ignore:
       - 'docs/**'
       - 'README*'
@@ -88,7 +88,7 @@ jobs:
           name: sbom-${{ github.run_number }}
           path: sbom-*.spdx.json
       - name: Push to GHCR
-        if: github.ref == 'refs/heads/nucloud'
+        if: github.ref == 'refs/heads/nucloud' || github.ref == 'refs/heads/main'
         env:
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
         run: |

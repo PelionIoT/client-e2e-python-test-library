@@ -1,10 +1,10 @@
 # Building and deploying this repo
 
-This repo builds the images listed in `nucloud.env` on its `nucloud`
-branch in `<dir>/NUCLOUD/REPOS/<repo>`, the layout nucloud's `setup.sh`
-creates. The branch descends from
-the archived production commit; `archive/<tag>` records its image digest.
-Each checkout keeps its local `master` ref and has one worktree.
+This repo builds the images listed in `nucloud.env` from its development
+branch: `nucloud` where the repo keeps one beside the upstream `master`, else
+`main`. The checkout lives in `<dir>/NUCLOUD/REPOS/<repo>` or
+`<dir>/NUCLOUD/TESTING/<repo>`, the layout nucloud's `setup.sh` creates, and
+has one worktree. `archive/<tag>` records the archived production image digest.
 The rules are in [nucloud standards](https://github.com/IzumaNetworks/nucloud/blob/main/docs/standards.md),
 the stages in [nucloud setup](https://github.com/IzumaNetworks/nucloud/blob/main/docs/setup.md).
 
@@ -172,7 +172,9 @@ Every file these checks use lives in this repo, so the repo runs on its own.
 creates or verifies the fixtures the suite owns, so a cloud with only its
 credentials needs no other preparation. A setup failure prints
 `setup: <repo> failed on <stage>` and the cases do not run, so it never reads
-as a test result. The deploy targets refuse a test repo. See [standards](https://github.com/IzumaNetworks/nucloud/blob/main/docs/standards.md#test-repos).
+as a test result. A suite whose cases create and delete everything they use
+has no separate setup; its `nucloud.env` says so in one line,
+`# setup: none — <why>`. The deploy targets refuse a test repo. See [standards](https://github.com/IzumaNetworks/nucloud/blob/main/docs/standards.md#test-repos).
 
 ## Tags
 
@@ -185,17 +187,17 @@ runs.
 ## CI
 
 `.github/workflows/nucloud.yml` builds source changes on pull requests
-into `nucloud` and pushes to `nucloud`. Changes confined to `docs/`,
+into the development branch and pushes to it. Changes confined to `docs/`,
 README files, Markdown, `Makefile`, `Makefile.nucloud`,
 `makehelp-nucloud.sh`, `nucloud-cloud.py`, `.dockerignore`, `.iz`, `.izlocal`, `.gitignore` and the workflow file skip CI.
 `Dockerfile`, `nucloud.env` and code changes trigger it.
 
-Force a rebuild with `gh workflow run nucloud -R <org/repo> --ref nucloud`.
+Force a rebuild with `gh workflow run nucloud -R <org/repo> --ref <development branch>`.
 CI builds, tests, smoke-checks and writes SBOMs on the five-runner pool.
-It pushes images to GHCR from `nucloud`, then removes its images and
+It pushes images to GHCR from the development branch, then removes its images and
 build cache. Every runner service also runs its completion cleanup hook.
 
 ## Changes from upstream
 
-`docs/fixes.md` lists every change the `nucloud` branch makes to build
+`docs/fixes.md` lists every change the development branch makes to build
 files or source, and why.

@@ -16,7 +16,7 @@ MACHINE          ?= $(ENV)
 override ENV     := $(MACHINE)
 ONLY             ?=
 
-export BUILD_NUMBER IMAGE_SUFFIX ENV ONLY COLOR
+export BUILD_NUMBER IMAGE_SUFFIX ENV ONLY COLOR TAGS EXCLUDE_TAGS UPDATE
 
 ##@ General
 
@@ -58,6 +58,18 @@ test:  ## Run the repo's unit tests inside the Dockerfile's test target, if it h
 .PHONY: setup
 setup:  ## Create or verify the suite's own fixtures on a stage (make test runs it first): MACHINE=<stage>
 	@./makehelp-nucloud.sh setup
+
+.PHONY: tags
+tags:  ## List every test case with its canonical tags (test-tags.toml); TAGS= and EXCLUDE_TAGS= select cases for make test
+	@./makehelp-nucloud.sh tags
+
+.PHONY: tags-check
+tags-check:  ## Fail on unknown, ungrouped, hand-set tier or silently dropped tags; UPDATE=1 rewrites test-tags.lock
+	@./makehelp-nucloud.sh tags-check
+
+.PHONY: test-timings
+test-timings:  ## Each registered test's measured average, last run and tier (fast <=10s, standard <=120s, slow >120s)
+	@./makehelp-nucloud.sh test-timings
 
 .PHONY: smoke
 smoke:  ## Start each image briefly and check it runs

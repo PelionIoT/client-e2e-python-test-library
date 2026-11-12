@@ -1,0 +1,149 @@
+# Shared test-case tag vocabulary. nucloud stamps this file into every test repo.
+# Rules: docs/testing.md#rules (nucloud) and docs/nucloud.md (each repo).
+#
+# Each tag is <group>:<name>, lowercase kebab-case. `default` is the selection
+# default: "include" runs with a plain `make test`; "exclude" runs only when
+# TAGS= names the tag. `source` is who may set it: "author" (a person or the
+# suite's source), "classifier" (repo code that derives it from the case), or
+# "measured" (TESTMASTER timing only; never written by hand).
+# A repo adds its own tags in test-tags.local.toml under the prefix
+# [repo] prefix = "<name>", for example hsm:f4-coverage.
+
+schema = 1
+
+[groups]
+lifecycle = "Whether the case should run at all"
+risk      = "Security or safety concerns about the case itself"
+kind      = "What the case proves"
+cloud     = "What the case does to the cloud it runs against"
+needs     = "Credentials, services or hardware the case requires"
+tier      = "Measured duration class"
+suite     = "A named selection the upstream suite defines (smoke, sanity)"
+
+[tags."lifecycle:deprecated"]
+default = "exclude"
+source  = "classifier"
+means   = "Covers behavior the product no longer supports; kept for history"
+aliases = ["deprecated"]
+
+[tags."lifecycle:disabled"]
+default = "exclude"
+source  = "author"
+means   = "Turned off upstream; never runs without TAGS=lifecycle:disabled"
+aliases = ["disable", "ignore", "pytest.mark.skip"]
+
+[tags."lifecycle:open-bug"]
+default = "exclude"
+source  = "author"
+means   = "Fails because of a known, filed product defect"
+aliases = ["open_bug"]
+
+[tags."lifecycle:quarantined"]
+default = "exclude"
+source  = "classifier"
+means   = "Flaky or unverified; held out until its result is reproducible"
+
+[tags."risk:insecure"]
+default = "exclude"
+source  = "classifier"
+means   = "Exercises a configuration known to be insecure, such as RSA exponent F0"
+aliases = ["F0-is-insecure"]
+
+[tags."kind:negative"]
+default = "include"
+source  = "author"
+means   = "Expects the cloud to refuse a request"
+
+[tags."kind:rejection"]
+default = "include"
+source  = "author"
+means   = "Proves a specific insecure or invalid input is rejected"
+aliases = ["f0-rejection"]
+
+[tags."kind:control"]
+default = "include"
+source  = "author"
+means   = "Checks the test harness, not the product"
+
+[tags."cloud:read-only"]
+default = "include"
+source  = "author"
+means   = "Makes only GET and OPTIONS requests; safe on staging"
+aliases = ["read-only", "readonly", "pytest.mark.readonly"]
+
+[tags."cloud:writes"]
+default = "include"
+source  = "classifier"
+means   = "Creates, changes or deletes cloud state; refused on read-only stages"
+
+[tags."cloud:login"]
+default = "include"
+source  = "author"
+means   = "Logs in with a user and password (a POST); refused on read-only stages"
+aliases = ["login"]
+
+[tags."cloud:production-only"]
+default = "exclude"
+source  = "author"
+means   = "Written for a production cloud; never runs on a k3s stage by default"
+aliases = ["production", "pytest.mark.production"]
+
+[tags."needs:hsm"]
+default = "include"
+source  = "classifier"
+means   = "Needs the DB-HSM service and its signing-key fact"
+
+[tags."needs:admin"]
+default = "include"
+source  = "classifier"
+means   = "Needs an administrator account on the cloud"
+
+[tags."needs:device"]
+default = "include"
+source  = "author"
+means   = "Needs a real or simulated device connected to the cloud"
+
+[tags."needs:lab"]
+default = "exclude"
+source  = "author"
+means   = "Needs lab hardware or networks this workspace does not reach"
+aliases = ["intlab"]
+
+[tags."needs:offline"]
+default = "include"
+source  = "author"
+means   = "Runs without any cloud"
+aliases = ["offline"]
+
+[tags."tier:fast"]
+default = "include"
+source  = "measured"
+means   = "Measured average 10 seconds or less"
+
+[tags."tier:standard"]
+default = "include"
+source  = "measured"
+means   = "Measured average over 10 seconds, up to 120 seconds"
+
+[tags."tier:slow"]
+default = "include"
+source  = "measured"
+means   = "Measured average over 120 seconds"
+aliases = ["long-test"]
+
+[tags."tier:unmeasured"]
+default = "include"
+source  = "measured"
+means   = "No completed measured run yet"
+
+[tags."suite:smoke"]
+default = "include"
+source  = "author"
+means   = "In the upstream suite's smoke selection"
+aliases = ["smoke", "ww_smoke", "edge_smoke", "ww_api_smoke"]
+
+[tags."suite:sanity"]
+default = "include"
+source  = "author"
+means   = "In the upstream suite's sanity selection"
+aliases = ["sanity"]

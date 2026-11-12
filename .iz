@@ -60,5 +60,6 @@ facts     = { kubeconfig_path = "/etc/kubernetes/admin.conf" }
 # Production clouds: stage targets that change a stage (image-load, deploy,
 # deploy-only) refuse them and leave them out of the picklist; suites still run.
 production = ["k3s-golden", "staging"]
+read_only = ["staging"]
 # <stage>=<api url> for a cloud whose API is not https://api.<stage>.izuma.io.
 endpoints = ["staging=https://api.izuma.io"]

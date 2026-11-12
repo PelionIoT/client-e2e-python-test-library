@@ -24,6 +24,7 @@
 #                                 # KUBECONFIG. The suite receives every one of them the cloud holds.
 #   HOST_TOOLS=("kubectl|hsm setup" "py:yaml|kubeconfig parsing")  # tools and python modules this repo needs on the host
 #   PREREQS_CMD=(...)             # a read-only repository check run last by make prereqs
+#   TEST_FRAMEWORK=behave         # tests: how TAGS= reaches the suite: behave|cucumber|pytest|none (default)
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")"
 ENV="${MACHINE:-${ENV:-}}"
@@ -122,7 +123,7 @@ fi
 [[ -f nucloud.env ]] || { echo "error: nucloud.env missing" >&2; exit 1; }
 REGISTRY=ghcr.io/izumanetworks
 SECRETS=() SSH=0 PLATFORM=linux/amd64 SMOKE_CMD=() KIND=image SETUP_CMD=() TEST_CMD=() TEST_STAGE=yes
-CREDENTIALS=(API_KEY) HOST_TOOLS=() PREREQS_CMD=() HOST_SETUP_CMD=() HOST_TEST_CMD=()
+CREDENTIALS=(API_KEY) HOST_TOOLS=() PREREQS_CMD=() HOST_SETUP_CMD=() HOST_TEST_CMD=() TEST_FRAMEWORK=none
 # shellcheck disable=SC1091
 source nucloud.env
 ONLY="${ONLY:-}"
@@ -438,6 +439,31 @@ i_rel() { # collect the helm releases this repo's images deploy to
     [[ "$6" == "-" || -z "$6" ]] && return
     for m in ${6//,/ }; do REL_LIST+=("${m%%=*}"); done
 }
+show_timings() { # each TESTMASTER test's measured average, last duration, runs, result and tier; never inferred
+    local reg=.claude/testmaster/registry.json
+    [[ -f $reg ]] || { say "no TESTMASTER registry at $reg; adopt the suite with /testmaster adopt"; return 0; }
+    NUCLOUD_TTY=$TTY python3 - "$reg" <<'PY'
+import json, os, sys
+tty = bool(os.environ.get('NUCLOUD_TTY'))
+C = dict(fast="\033[32m", standard="\033[36m", slow="\033[33m", unmeasured="\033[2m", off="\033[0m") if tty else dict.fromkeys(("fast", "standard", "slow", "unmeasured", "off"), "")
+tests = json.load(open(sys.argv[1])).get('tests', {})
+def tier(ms): return 'unmeasured' if ms is None else 'fast' if ms <= 10000 else 'standard' if ms <= 120000 else 'slow'
+def dur(ms):
+    if ms is None: return '-'
+    m, r = divmod(ms, 60000)
+    return (f'{int(m)}m ' if m else '') + f'{r / 1000:.3f}s'
+rows, count = [], {}
+for tid, t in sorted(tests.items()):
+    avg = t.get('avg_ms') if t.get('runs', 0) else None
+    tr = tier(avg); count[tr] = count.get(tr, 0) + 1
+    rows.append((tid, dur(avg), dur(t.get('last_ms') if avg is not None else None), str(t.get('runs', 0)), t.get('last_result', '-') if avg is not None else '-', tr))
+w = max([len(r[0]) for r in rows] + [4])
+print(f"  {'TEST':<{w}}  {'AVERAGE':>11}  {'LAST':>11}  {'RUNS':>4}  {'RESULT':<7} TIER")
+for tid, a, l, n, res, tr in rows:
+    print(f"  {tid:<{w}}  {a:>11}  {l:>11}  {n:>4}  {res:<7} {C[tr]}{tr}{C['off']}")
+print('==> ' + ', '.join(f'{count.get(k, 0)} {k}' for k in ('fast', 'standard', 'slow', 'unmeasured')) + '; tiers from measured averages: fast <=10s, standard <=120s, slow >120s')
+PY
+}
 show_running() { # a table per release this repo deploys: each workload, its readiness, image and build
     local kc rel branch
     REL_LIST=()
@@ -522,6 +548,9 @@ suite_env() { # export NUCLOUD_STAGE, NUCLOUD_API_URL and NUCLOUD_<field> for ev
     need_stage api
     NUCLOUD_STAGE=$ENV NUCLOUD_API_URL=$(stage_api "$ENV") || die "cannot resolve $ENV's API URL"
     export NUCLOUD_STAGE NUCLOUD_API_URL
+    if "${CLOUD[@]}" read-only | grep -qxF "$ENV"; then NUCLOUD_READ_ONLY=1; else NUCLOUD_READ_ONLY=; fi
+    export NUCLOUD_READ_ONLY
+    tag_env
     for f in API_KEY USER PASSWORD ROOT_USER ROOT_PASSWORD CONFIG_JSON ACCOUNT_ID; do
         v=$(stage_value "$ENV" "$f") || die "cannot read $ENV's ${f,,} fact${ACCOUNT:+ (ACCOUNT=$ACCOUNT)}"
         export "NUCLOUD_$f=$v"
@@ -529,6 +558,16 @@ suite_env() { # export NUCLOUD_STAGE, NUCLOUD_API_URL and NUCLOUD_<field> for ev
     if wants API_KEY && [[ -z $NUCLOUD_API_KEY ]]; then
         die "$ENV has no encrypted cloud.${ACCOUNT:+accounts.$ACCOUNT.}api_key fact: izmachine fact set $ENV cloud.${ACCOUNT:+accounts.$ACCOUNT.}api_key - --secret"
     fi
+}
+tag_env() { # NUCLOUD_TAGS, NUCLOUD_EXCLUDE_TAGS and NUCLOUD_TAG_ARGS: this run's selection in the suite's framework syntax
+    local a=() line out
+    [[ -f test-tags.toml ]] || return 0
+    out=$(TEST_FRAMEWORK=$TEST_FRAMEWORK python3 ./nucloud-tags.py args "$TEST_FRAMEWORK") || die "TAGS/EXCLUDE_TAGS: see the error above"
+    while IFS= read -r line; do [[ -n $line ]] && a+=("$line"); done <<<"$out"
+    NUCLOUD_TAGS=${TAGS:-} NUCLOUD_EXCLUDE_TAGS=${EXCLUDE_TAGS:-} NUCLOUD_TAG_ARGS=${a[*]+$(printf '%q ' "${a[@]}")}
+    NUCLOUD_TAG_ARGS=${NUCLOUD_TAG_ARGS% }
+    export NUCLOUD_TAGS NUCLOUD_EXCLUDE_TAGS NUCLOUD_TAG_ARGS
+    [[ -z $NUCLOUD_TAG_ARGS ]] || say "tags: $NUCLOUD_TAG_ARGS"
 }
 suite() { # suite <verb> <command...>: run a command of the suite image against the stage's API
     local verb=$1 ref; shift
@@ -540,7 +579,7 @@ suite() { # suite <verb> <command...>: run a command of the suite image against 
     SUITE_CONTAINER=nucloud-suite-$$
     docker run --rm --init --name "$SUITE_CONTAINER" --platform "$PLATFORM" -e NUCLOUD_STAGE -e NUCLOUD_API_URL -e NUCLOUD_API_KEY \
         -e NUCLOUD_USER -e NUCLOUD_PASSWORD -e NUCLOUD_ROOT_USER -e NUCLOUD_ROOT_PASSWORD -e NUCLOUD_CONFIG_JSON -e NUCLOUD_ACCOUNT_ID \
-        -e SUITES "$ref" "$@" &
+        -e NUCLOUD_READ_ONLY -e NUCLOUD_TAGS -e NUCLOUD_EXCLUDE_TAGS -e NUCLOUD_TAG_ARGS -e SUITES "$ref" "$@" &
     local client=$! rc=0
     trap 'trap "" HUP INT TERM; docker stop "$SUITE_CONTAINER" >/dev/null 2>&1 || true; exit 143' HUP INT TERM
     wait "$client" || rc=$?
@@ -686,6 +725,8 @@ esac
 case "${1:-}" in
     images) each i_list ;;
     prereqs) check_prereqs ;;
+    tags) TEST_FRAMEWORK=$TEST_FRAMEWORK python3 ./nucloud-tags.py cases ;;
+    tags-check) TEST_FRAMEWORK=$TEST_FRAMEWORK python3 ./nucloud-tags.py check ${UPDATE:+--update} ;;
     image) each i_build ;;
     sbom) each i_sbom ;;
     setup)
@@ -717,6 +758,7 @@ case "${1:-}" in
     stage-check) stage_kubeconfig; say "$ENV answers at $(stage_vm)" ;;
     kubeconfig) stage_kubeconfig; cat "$STAGE_KC" ;;
     running) show_running ;;
+    test-timings) show_timings ;;
     deploy-only) stage_kubeconfig; load_images; each i_deploy; deploy_apply ;;
     deploy) stage_kubeconfig; say "$ENV answers at $(stage_vm)"; each i_build; load_images; each i_deploy; deploy_apply ;;
     upgrade) stage_kubeconfig; each i_deploy; deploy_apply ;;  # internal: upgrade releases to images already in the VM

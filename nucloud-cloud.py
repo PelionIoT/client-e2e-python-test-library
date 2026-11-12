@@ -103,7 +103,7 @@ def machines(root='.'):
 
 def nucloud(root='.'):
     """The merged [nucloud] table: production list and endpoints, a later layer replacing a key."""
-    out = {'production': [], 'endpoints': []}
+    out = {'production': [], 'endpoints': [], 'read_only': []}
     for _, data in layers(root):
         table = data.get('nucloud', {})
         for key in out:
@@ -283,6 +283,8 @@ def main(argv):
             print('\t'.join((name, row['file'], str(row['fields'].get('remote', '')), row['note'])))
     elif cmd == 'production':
         print('\n'.join(nucloud()['production']))
+    elif cmd == 'read-only':
+        print('\n'.join(nucloud()['read_only']))
     elif cmd == 'endpoints':
         for name, url in endpoints().items():
             print(name + '\t' + url)
@@ -292,12 +294,19 @@ def main(argv):
         print(api(args[0]))
     elif cmd == 'value' and len(args) == 2:
         print(value(*args), end='')
+    elif cmd == 'env' and len(args) == 1:
+        # KEY=VALUE for each credential field the cloud (or ACCOUNT=<name>) holds, for scripts
+        # that parse env-style input; read on stdin or a pipe, never written to a file
+        for field in FIELDS:
+            v = value(args[0], field)
+            if v:
+                print(field + '=' + v)
     elif cmd == 'kubeconfig' and len(args) == 2:
         write_kubeconfig(*args)
     elif cmd == 'check' and args:
         return check(args)
     else:
-        raise Problem('usage: nucloud-cloud.py stages|production|endpoints|clouds|api <cloud>|value <cloud> <FIELD>|kubeconfig <cloud> <path>|check <cloud>...')
+        raise Problem('usage: nucloud-cloud.py stages|production|read-only|endpoints|clouds|api <cloud>|value <cloud> <FIELD>|env <cloud>|kubeconfig <cloud> <path>|check <cloud>...')
     return 0
 
 
