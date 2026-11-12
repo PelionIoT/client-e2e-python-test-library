@@ -1,7 +1,7 @@
 #!/bin/sh
 # Runs the client tests against the stage in NUCLOUD_API_URL, with a simulated device as
-# --local_binary. Other stages than k3s run read-only: scripts/nucloud_plugin.py skips the device
-# cases and guards every request. SUITES holds pytest arguments; a word NAME=value sets an
+# --local_binary on every stage. A stage listed under [nucloud] read_only sets NUCLOUD_READ_ONLY=1:
+# scripts/nucloud_plugin.py then skips the device cases and guards every request. SUITES holds pytest arguments; a word NAME=value sets an
 # environment variable.
 set -eu
 : "${NUCLOUD_API_URL:?make test sets it}" "${NUCLOUD_API_KEY:?make test sets it}"
@@ -15,12 +15,9 @@ for word in ${SUITES:-}; do
     esac
 done
 suite="tests/dev-client-tests.py tests/read-only-tests.py"
-case "${NUCLOUD_STAGE:-}" in
-    k3s-*) ;;
-    *)
-        export NUCLOUD_READ_ONLY=1
-        exec scripts/nucloud-run.py pytest -v -rs -p no:cacheprovider -p nucloud_plugin $suite $selection ;;
-esac
+if [ "${NUCLOUD_READ_ONLY:-}" = 1 ]; then
+    exec scripts/nucloud-run.py pytest -v -rs -p no:cacheprovider -p nucloud_plugin $suite $selection
+fi
 work=$(mktemp -d)
 export SIMULATED_CLIENT_CERT_DIR=$work
 python3 simulated_client/provision.py create "$work"

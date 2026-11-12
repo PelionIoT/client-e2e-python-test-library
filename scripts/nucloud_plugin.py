@@ -10,7 +10,7 @@ import pytest
 import requests
 
 READ_ONLY = os.environ.get("NUCLOUD_READ_ONLY") == "1"
-DEVICE_CASES = "blocked: bootstrapping a device is a write: staging is read-only"
+DEVICE_CASES = "blocked: bootstrapping a device is a write: the stage is read-only"
 
 
 def guard_writes():

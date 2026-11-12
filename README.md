@@ -130,4 +130,4 @@ The simulation does not prove:
 - A simulated device reads the firmware blocks and reports the update states, but applies nothing and checks no manifest signature. `--update_bin` holds random bytes.
 - Writing `/1/0/1` changes the stored value and notifies, and does not change the registration.
 
-`make test MACHINE=staging` skips the device cases, because bootstrapping is a write, and refuses every method but GET and OPTIONS at the `requests` layer. `test_guard_refuses_a_write` proves the guard on that stage.
+`make test MACHINE=staging` runs the same device cases. A stage listed under `[nucloud] read_only` skips the device cases, because bootstrapping is a write, and refuses every method but GET and OPTIONS at the `requests` layer. `test_guard_refuses_a_write` proves the guard on such a stage.
