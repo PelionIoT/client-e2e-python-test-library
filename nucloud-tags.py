@@ -170,10 +170,10 @@ def gherkin_cases():
                     header = cells
                 else:
                     row += 1
-                    name = outline
+                    name, label = outline, examples_name  # behave fills <params> into both
                     for k, v in zip(header, cells):
-                        name = name.replace(f'<{k}>', v)
-                    add(f'{name} -- @{table}.{row} {examples_name}'.rstrip(), feature_tags + outline_tags + examples_tags)
+                        name, label = name.replace(f'<{k}>', v), label.replace(f'<{k}>', v)
+                    add(f'{name} -- @{table}.{row} {label}', feature_tags + outline_tags + examples_tags)
             elif s and not s.startswith('#') and not s.startswith('"""'):
                 pending = []
     return cases
