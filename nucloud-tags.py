@@ -5,6 +5,7 @@ Stamped from IzumaNetworks/nucloud templates/nucloud-tags.py; identical in every
 
   nucloud-tags.py args <framework>   selection arguments for TAGS=, EXCLUDE_TAGS= and a read-only stage
   nucloud-tags.py cases [--json]     every case with its canonical tags, one per line: <case>\\t<tags>
+  nucloud-tags.py select             the cases this run selects (TAGS=, EXCLUDE_TAGS=, NUCLOUD_READ_ONLY=1), overlay included
   nucloud-tags.py check [--update]   fail on unknown, ungrouped, hand-set tier or silently dropped tags
   nucloud-tags.py vocabulary         the merged vocabulary as JSON
 
@@ -369,6 +370,13 @@ def main(argv):
     cmd = argv[0] if argv else ''
     if cmd == 'args' and len(argv) == 2:
         print('\n'.join(args(argv[1], voc)))
+    elif cmd == 'select':  # the cases this run selects, overlay tags included: TAGS=, EXCLUDE_TAGS=, a read-only stage
+        include, exclude = selection(voc)
+        read_only = os.environ.get('NUCLOUD_READ_ONLY') == '1'
+        for case, (tags, _, _) in cases(voc).items():
+            t = set(tags)
+            if (not include or t & set(include)) and not t & set(exclude) and (not read_only or 'cloud:read-only' in t):
+                print(case)
     elif cmd == 'cases':
         for case, (tags, unknown, _) in cases(voc).items():
             if '--json' in argv:
@@ -380,7 +388,7 @@ def main(argv):
     elif cmd == 'vocabulary':
         print(json.dumps({k: v for k, v in voc.items() if k != 'groups'} | {'groups': sorted(voc['groups'])}, indent=1))
     else:
-        raise Problem('usage: nucloud-tags.py args <framework>|cases|check [--update]|vocabulary')
+        raise Problem('usage: nucloud-tags.py args <framework>|cases [--json]|select|check [--update]|vocabulary')
     return 0
 
 

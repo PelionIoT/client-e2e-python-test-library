@@ -60,7 +60,7 @@ setup:  ## Create or verify the suite's own fixtures on a stage (make test runs 
 	@./makehelp-nucloud.sh setup
 
 .PHONY: tags
-tags:  ## List every test case with its canonical tags (test-tags.toml); TAGS= and EXCLUDE_TAGS= select cases for make test
+tags:  ## List every case with its tags; with TAGS=, EXCLUDE_TAGS= or MACHINE= list the cases that selection runs
 	@./makehelp-nucloud.sh tags
 
 .PHONY: tags-check

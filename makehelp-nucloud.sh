@@ -734,7 +734,13 @@ esac
 case "${1:-}" in
     images) each i_list ;;
     prereqs) check_prereqs ;;
-    tags) TEST_FRAMEWORK=$TEST_FRAMEWORK python3 ./nucloud-tags.py cases ;;
+    tags)
+        if [[ -n ${TAGS:-}${EXCLUDE_TAGS:-}${MACHINE:-} ]]; then  # the cases a run with this selection takes
+            if [[ -n ${MACHINE:-} ]] && "${CLOUD[@]}" read-only | grep -qxF "$MACHINE"; then export NUCLOUD_READ_ONLY=1; fi
+            TEST_FRAMEWORK=$TEST_FRAMEWORK python3 ./nucloud-tags.py select
+        else
+            TEST_FRAMEWORK=$TEST_FRAMEWORK python3 ./nucloud-tags.py cases
+        fi ;;
     tags-check) TEST_FRAMEWORK=$TEST_FRAMEWORK python3 ./nucloud-tags.py check ${UPDATE:+--update} ;;
     image) each i_build ;;
     sbom) each i_sbom ;;
