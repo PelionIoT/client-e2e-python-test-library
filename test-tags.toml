@@ -21,6 +21,13 @@ cloud     = "What the case does to the cloud it runs against"
 needs     = "Credentials, services or hardware the case requires"
 tier      = "Measured duration class"
 suite     = "A named selection the upstream suite defines (smoke, sanity)"
+api       = "Route family the case called, measured from its suite log (api:devices)"
+service   = "Cloud service behind those routes (service:iam)"
+fixture   = "Fixture the case uses, named as in nucloud docs/fixture (fixture:hsm)"
+feature   = "Product area the case's source file covers (feature:cloud-vault-jwt)"
+
+[open]  # groups whose names are measured per case, not listed here; source "classifier"
+groups = ["api", "service", "fixture", "feature"]
 
 [retired]  # tags no case carries; a case that lost one needs no "# removed" note in test-tags.lock
 "cloud:writes" = "split into cloud:apiwrites and cloud:manipulator:*"
@@ -53,6 +60,11 @@ default = "include"
 source  = "classifier"
 means   = "Its verdict changed between two back-to-back runs; still runs, held for the flake detector"
 aliases = ["flaky"]
+
+[tags."lifecycle:retired:ported"]
+default = "include"
+source  = "author"
+means   = "Ran only on a retired Jenkins or git host; ported unchanged into this repo's suite"
 
 [tags."risk:insecure"]
 default = "exclude"
@@ -147,6 +159,18 @@ source  = "classifier"
 means   = "Calls cloud-ui-server (/wigwag)"
 absent_on = ["staging"]
 
+[tags."needs:kaas"]
+default = "include"
+source  = "classifier"
+means   = "Needs Edge KaaS (edge-k8s); staging runs myriplane instead (docs/testing/cloud-defects.md, Out of scope)"
+absent_on = ["staging"]
+
+[tags."needs:edge"]
+default = "include"
+source  = "classifier"
+means   = "Needs an Edge gateway registered to the stage; k3s-golden has none until k3s-goldedge is up"
+absent_on = ["k3s-golden"]
+
 [tags."needs:lab"]
 default = "exclude"
 source  = "author"
@@ -172,7 +196,12 @@ means   = "Measured average over 10 seconds, up to 120 seconds"
 [tags."tier:slow"]
 default = "include"
 source  = "measured"
-means   = "Measured average over 120 seconds"
+means   = "Measured average over 120 seconds, up to 30 minutes"
+
+[tags."tier:long"]
+default = "include"
+source  = "measured"
+means   = "Measured average over 30 minutes"
 
 [tags."tier:unmeasured"]
 default = "include"

@@ -66,13 +66,16 @@ def vocabulary():
         alias[re.sub(r'[^A-Za-z0-9_]', '_', name)] = name  # the pytest marker spelling, cloud_read_only
         for a in row.get('aliases', []):
             alias[a.removeprefix('pytest.mark.').lstrip('@')] = name
-    return {'tags': tags, 'groups': groups, 'prefix': prefix, 'alias': alias, 'retired': dict(v.get('retired', {}))}
+    return {'tags': tags, 'groups': groups, 'prefix': prefix, 'alias': alias, 'retired': dict(v.get('retired', {})),
+            'open': set(v.get('open', {}).get('groups', []))}
 
 
 def canonical(native, voc):
     """A native spelling's canonical tag: itself when canonical, its alias target, else None."""
     t = native.lstrip('@').removeprefix('pytest.mark.')
     if t in voc['tags']:
+        return t
+    if t.split(':', 1)[0] in voc['open'] and TAG.match(t):  # open groups take any measured name (api:devices)
         return t
     return voc['alias'].get(t)
 
@@ -380,8 +383,9 @@ def check(voc, update):
             for n in natives[case]:
                 if ':' in n:
                     failures.append(f'{case}: tag {n} uses ":"; write it @{n.lstrip("@").replace(":", ".", 1)} (behave reads ":" as a run limit)')
+        measured = {canonical(n, voc) for n in overlay}  # the overlay carries tiers from measured runs
         for t in tags:
-            if t.startswith('tier:'):
+            if t.startswith('tier:') and t not in measured:
                 failures.append(f'{case}: {t} is hand-set; tiers come from measured runs (make test-timings)')
         for n in overlay:
             if not TAG.match(n.lstrip('@')) and canonical(n, voc) is None:
