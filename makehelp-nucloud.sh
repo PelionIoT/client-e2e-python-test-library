@@ -602,17 +602,20 @@ keys = ["NUCLOUD_API_KEY", "NUCLOUD_PASSWORD", "NUCLOUD_ROOT_PASSWORD"] + [k for
 vals = sorted({os.environ.get(k, "") for k in keys} - {""}, key=len, reverse=True)
 vals = [v for v in vals if len(v) >= 6]
 key, pem = re.compile(r"\bak_[0-9A-Za-z]{20,}"), False
+whole = re.compile(r"-----BEGIN ([A-Z ]*)PRIVATE KEY-----.*?-----END \1PRIVATE KEY-----")
+opened = re.compile(r"-----BEGIN ([A-Z ]*)PRIVATE KEY-----.*")
 for line in sys.stdin:
     for v in vals:
         line = line.replace(v, "<redacted>")
     line = key.sub("ak_<redacted>", line)
-    if "PRIVATE KEY-----" in line:
-        pem = "BEGIN" in line
-        if not pem:
-            continue
-        line = re.sub(r"-----BEGIN ([A-Z ]*)PRIVATE KEY-----.*", r"<redacted \1private key>", line)
-    elif pem:
+    if pem:  # inside a multi-line key: drop lines up to and including its END line
+        if re.search(r"-----END [A-Z ]*PRIVATE KEY-----", line):
+            pem = False
         continue
+    line = whole.sub(r"<redacted \1private key>", line)  # a key on one line (JSON with escaped newlines)
+    if opened.search(line):
+        pem = True
+        line = opened.sub(r"<redacted \1private key>", line).rstrip("\n") + "\n"
     sys.stdout.write(line)
 '
 }
