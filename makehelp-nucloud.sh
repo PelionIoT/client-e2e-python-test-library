@@ -624,8 +624,16 @@ for line in sys.stdin:
     sys.stdout.write(line)
 '
 }
-suite_logs() { # copy the stopped suite container's /nucloud-logs to $1, then remove the container and its volume
+suite_logs() { # copy the stopped suite container's /nucloud-logs to $1, masked like the suite's output, then remove the container
+    local f t
     docker cp "$SUITE_CONTAINER":/nucloud-logs/. "$1"/ >/dev/null 2>&1 || true
+    # Service logs a suite copies out (mbed-client-service's server.log) can print keys: each text file passes through
+    # redact_secrets in place, so no copy on this host keeps one.
+    while IFS= read -r -d '' f; do
+        grep -Iq . "$f" 2>/dev/null || continue
+        t=$f.redact.$$
+        if redact_secrets <"$f" >"$t"; then mv -f "$t" "$f"; else rm -f "$t"; fi
+    done < <(find "$1" -type f ! -name '*.redact.*' -print0 2>/dev/null)
     docker rm -fv "$SUITE_CONTAINER" >/dev/null 2>&1 || true
 }
 suite() { # suite <verb> <command...>: run a command of the suite image against the stage's API
