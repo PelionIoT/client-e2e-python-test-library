@@ -159,6 +159,12 @@ source  = "classifier"
 means   = "Calls cloud-ui-server (/wigwag, not the edge bridge's /wigwag/api)"
 absent_on = ["staging"]
 
+[tags."needs:device-insights"]
+default = "include"
+source  = "classifier"
+means   = "Calls Device Insights v3preview1 (insights-sessions, incidents, custom-metrics); staging routes it for tier 99 keys only, k3s-golden answers 404"
+absent_on = ["k3s-golden"]
+
 [tags."needs:kaas"]
 default = "include"
 source  = "classifier"
