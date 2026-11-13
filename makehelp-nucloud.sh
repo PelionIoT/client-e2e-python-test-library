@@ -136,7 +136,8 @@ GIT_HEAD="$(git rev-parse HEAD 2>/dev/null || echo unknown)"
 if [[ -n "${BUILD_NUMBER:-}" ]]; then
     SUFFIX="nucloud.$BUILD_NUMBER"
 else
-    BUILD_NUMBER=0 SUFFIX="nucloud.dev.${GIT_HEAD:0:7}"
+    # BUILD_NUMBER stays empty: it is exported, and a nested make (HOST_TEST_CMD) computes its own dev tag
+    SUFFIX="nucloud.dev.${GIT_HEAD:0:7}"
     if [[ -n "$(git status --porcelain -- . ':!sbom-*' 2>/dev/null)" ]]; then
         SUFFIX+=".$({ git diff HEAD; git ls-files -o --exclude-standard -z -- . ':!sbom-*' | xargs -0 cat; } | git hash-object --stdin | cut -c1-7)"
     fi
@@ -214,7 +215,7 @@ i_build() {
     [[ "$tgt" != "-" && -n "$tgt" ]] && args+=(--target "$tgt")
     say "build $ref on $(docker context show) ($PLATFORM)"
     DOCKER_BUILDKIT=1 docker buildx build --load --platform "$PLATFORM" "${args[@]}" \
-        --build-arg GIT_HEAD="$GIT_HEAD" --build-arg BUILD_NUMBER="$BUILD_NUMBER" \
+        --build-arg GIT_HEAD="$GIT_HEAD" --build-arg BUILD_NUMBER="${BUILD_NUMBER:-0}" \
         --label org.opencontainers.image.revision="$GIT_HEAD" \
         --label org.opencontainers.image.source="https://github.com/$REPO" \
         --label org.opencontainers.image.version="$2-$SUFFIX" \
