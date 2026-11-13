@@ -156,7 +156,7 @@ absent_on = ["staging"]
 [tags."needs:cloud-ui"]
 default = "include"
 source  = "classifier"
-means   = "Calls cloud-ui-server (/wigwag)"
+means   = "Calls cloud-ui-server (/wigwag, not the edge bridge's /wigwag/api)"
 absent_on = ["staging"]
 
 [tags."needs:kaas"]
@@ -181,6 +181,66 @@ absent_on = ["staging", "k3s-golden"]
 default = "include"
 source  = "classifier"
 means   = "Needs an RCC receiver; no stage has one or will (izuma-dm-platform ruling)"
+absent_on = ["staging", "k3s-golden"]
+
+[tags."needs:dba-sda"]
+default = "include"
+source  = "classifier"
+means   = "Calls trust-anchors or ace-auth (DBA/SDA); deployed on neither stage (izuma-dm-platform 20261113T033551Z)"
+absent_on = ["staging", "k3s-golden"]
+
+[tags."needs:wms"]
+default = "include"
+source  = "classifier"
+means   = "Calls WMS pdm-workflow-definitions; deployed on neither stage (izuma-dm-platform 20261113T033551Z)"
+absent_on = ["staging", "k3s-golden"]
+
+[tags."needs:manufacturing-statistics"]
+default = "include"
+source  = "classifier"
+means   = "Calls manufacturing/statistics; deployed on neither stage (izuma-dm-platform 20261113T033551Z)"
+absent_on = ["staging", "k3s-golden"]
+
+[tags."needs:connectivity-inventory"]
+default = "include"
+source  = "classifier"
+means   = "Calls connectivity-management inventory; deployed on neither stage (izuma-dm-platform 20261113T033551Z)"
+absent_on = ["staging", "k3s-golden"]
+
+[tags."needs:account-manage"]
+default = "include"
+source  = "classifier"
+means   = "Calls accounts/<id>/manage; deployed on neither stage (izuma-dm-platform 20261113T033551Z)"
+absent_on = ["staging", "k3s-golden"]
+
+[tags."needs:heartbeat"]
+default = "include"
+source  = "classifier"
+means   = "Calls a service heartbeat route; deployed on neither stage (izuma-dm-platform 20261113T033551Z)"
+absent_on = ["staging", "k3s-golden"]
+
+[tags."needs:hsm-internal"]
+default = "include"
+source  = "classifier"
+means   = "Calls the HSM internal or dev APIs (sign_csr, csrs-with-keys, hsm-delete); deployed on neither stage (izuma-dm-platform 20261113T033551Z)"
+absent_on = ["staging", "k3s-golden"]
+
+[tags."needs:mqtt-websocket"]
+default = "include"
+source  = "classifier"
+means   = "Uses the MQTT-over-websocket broker; deployed on neither stage (izuma-dm-platform 20261113T033551Z)"
+absent_on = ["staging", "k3s-golden"]
+
+[tags."needs:sla-service"]
+default = "include"
+source  = "classifier"
+means   = "Calls the SLA service; deployed on neither stage (izuma-dm-platform 20261113T033551Z)"
+absent_on = ["staging", "k3s-golden"]
+
+[tags."needs:serviceprobe-ports"]
+default = "include"
+source  = "classifier"
+means   = "Probes service ports 30666 or 8082; deployed on neither stage (izuma-dm-platform 20261113T033551Z)"
 absent_on = ["staging", "k3s-golden"]
 
 [tags."needs:lab"]
