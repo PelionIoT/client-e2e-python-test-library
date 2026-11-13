@@ -49,6 +49,9 @@ if _path:
         model.Scenario.run = scenario_run
 
     class _BehaveHook(object):
+        def find_module(self, name, path=None):  # Python 2 and pre-3.4 finders: never claims a module
+            return None
+
         def find_spec(self, name, path, target=None):
             if name != 'behave.model':
                 return None
@@ -73,7 +76,8 @@ if _path:
             spec.loader.exec_module = patched
             return spec
 
-    sys.meta_path.insert(0, _BehaveHook())
+    if sys.version_info >= (3, 4):  # find_spec exists from 3.4; older interpreters log requests without scenario names
+        sys.meta_path.insert(0, _BehaveHook())
 
     _log = logging.getLogger('urllib3.connectionpool')
     _log.addHandler(_Requests(logging.DEBUG))
