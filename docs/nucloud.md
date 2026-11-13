@@ -158,7 +158,7 @@ read it. A suite copies its service logs to `$NUCLOUD_LOGS`, from an EXIT
 trap; when the container stops, make copies them to `.nucloud-logs/<stage>/`
 here, also from a remote Docker context. Python suites write one line per
 HTTP request to `.nucloud-logs/<stage>/http.log`
-(`<case> <METHOD> <url without query> <status>`, tab-separated), through
+(`<case> <METHOD> <url without query> <status>`, tab-separated; `<case>` is the pytest id or the behave `<feature file>::<scenario>`), through
 `nucloud-http.py` installed as the container's `sitecustomize`. `HTTP_LOG=no`
 turns it off. pytest prints each case's duration (`--durations=0` in
 `PYTEST_ADDOPTS`); `TIMINGS=no` turns that off. The suite's output masks the key, the

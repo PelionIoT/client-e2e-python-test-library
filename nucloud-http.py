@@ -27,11 +27,53 @@ if _path:
         def write(self, m):
             try:
                 origin = re.sub(r':(443|80)$', '', m.group('origin'))
-                case = os.environ.get('PYTEST_CURRENT_TEST', '-').rsplit(' (', 1)[0]
+                case = os.environ.get('PYTEST_CURRENT_TEST', '').rsplit(' (', 1)[0] or _behave[0] or '-'
                 with open(_path, 'a') as f:
                     f.write('%s\t%s\t%s%s\t%s\n' % (case, m.group('method'), origin, m.group('path'), m.group('status')))
             except Exception:
                 pass
+
+    # behave sets no pytest id: wrap behave.model.Scenario.run, once behave imports it, to name the running
+    # scenario as <feature file>::<scenario name>, the id the case inventory uses.
+    _behave = ['']
+
+    def _patch_behave(model):
+        run = model.Scenario.run
+
+        def scenario_run(self, *args, **kwargs):
+            prev, _behave[0] = _behave[0], '%s::%s' % (getattr(self, 'filename', ''), self.name)
+            try:
+                return run(self, *args, **kwargs)
+            finally:
+                _behave[0] = prev
+        model.Scenario.run = scenario_run
+
+    class _BehaveHook(object):
+        def find_spec(self, name, path, target=None):
+            if name != 'behave.model':
+                return None
+            import importlib.util
+            sys.meta_path.remove(self)
+            try:
+                spec = importlib.util.find_spec(name)
+            finally:
+                sys.meta_path.insert(0, self)
+            if spec is None or spec.loader is None or not hasattr(spec.loader, 'exec_module'):
+                return spec
+            exec_module = spec.loader.exec_module
+
+            def patched(module):
+                exec_module(module)
+                try:
+                    _patch_behave(module)
+                except Exception:
+                    pass
+                if self in sys.meta_path:
+                    sys.meta_path.remove(self)
+            spec.loader.exec_module = patched
+            return spec
+
+    sys.meta_path.insert(0, _BehaveHook())
 
     _log = logging.getLogger('urllib3.connectionpool')
     _log.addHandler(_Requests(logging.DEBUG))

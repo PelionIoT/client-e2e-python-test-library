@@ -7,7 +7,7 @@
 .DEFAULT_GOAL := help
 
 # The template's version; testing-dashboard shows it per repo. Bump it on every template change.
-NUCLOUD_VERSION  := 1.1.8
+NUCLOUD_VERSION  := 1.1.9
 
 # Set by CI to the run number; empty for a local build (tag -nucloud.dev.<commit>)
 BUILD_NUMBER     ?=
