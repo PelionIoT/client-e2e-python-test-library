@@ -4,7 +4,8 @@
 # Each tag is <group>:<name>, lowercase kebab-case; a name may hold a further
 # :<part> (cloud:manipulator:pod). Gherkin writes every ":" as "." and pytest as "_". `default` is the selection
 # default: "include" runs with a plain `make test`; "exclude" runs only when
-# TAGS= names the tag. `source` is who may set it: "author" (a person or the
+# TAGS= names the tag. `absent_on` lists stages that do not run the service the
+# tag needs; a run on such a stage excludes the tag unless TAGS= names it. `source` is who may set it: "author" (a person or the
 # suite's source), "classifier" (repo code that derives it from the case), or
 # "measured" (TESTMASTER timing only; never written by hand).
 # A repo adds its own tags in test-tags.local.toml under the prefix
@@ -133,6 +134,18 @@ means   = "Needs an administrator account on the cloud"
 default = "include"
 source  = "author"
 means   = "Needs hardware or an Edge gateway a run cannot create; a case that starts a simulated or process device does not"
+
+[tags."needs:update-service"]
+default = "include"
+source  = "classifier"
+means   = "Calls the update services (firmware catalog, firmware images, update campaigns)"
+absent_on = ["staging"]
+
+[tags."needs:cloud-ui"]
+default = "include"
+source  = "classifier"
+means   = "Calls cloud-ui-server (/wigwag)"
+absent_on = ["staging"]
 
 [tags."needs:lab"]
 default = "exclude"

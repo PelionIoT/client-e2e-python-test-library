@@ -95,7 +95,9 @@ def selection(voc):
     for t in include + exclude:
         if t not in voc['tags']:
             raise Problem(f'unknown tag {t}; see test-tags.toml (or test-tags.local.toml)')
-    held = [t for t, row in voc['tags'].items() if row.get('default') == 'exclude' and t not in include]
+    stage = os.environ.get('NUCLOUD_STAGE') or os.environ.get('MACHINE') or ''
+    held = [t for t, row in voc['tags'].items()
+            if (row.get('default') == 'exclude' or stage in row.get('absent_on', [])) and t not in include]
     return include, sorted(set(exclude) | set(held))
 
 
