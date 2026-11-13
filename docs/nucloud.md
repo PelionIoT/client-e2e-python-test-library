@@ -157,7 +157,9 @@ upper-cased, `-` as `_`), masked in the output like the run's own key.
 read it. A suite copies its service logs to `$NUCLOUD_LOGS`, from an EXIT
 trap; when the container stops, make copies them to `.nucloud-logs/<stage>/`
 here, also from a remote Docker context, each text file masked like the
-output. Python suites write one line per
+output. `.dockerignore` excludes `.nucloud-logs/`, and a build whose context
+holds that folder without the exclusion is refused, so no image carries
+earlier runs' logs. Python suites write one line per
 HTTP request to `.nucloud-logs/<stage>/http.log`
 (`<case> <METHOD> <url without query> <status>`, tab-separated; `<case>` is the pytest id or the behave `<feature file>::<scenario>`), through
 `nucloud-http.py` installed as the container's `sitecustomize`. `HTTP_LOG=no`

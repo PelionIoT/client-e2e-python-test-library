@@ -205,11 +205,22 @@ each() { # each <fn>: call fn name tag dockerfile context target release ref
 
 guard_tag() { [[ "$1" == *-nucloud.* ]] || die "refusing $1: not a -nucloud.<n> tag"; }
 
+# A build context holding .nucloud-logs/ (unredacted service logs from earlier runs) must exclude it, or a
+# `COPY . /work` bakes those logs into the image. BuildKit reads <dockerfile>.dockerignore before <context>/.dockerignore.
+guard_logs() { # guard_logs <context> <dockerfile> <ref>
+    local ign=$1/.dockerignore
+    [[ -d $1/.nucloud-logs ]] || return 0
+    [[ -f $2.dockerignore ]] && ign=$2.dockerignore
+    grep -qsxE '/?\.nucloud-logs/?' "$ign" ||
+        die "refusing $3: $ign does not exclude .nucloud-logs/, so the build would copy run logs into the image; add a .nucloud-logs/ line"
+}
+
 i_list() { printf '%-50s %s\n' "$1" "$7"; }
 
 i_build() {
     local name=$1 df=$3 ctx=$4 tgt=$5 ref=$7 args=() s
     guard_tag "$ref"
+    guard_logs "$ctx" "$df" "$ref"
     for s in "${SECRETS[@]}"; do
         args+=(--secret "id=${s%%=*},env=${s#*=}")
     done
@@ -626,6 +637,7 @@ for line in sys.stdin:
 }
 suite_logs() { # copy the stopped suite container's /nucloud-logs to $1, masked like the suite's output, then remove the container
     local f t
+    [[ $(docker inspect -f '{{.State.Running}}' "$SUITE_CONTAINER" 2>/dev/null) != true ]] || stop_suite
     docker cp "$SUITE_CONTAINER":/nucloud-logs/. "$1"/ >/dev/null 2>&1 || true
     # Service logs a suite copies out (mbed-client-service's server.log) can print keys: each text file passes through
     # redact_secrets in place, so no copy on this host keeps one.
@@ -636,6 +648,9 @@ suite_logs() { # copy the stopped suite container's /nucloud-logs to $1, masked 
     done < <(find "$1" -type f ! -name '*.redact.*' -print0 2>/dev/null)
     docker rm -fv "$SUITE_CONTAINER" >/dev/null 2>&1 || true
 }
+# SIGTERM, then 60 s for the suite's EXIT trap to delete the cloud records it made, then SIGKILL. `docker rm -f` alone
+# kills at once, so the trap never runs and the records stay on the stage.
+stop_suite() { docker stop -t 60 "$SUITE_CONTAINER" >/dev/null 2>&1 || true; }
 suite() { # suite <verb> <command...>: run a command of the suite image against the stage's API
     local verb=$1 ref; shift
     suite_env
@@ -652,7 +667,7 @@ suite() { # suite <verb> <command...>: run a command of the suite image against 
     # remote Docker context where a bind mount would resolve on the engine's host.
     local logs=$PWD/.nucloud-logs/$ENV
     mkdir -p "$logs"
-    docker rm -fv "$SUITE_CONTAINER" >/dev/null 2>&1 || true
+    if docker inspect "$SUITE_CONTAINER" >/dev/null 2>&1; then stop_suite; docker rm -fv "$SUITE_CONTAINER" >/dev/null 2>&1 || true; fi
     # nucloud-http.py goes in as the container's sitecustomize: Python's urllib3 then appends one line per request to
     # $NUCLOUD_LOGS/http.log (HTTP_LOG=no in nucloud.env turns it off). The image's PYTHONPATH is kept after it.
     local http=() pp
@@ -672,7 +687,7 @@ suite() { # suite <verb> <command...>: run a command of the suite image against 
     # Output passes through redact_secrets: a suite that prints its key or password never leaves it in a log.
     (set -o pipefail; docker start -a "$SUITE_CONTAINER" 2>&1 | redact_secrets) &
     local client=$! rc=0
-    trap 'trap "" HUP INT TERM; docker stop "$SUITE_CONTAINER" >/dev/null 2>&1 || true; suite_logs "$logs"; exit 143' HUP INT TERM
+    trap 'trap "" HUP INT TERM; stop_suite; suite_logs "$logs"; exit 143' HUP INT TERM
     wait "$client" || rc=$?
     trap - HUP INT TERM
     suite_logs "$logs"
