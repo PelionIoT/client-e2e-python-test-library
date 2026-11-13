@@ -8,7 +8,9 @@ import re
 import sys
 
 _path = os.environ.get('NUCLOUD_HTTP_LOG')
-if _path:
+# Python 2 sets a freed module's globals to None while its handler can still run (icetea suites), so on Python 2
+# the hook installs nothing: no handler, no import hook, urllib3's logging exactly as the image left it.
+if _path and sys.version_info[0] >= 3:
     _line = re.compile(r'^(?P<origin>\S+) "(?P<method>[A-Z]+) (?P<path>[^ ?"]*)\S* HTTP/[\d.]+" (?P<status>\d+)')
 
     class _Requests(logging.Handler):
@@ -76,7 +78,7 @@ if _path:
             spec.loader.exec_module = patched
             return spec
 
-    if sys.version_info >= (3, 4):  # find_spec exists from 3.4; older interpreters log requests without scenario names
+    if sys.version_info >= (3, 4):  # find_spec exists from 3.4; 3.0-3.3 log requests without scenario names
         sys.meta_path.insert(0, _BehaveHook())
 
     _log = logging.getLogger('urllib3.connectionpool')

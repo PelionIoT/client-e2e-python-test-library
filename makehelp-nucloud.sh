@@ -26,6 +26,7 @@
 #   PREREQS_CMD=(...)             # a read-only repository check run last by make prereqs
 #   HTTP_LOG=no                   # tests: no per-request log (.nucloud-logs/<stage>/http.log)
 #   TIMINGS=no                    # tests: no per-case pytest durations (--durations=0 via PYTEST_ADDOPTS)
+#   SUITE_START_TIMEOUT=120       # tests: seconds for the suite container to leave Created before the run aborts
 #   EXTRA_ACCOUNTS=(staging=edge)  # tests: more accounts, as NUCLOUD_ACCOUNT_<NAME>_{API_KEY,USER,PASSWORD,CONFIG_JSON}
 #   TEST_FRAMEWORK=behave         # tests: how TAGS= reaches the suite: behave|cucumber|pytest|none (default)
 #   ACCOUNTS=(staging=edge)       # tests: the cloud.accounts.<name> a stage uses unless ACCOUNT= is given
@@ -650,7 +651,30 @@ suite_logs() { # copy the stopped suite container's /nucloud-logs to $1, masked 
 }
 # SIGTERM, then 60 s for the suite's EXIT trap to delete the cloud records it made, then SIGKILL. `docker rm -f` alone
 # kills at once, so the trap never runs and the records stay on the stage.
-stop_suite() { docker stop -t 60 "$SUITE_CONTAINER" >/dev/null 2>&1 || true; }
+stop_suite() { deadline 90 docker stop -t 60 "$SUITE_CONTAINER" >/dev/null 2>&1 || true; }
+# deadline <seconds> <command...>: run a Docker client call, KILL it after <seconds>. A call over a dead SSH link to the
+# engine otherwise blocks forever. KILL, because a signal trap ignores TERM and its children inherit that.
+deadline() {
+    local s=$1 p w rc; shift
+    "$@" & p=$!
+    { sleep "$s"; kill -KILL "$p"; } >/dev/null 2>&1 & w=$!
+    wait "$p"; rc=$?
+    kill -KILL "$w" 2>/dev/null; wait "$w" 2>/dev/null
+    return "$rc"
+}
+# start_suite: start the created container detached and wait, up to SUITE_START_TIMEOUT seconds, for the engine to
+# report it running or exited. A start lost on the way (the container stays Created) aborts the run.
+start_suite() {
+    local t=${SUITE_START_TIMEOUT:-120} end st=
+    end=$((SECONDS + t))
+    deadline "$t" docker start "$SUITE_CONTAINER" >/dev/null 2>&1 || true
+    while :; do
+        st=$(deadline 20 docker inspect -f '{{.State.Status}}' "$SUITE_CONTAINER" 2>/dev/null) || st=
+        [[ $st == running || $st == exited ]] && return 0
+        ((SECONDS < end)) || { echo "error: $SUITE_CONTAINER still ${st:-unreachable} after ${t}s; the Docker engine ($(docker context show 2>/dev/null)) did not start it" >&2; return 1; }
+        sleep 2
+    done
+}
 suite() { # suite <verb> <command...>: run a command of the suite image against the stage's API
     local verb=$1 ref; shift
     suite_env
@@ -685,10 +709,22 @@ suite() { # suite <verb> <command...>: run a command of the suite image against 
         rm -rf "$hooks"
     fi
     # Output passes through redact_secrets: a suite that prints its key or password never leaves it in a log.
-    (set -o pipefail; docker start -a "$SUITE_CONTAINER" 2>&1 | redact_secrets) &
-    local client=$! rc=0
-    trap 'trap "" HUP INT TERM; stop_suite; suite_logs "$logs"; exit 143' HUP INT TERM
-    wait "$client" || rc=$?
+    start_suite || { stop_suite; suite_logs "$logs"; die "$verb did not start on $ENV"; }
+    # The output streams from `docker logs -f`; `docker wait` gives the exit code. Both run in the background, so a
+    # signal reaches the trap at once.
+    (set -o pipefail; docker logs -f "$SUITE_CONTAINER" 2>&1 | redact_secrets) &
+    local client=$! rc=0 code
+    code=$(mktemp)
+    trap 'trap "" HUP INT TERM; kill "$client" 2>/dev/null; stop_suite; suite_logs "$logs"; rm -f "$code"; exit 143' HUP INT TERM
+    docker wait "$SUITE_CONTAINER" >"$code" 2>/dev/null &
+    wait "$!" || rc=125
+    [[ $rc != 0 ]] || rc=$(tr -dc 0-9 <"$code"); rc=${rc:-125}
+    # the log stream ends with the container; it gets 30 s to drain
+    local i
+    for ((i = 0; i < 60; i++)); do kill -0 "$client" 2>/dev/null || break; sleep 0.5; done
+    kill "$client" 2>/dev/null || true
+    wait "$client" 2>/dev/null || true
+    rm -f "$code"
     trap - HUP INT TERM
     suite_logs "$logs"
     return "$rc"

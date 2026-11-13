@@ -147,6 +147,11 @@ default = "include"
 source  = "author"
 means   = "Needs hardware or an Edge gateway a run cannot create; a case that starts a simulated or process device does not"
 
+[tags."needs:local-service"]
+default = "include"
+source  = "classifier"
+means   = "Runs against the repository's own service, started in the test container; calls no stage, so its verdict is the same on every stage (pairs with needs:offline)"
+
 [tags."needs:update-service"]
 default = "include"
 source  = "classifier"

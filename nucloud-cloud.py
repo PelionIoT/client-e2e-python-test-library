@@ -42,6 +42,8 @@ PUBLIC = {'API_URL'}  # every other field must be an encrypted fact
 # EXTRA_ACCOUNTS=(<stage>=<name>) in nucloud.env: these fields of cloud.accounts.<name>. reach the suite
 # as NUCLOUD_ACCOUNT_<NAME>_<FIELD>, beside the run's own account.
 EXTRA_FIELDS = ('API_KEY', 'USER', 'PASSWORD', 'CONFIG_JSON')
+# An account without its own root login (both facts) uses the stage's cloud.root_user and cloud.root_password.
+ROOT_PAIR = ('ROOT_USER', 'ROOT_PASSWORD')
 METADATA = {'labels', 'facts', 'functions', 'resources'}
 
 
@@ -170,8 +172,17 @@ def read_fact(cloud, name, secret):
         return path.read_text().rstrip('\n')
 
 
+def source(cloud, field):
+    """The fact a credential field reads: the account's own, except a root field of an account that lacks
+    either root fact, which reads the stage's cloud.root_* (one copy of the root login per stage)."""
+    name = fact_name(field)
+    if field in ROOT_PAIR and os.environ.get('ACCOUNT') and not all(fact_name(f) in facts(cloud) for f in ROOT_PAIR):
+        return 'cloud.' + FIELDS[field]
+    return name
+
+
 def value(cloud, field):
-    return read_fact(cloud, fact_name(field), secret=field not in PUBLIC)
+    return read_fact(cloud, source(cloud, field), secret=field not in PUBLIC)
 
 
 def api(cloud, root='.'):
@@ -253,7 +264,7 @@ def check(names, root='.'):
             rows = facts(cloud)
             missing, plain = [], []
             for field in wanted:
-                name = 'kubeconfig' if field == 'KUBECONFIG' else fact_name(field)
+                name = 'kubeconfig' if field == 'KUBECONFIG' else source(cloud, field)
                 row = rows.get(name)
                 if not row:
                     missing.append(name)

@@ -148,18 +148,23 @@ from standard input. `CREDENTIALS=` in `nucloud.env` names the ones
 test account on the stage, from its `cloud.accounts.<name>.*` facts.
 `ACCOUNTS=(staging=edge k3s-golden=onprem)` in `nucloud.env` names the
 account a suite uses on each stage; `ACCOUNT=` on the command line wins.
+An account without both of its own root facts uses the stage's
+`cloud.root_user` and `cloud.root_password`, never a mixed pair.
 `EXTRA_ACCOUNTS=(k3s-golden=edge)` passes more accounts beside it: each
 encrypted `cloud.accounts.<name>.{api_key,admin_user,admin_password,config_json}`
 fact the stage holds reaches the suite as
 `NUCLOUD_ACCOUNT_<NAME>_{API_KEY,USER,PASSWORD,CONFIG_JSON}` (`<NAME>`
 upper-cased, `-` as `_`), masked in the output like the run's own key.
 `SUITES=<paths>` narrows the run to those folders or tests, for suites that
-read it. A suite copies its service logs to `$NUCLOUD_LOGS`, from an EXIT
+read it. The suite container starts detached; a container still Created after
+`SUITE_START_TIMEOUT` seconds (default 120, set in `nucloud.env`) aborts the run,
+since the Docker engine never started it. Stopping a running suite gives it
+60 s (SIGTERM) for its EXIT trap. A suite copies its service logs to `$NUCLOUD_LOGS`, from an EXIT
 trap; when the container stops, make copies them to `.nucloud-logs/<stage>/`
 here, also from a remote Docker context, each text file masked like the
 output. `.dockerignore` excludes `.nucloud-logs/`, and a build whose context
 holds that folder without the exclusion is refused, so no image carries
-earlier runs' logs. Python suites write one line per
+earlier runs' logs. Python 3 suites write one line per
 HTTP request to `.nucloud-logs/<stage>/http.log`
 (`<case> <METHOD> <url without query> <status>`, tab-separated; `<case>` is the pytest id or the behave `<feature file>::<scenario>`), through
 `nucloud-http.py` installed as the container's `sitecustomize`. `HTTP_LOG=no`
