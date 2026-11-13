@@ -35,7 +35,7 @@ ROOT = Path(os.environ.get('NUCLOUD_TAGS_ROOT') or Path(__file__).resolve().pare
 SKIP_DIRS = {'.git', 'node_modules', '.venv', 'venv', '.claude', '__pycache__', 'target', 'build', 'dist'}
 PYTEST_BUILTIN = {'parametrize', 'skipif', 'usefixtures', 'xfail', 'filterwarnings', 'timeout', 'flaky', 'asyncio', 'order', 'dependency', 'run',
                   'trylast', 'tryfirst', 'hookwrapper', 'optionalhook'}
-TAG = re.compile(r'^[a-z0-9]+(-[a-z0-9]+)*:[a-z0-9]+(-[a-z0-9]+)*$')
+TAG = re.compile(r'^[a-z0-9]+(-[a-z0-9]+)*(:[a-z0-9]+(-[a-z0-9]+)*)+$')  # group:name, or group:name:part
 
 
 class Problem(Exception):

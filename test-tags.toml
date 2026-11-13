@@ -171,6 +171,18 @@ source  = "classifier"
 means   = "Needs an Edge gateway registered to the stage; k3s-golden has none until k3s-goldedge is up"
 absent_on = ["k3s-golden"]
 
+[tags."needs:factory-tool-download"]
+default = "include"
+source  = "classifier"
+means   = "Calls /downloads/fcu; factory-tool-download is deployed on neither stage (docs/testing/cloud-defects.md, Out of scope)"
+absent_on = ["staging", "k3s-golden"]
+
+[tags."needs:rcc"]
+default = "include"
+source  = "classifier"
+means   = "Needs an RCC receiver; no stage has one or will (izuma-dm-platform ruling)"
+absent_on = ["staging", "k3s-golden"]
+
 [tags."needs:lab"]
 default = "exclude"
 source  = "author"

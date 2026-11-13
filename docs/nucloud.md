@@ -156,7 +156,12 @@ upper-cased, `-` as `_`), masked in the output like the run's own key.
 `SUITES=<paths>` narrows the run to those folders or tests, for suites that
 read it. A suite copies its service logs to `$NUCLOUD_LOGS`, from an EXIT
 trap; when the container stops, make copies them to `.nucloud-logs/<stage>/`
-here, also from a remote Docker context. The suite's output masks the key, the
+here, also from a remote Docker context. Python suites write one line per
+HTTP request to `.nucloud-logs/<stage>/http.log`
+(`<case> <METHOD> <url without query> <status>`, tab-separated), through
+`nucloud-http.py` installed as the container's `sitecustomize`. `HTTP_LOG=no`
+turns it off. pytest prints each case's duration (`--durations=0` in
+`PYTEST_ADDOPTS`); `TIMINGS=no` turns that off. The suite's output masks the key, the
 passwords, every `ak_` API key and every PEM private key.
 
 The shared checks cover what every repo needs. `nucloud.env` adds this
