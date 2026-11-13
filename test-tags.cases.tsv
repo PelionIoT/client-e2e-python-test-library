@@ -1,3 +1,3 @@
 # Classifier tags per case: nucloud scripts/testing-tag-classify.py. <case>\t<canonical tags>
 # Correct a wrong tag here or in the source, never by changing a verdict.
-suite	cloud:apiwrites needs:device
+suite	cloud:apiwrites

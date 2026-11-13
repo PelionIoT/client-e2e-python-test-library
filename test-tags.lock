@@ -1,1 +1,2 @@
-suite	cloud:apiwrites needs:device
+# removed suite needs:device: writes through the API (cloud:apiwrites)
+suite	cloud:apiwrites
