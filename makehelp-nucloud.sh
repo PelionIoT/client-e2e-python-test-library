@@ -584,6 +584,12 @@ extra_accounts() { # EXTRA_ACCOUNTS=(<stage>=<name>): export NUCLOUD_ACCOUNT_<NA
 suite_env() { # export NUCLOUD_STAGE, NUCLOUD_API_URL and NUCLOUD_<field> for every credential fact the cloud holds
     local f v
     need_stage api
+    # .nucloud-logs/<stage>/ starts empty once per run (setup and test share it), so every report in it is this
+    # run's: an earlier run's JUnit XML would otherwise be scored again when this run's setup fails.
+    if [[ ${NUCLOUD_LOGS_FRESH:-} != "$PWD/.nucloud-logs/$ENV" ]]; then
+        rm -rf "$PWD/.nucloud-logs/$ENV"
+        export NUCLOUD_LOGS_FRESH=$PWD/.nucloud-logs/$ENV
+    fi
     stage_account
     NUCLOUD_STAGE=$ENV NUCLOUD_API_URL=$(stage_api "$ENV") || die "cannot resolve $ENV's API URL"
     export NUCLOUD_STAGE NUCLOUD_API_URL

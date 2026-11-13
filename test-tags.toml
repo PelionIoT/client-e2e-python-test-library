@@ -170,6 +170,30 @@ source  = "classifier"
 means   = "Calls Device Insights v3preview1 (insights-sessions, incidents, custom-metrics); staging routes it for tier 99 keys only, k3s-golden answers 404"
 absent_on = ["k3s-golden"]
 
+[tags."needs:enrollment-bulk"]
+default = "include"
+source  = "classifier"
+means   = "Uploads an enrollment CSV (device-enrollments-bulk-uploads or -deletes); staging's enrollment service has no object store (minio-cluster), so the upload fails there"
+absent_on = ["staging"]
+
+[tags."needs:edge-services"]
+default = "include"
+source  = "classifier"
+means   = "Resolves or calls the stage's Edge cloud hosts (edge-k8s, gateways, containers); k3s-golden hosts none until k3s-goldedge is up"
+absent_on = ["k3s-golden"]
+
+[tags."needs:admin-allowlist"]
+default = "include"
+source  = "classifier"
+means   = "Calls /admin/v3 from the suite host's egress; staging's source-address allowlist refuses echo (136.62.143.210) with 403 (izuma-dm-platform request 20261113T064043Z)"
+absent_on = ["staging"]
+
+[tags."needs:billing-report"]
+default = "include"
+source  = "classifier"
+means   = "Reads last month's billing report for its account; no staging account has one (401 tier 99, 403 tier 2 and 0, 404 tier 1)"
+absent_on = ["staging"]
+
 [tags."needs:kaas"]
 default = "include"
 source  = "classifier"

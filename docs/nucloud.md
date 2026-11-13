@@ -162,7 +162,7 @@ since the Docker engine never started it. Stopping a running suite gives it
 60 s (SIGTERM) for its EXIT trap. A suite copies its service logs to `$NUCLOUD_LOGS`, from an EXIT
 trap; when the container stops, make copies them to `.nucloud-logs/<stage>/`
 here, also from a remote Docker context, each text file masked like the
-output. `.dockerignore` excludes `.nucloud-logs/`, and a build whose context
+output. Each run empties that folder first, so every report in it is that run's. `.dockerignore` excludes `.nucloud-logs/`, and a build whose context
 holds that folder without the exclusion is refused, so no image carries
 earlier runs' logs. Python 3 suites write one line per
 HTTP request to `.nucloud-logs/<stage>/http.log`
