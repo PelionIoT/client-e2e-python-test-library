@@ -1,0 +1,58 @@
+{
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "trackhammer.void/v1"
+    },
+    "repo": {
+      "type": "string",
+      "minLength": 1
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "report_id": {
+      "type": "string",
+      "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}$"
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1
+    },
+    "who": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "required": [
+    "schema",
+    "repo",
+    "reason",
+    "who"
+  ],
+  "additionalProperties": false,
+  "oneOf": [
+    {
+      "required": [
+        "run_id"
+      ],
+      "not": {
+        "required": [
+          "report_id"
+        ]
+      }
+    },
+    {
+      "required": [
+        "report_id"
+      ],
+      "not": {
+        "required": [
+          "run_id"
+        ]
+      }
+    }
+  ],
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

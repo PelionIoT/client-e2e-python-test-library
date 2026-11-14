@@ -1,0 +1,305 @@
+{
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "trackhammer.report/v1"
+    },
+    "report_id": {
+      "type": "string",
+      "pattern": "^[0-7][0-9A-HJKMNP-TV-Z]{25}$"
+    },
+    "producer": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "manual",
+            "runner",
+            "ci"
+          ]
+        },
+        "host": {
+          "type": "string",
+          "minLength": 1
+        },
+        "run_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ci": {
+          "type": "object",
+          "properties": {
+            "provider": {
+              "type": "string"
+            },
+            "run_url": {
+              "type": "string"
+            },
+            "job": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "provider",
+            "run_url",
+            "job"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "kind",
+        "host",
+        "run_id"
+      ],
+      "additionalProperties": false
+    },
+    "repo": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "remote": {
+          "type": "string"
+        },
+        "branch": {
+          "type": "string"
+        },
+        "commit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dirty": {
+          "type": "boolean"
+        },
+        "template": {
+          "type": "string"
+        },
+        "image": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "remote",
+        "branch",
+        "commit",
+        "dirty",
+        "template",
+        "image"
+      ],
+      "additionalProperties": false
+    },
+    "stage": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "api_url": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "api_url"
+      ],
+      "additionalProperties": false
+    },
+    "selection": {
+      "type": "object",
+      "properties": {
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0
+        },
+        "exclude_tags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0
+        },
+        "default": {
+          "type": "boolean"
+        },
+        "env": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "env_names": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "tags",
+        "exclude_tags",
+        "default",
+        "env"
+      ],
+      "additionalProperties": false
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "ended_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "exit_code": {
+      "type": "integer"
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "timeout",
+        "interrupted",
+        "not_run"
+      ]
+    },
+    "summary": {
+      "type": "object",
+      "properties": {
+        "passed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "skipped": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "errors": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "blocked": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "not_run": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "passed",
+        "failed",
+        "skipped",
+        "errors",
+        "blocked",
+        "not_run"
+      ],
+      "additionalProperties": false
+    },
+    "cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "verdict": {
+            "type": "string",
+            "enum": [
+              "pass",
+              "fail",
+              "blocked",
+              "not_run",
+              "error",
+              "skipped"
+            ]
+          },
+          "duration_ms": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "verdict",
+          "duration_ms"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "attachments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "suite-log",
+              "junit-xml",
+              "http-log",
+              "k6-summary",
+              "robot-xml"
+            ]
+          },
+          "encoding": {
+            "const": "gzip+base64"
+          },
+          "data": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "kind",
+          "encoding",
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 0
+    }
+  },
+  "required": [
+    "schema",
+    "report_id",
+    "producer",
+    "repo",
+    "stage",
+    "selection",
+    "started_at",
+    "ended_at",
+    "exit_code",
+    "outcome",
+    "summary",
+    "cases",
+    "attachments"
+  ],
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

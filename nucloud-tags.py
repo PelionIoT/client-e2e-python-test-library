@@ -331,8 +331,6 @@ def cases(voc):
     for name, detect in DETECTORS.items():
         for case, tags in detect().items():
             found[case], kind[case] = tags, name
-    if not found:  # a suite with no case-level source is one case: the suite
-        found['suite'], kind['suite'] = [], 'suite'
     overlay = ROOT / 'test-tags.cases.tsv'
     extra = {}
     if overlay.exists() and not os.environ.get('NUCLOUD_TAGS_NO_OVERLAY'):  # the classifier reads source tags only
@@ -340,6 +338,8 @@ def cases(voc):
             if line.strip() and not line.startswith('#'):
                 case, _, tags = line.partition('\t')
                 extra[case] = tags.split()
+    if not found and not extra:  # a suite with no case-level source and no listed cases is one case: the suite
+        found['suite'], kind['suite'] = [], 'suite'
     out = {}
     for case in sorted(set(found) | set(extra)):
         tags, unknown = set(), []
@@ -434,7 +434,7 @@ def main(argv):
     elif cmd == 'check':
         return check(voc, '--update' in argv)
     elif cmd == 'vocabulary':
-        print(json.dumps({k: v for k, v in voc.items() if k != 'groups'} | {'groups': sorted(voc['groups'])}, indent=1))
+        print(json.dumps({k: sorted(v) if isinstance(v, set) else v for k, v in voc.items()}, indent=1))
     else:
         raise Problem('usage: nucloud-tags.py args <framework>|cases [--json]|select|check [--update]|vocabulary')
     return 0

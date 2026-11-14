@@ -30,6 +30,7 @@
 #   EXTRA_ACCOUNTS=(staging=edge)  # tests: more accounts, as NUCLOUD_ACCOUNT_<NAME>_{API_KEY,USER,PASSWORD,CONFIG_JSON}
 #   TEST_FRAMEWORK=behave         # tests: how TAGS= reaches the suite: behave|cucumber|pytest|none (default)
 #   ACCOUNTS=(staging=edge)       # tests: the cloud.accounts.<name> a stage uses unless ACCOUNT= is given
+#   REPORT_PARSER=own             # tests: report cases from this repo's report-parser.py instead of nucloud-parse.py
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")"
 ENV="${MACHINE:-${ENV:-}}"
@@ -103,6 +104,10 @@ show_help() { # make help: the nucloud targets, the variables they read, and a w
     printf '  %s%-14s%s %s\n' "$C_NAME" "ONLY=" "$C_OFF" "one image by name (make images lists them)"
     printf '  %s%-14s%s %s\n' "$C_NAME" "IMAGE_SUFFIX=" "$C_OFF" "an earlier build for deploy-only, image-load, smoke, sbom"
     printf '  %s%-14s%s %s\n' "$C_NAME" "ARGS=" "$C_OFF" "arguments for run"
+    if [[ $kind == tests ]]; then
+        printf '  %s%-14s%s %s\n' "$C_NAME" "REPORT=" "$C_OFF" "after make test, send the run to trackHammer (http(s)://<host>) or write it (a directory or .json path)"
+        printf '  %s%-14s%s %s\n' "$C_NAME" "REPORT_TOKEN=" "$C_OFF" "bearer token for REPORT=; never printed"
+    fi
     printf '  %s%-14s%s %s\n' "$C_NAME" "COLOR=" "$C_OFF" "always or never; default: color on a terminal unless NO_COLOR is set"
     grep -q '^# nucloud entrypoint' Makefile 2>/dev/null || return 0
     printf '  %s%-14s%s %s\n' "$C_NAME" "NATIVE=1" "$C_OFF" "run this repository's own rule for a target nucloud also defines"
@@ -618,29 +623,9 @@ tag_env() { # NUCLOUD_TAGS, NUCLOUD_EXCLUDE_TAGS and NUCLOUD_TAG_ARGS: this run'
     export NUCLOUD_TAGS NUCLOUD_EXCLUDE_TAGS NUCLOUD_TAG_ARGS
     [[ -z $NUCLOUD_TAG_ARGS ]] || say "tags: $NUCLOUD_TAG_ARGS"
 }
-redact_secrets() { # stdin to stdout with this run's secret values, Izuma API keys and PEM private keys masked
-    python3 -u -c '
-import os, re, sys
-keys = ["NUCLOUD_API_KEY", "NUCLOUD_PASSWORD", "NUCLOUD_ROOT_PASSWORD"] + [k for k in os.environ if re.fullmatch(r"NUCLOUD_ACCOUNT_\w+_(API_KEY|PASSWORD)", k)]
-vals = sorted({os.environ.get(k, "") for k in keys} - {""}, key=len, reverse=True)
-vals = [v for v in vals if len(v) >= 6]
-key, pem = re.compile(r"\bak_[0-9A-Za-z]{20,}"), False
-whole = re.compile(r"-----BEGIN ([A-Z ]*)PRIVATE KEY-----.*?-----END \1PRIVATE KEY-----")
-opened = re.compile(r"-----BEGIN ([A-Z ]*)PRIVATE KEY-----.*")
-for line in sys.stdin:
-    for v in vals:
-        line = line.replace(v, "<redacted>")
-    line = key.sub("ak_<redacted>", line)
-    if pem:  # inside a multi-line key: drop lines up to and including its END line
-        if re.search(r"-----END [A-Z ]*PRIVATE KEY-----", line):
-            pem = False
-        continue
-    line = whole.sub(r"<redacted \1private key>", line)  # a key on one line (JSON with escaped newlines)
-    if opened.search(line):
-        pem = True
-        line = opened.sub(r"<redacted \1private key>", line).rstrip("\n") + "\n"
-    sys.stdout.write(line)
-'
+redact_secrets() { # stdin to stdout through nucloud-redact.py: this run's secret values, Izuma API keys and private keys
+    # (PEM or base64-encoded) masked, each line written as soon as it is final
+    python3 -u ./nucloud-redact.py
 }
 suite_logs() { # copy the stopped suite container's /nucloud-logs to $1, masked like the suite's output, then remove the container
     local f t
@@ -689,6 +674,7 @@ suite() { # suite <verb> <command...>: run a command of the suite image against 
     docker image inspect "$ref" >/dev/null 2>&1 || each i_build || true
     docker image inspect "$ref" >/dev/null 2>&1 || { say "build left no $ref; retrying once"; each i_build || true; }
     docker image inspect "$ref" >/dev/null 2>&1 || die "cannot build $ref; $verb did not run on $ENV"
+    [[ -f nucloud-redact.py ]] || die "nucloud-redact.py is missing, so the output cannot be masked; restamp this repo (nucloud: make rollout ONLY=$(basename "$PWD"))"
     say "$verb on $ENV ($NUCLOUD_API_URL)"
     # The client is backgrounded so the trap runs on a signal; a killed client alone leaves the container calling the stage.
     SUITE_CONTAINER=nucloud-suite-$$
@@ -698,6 +684,8 @@ suite() { # suite <verb> <command...>: run a command of the suite image against 
     local logs=$PWD/.nucloud-logs/$ENV
     mkdir -p "$logs"
     if docker inspect "$SUITE_CONTAINER" >/dev/null 2>&1; then stop_suite; docker rm -fv "$SUITE_CONTAINER" >/dev/null 2>&1 || true; fi
+    # The nucloud.run label carries the runner's NUCLOUD_RUN_ID (<run>.<repo>.<stage>): after stopping a run, the runner
+    # stops any container still labelled with it.
     # nucloud-http.py goes in as the container's sitecustomize: Python's urllib3 then appends one line per request to
     # $NUCLOUD_LOGS/http.log (HTTP_LOG=no in nucloud.env turns it off). The image's PYTHONPATH is kept after it.
     local http=() pp
@@ -705,10 +693,18 @@ suite() { # suite <verb> <command...>: run a command of the suite image against 
         pp=$(docker image inspect "$ref" --format '{{range .Config.Env}}{{println .}}{{end}}' 2>/dev/null | sed -n 's/^PYTHONPATH=//p' | head -1)
         http=(-e "PYTHONPATH=/nucloud-hooks${pp:+:$pp}" -e NUCLOUD_HTTP_LOG=/nucloud-logs/http.log)
     fi
-    docker create --init --name "$SUITE_CONTAINER" --platform "$PLATFORM" -e NUCLOUD_STAGE -e NUCLOUD_API_URL -e NUCLOUD_API_KEY \
+    docker create --init --name "$SUITE_CONTAINER" --label nucloud.run="${NUCLOUD_RUN_ID:-}" --platform "$PLATFORM" -e NUCLOUD_STAGE -e NUCLOUD_API_URL -e NUCLOUD_API_KEY \
         -e NUCLOUD_USER -e NUCLOUD_PASSWORD -e NUCLOUD_ROOT_USER -e NUCLOUD_ROOT_PASSWORD -e NUCLOUD_CONFIG_JSON -e NUCLOUD_ACCOUNT_ID \
         -e NUCLOUD_READ_ONLY -e NUCLOUD_TAGS -e NUCLOUD_EXCLUDE_TAGS -e NUCLOUD_TAG_ARGS -e SUITES -e PYTEST_ADDOPTS ${EXTRA_ENV[@]+"${EXTRA_ENV[@]}"} \
         ${http[@]+"${http[@]}"} -v /nucloud-logs -e NUCLOUD_LOGS=/nucloud-logs "$ref" "$@" >/dev/null || die "cannot create the suite container from $ref"
+    # From here a signal stops the container, whether it arrives while the engine starts it, before the output streams
+    # or mid-run; a container left running keeps calling the stage after the run is gone. Under errexit every step of
+    # the trap must succeed: a signal to the whole process group has often killed the log client already, and a
+    # failing `kill` would end the shell before stop_suite.
+    # The masked output is also kept as .nucloud-logs/<stage>/suite.log (setup.log for setup), the file a report is
+    # parsed from. It is written beside the copied service logs only after they land, so no suite file replaces it.
+    local client= code= rc=0 out=$logs/.$verb.out keep=$logs/$([[ $verb == test ]] && echo suite || echo "$verb").log
+    trap 'trap "" HUP INT TERM; [[ -z $client ]] || kill "$client" 2>/dev/null || true; stop_suite; suite_logs "$logs"; mv -f "$out" "$keep" 2>/dev/null || true; rm -f "$code"; exit 143' HUP INT TERM
     if [[ ${#http[@]} -gt 0 ]]; then
         local hooks; hooks=$(mktemp -d); cp nucloud-http.py "$hooks/sitecustomize.py"
         docker cp "$hooks/." "$SUITE_CONTAINER":/nucloud-hooks >/dev/null || die "cannot copy the request logger into $SUITE_CONTAINER"
@@ -718,10 +714,9 @@ suite() { # suite <verb> <command...>: run a command of the suite image against 
     start_suite || { stop_suite; suite_logs "$logs"; die "$verb did not start on $ENV"; }
     # The output streams from `docker logs -f`; `docker wait` gives the exit code. Both run in the background, so a
     # signal reaches the trap at once.
-    (set -o pipefail; docker logs -f "$SUITE_CONTAINER" 2>&1 | redact_secrets) &
-    local client=$! rc=0 code
     code=$(mktemp)
-    trap 'trap "" HUP INT TERM; kill "$client" 2>/dev/null; stop_suite; suite_logs "$logs"; rm -f "$code"; exit 143' HUP INT TERM
+    (set -o pipefail; docker logs -f "$SUITE_CONTAINER" 2>&1 | redact_secrets | tee "$out") &
+    client=$!
     docker wait "$SUITE_CONTAINER" >"$code" 2>/dev/null &
     wait "$!" || rc=125
     [[ $rc != 0 ]] || rc=$(tr -dc 0-9 <"$code"); rc=${rc:-125}
@@ -733,7 +728,37 @@ suite() { # suite <verb> <command...>: run a command of the suite image against 
     rm -f "$code"
     trap - HUP INT TERM
     suite_logs "$logs"
+    mv -f "$out" "$keep" 2>/dev/null || true
     return "$rc"
+}
+report_after() { # EXIT trap of `make test`: record the run (always), then, with REPORT=, report it; the exit status stays
+    local rc=$1 logs=$PWD/.nucloud-logs/$ENV ended outcome=completed out n t
+    trap - EXIT
+    ended=$(date -u +%s)
+    [[ $rc != 130 && $rc != 143 ]] || outcome=interrupted
+    IFS='|' read -r n t _ <<<"${IMAGES[0]}"
+    mkdir -p "$logs"
+    printf 'started=%s\nended=%s\nexit=%s\noutcome=%s\nimage=%s\n' "$REPORT_STARTED" "$ended" "$rc" "$outcome" "$REGISTRY/$n:$t-$SUFFIX" >"$logs/run.env"
+    if [[ ! -f $logs/suite.log ]]; then  # the suite never started: what setup printed, and why, is the log
+        { [[ ! -f $logs/setup.log ]] || cat "$logs/setup.log"
+          [[ $rc != 3 ]] || printf 'setup: %s failed on %s (exit %d); the suite did not run\n' "$REPO" "$ENV" "$rc"; } >"$logs/suite.log"
+    fi
+    if [[ -n ${REPORT:-} ]]; then
+        out=$logs/reports/run-$(date -u +%Y%m%dT%H%M%SZ)-$$.json
+        if python3 ./nucloud-report.py build --stage "$ENV" --log "$logs/suite.log" --started "$REPORT_STARTED" --ended "$ended" \
+            --exit "$rc" --outcome "$outcome" --image "$REGISTRY/$n:$t-$SUFFIX" --out "$out"; then
+            python3 ./nucloud-report.py deliver "$out" --to "$REPORT" --stage "$ENV" || true
+        else
+            say "report: could not build a report from $logs/suite.log; the run is unaffected"
+        fi
+    fi
+    exit "$rc"
+}
+report_files() { # the stamped files reporting needs, or stop with the one to restamp
+    local f
+    for f in nucloud-report.py nucloud-parse.py nucloud-redact.py nucloud-tags.py nucloud-schemas/report.schema.json; do
+        [[ -f $f ]] || die "$f is missing; restamp this repo (nucloud: make rollout ONLY=$(basename "$PWD"))"
+    done
 }
 run_setup() { # the suite's own preparation, host step then container step; a failure is reported as setup
     local rc=0
@@ -889,9 +914,13 @@ case "${1:-}" in
     test)
         if [[ $KIND == tests ]]; then
             [[ ${#TEST_CMD[@]} -gt 0 || ${#HOST_TEST_CMD[@]} -gt 0 ]] || die "TEST_CMD missing from nucloud.env"
+            [[ -z ${REPORT:-} ]] || report_files
+            # Every run leaves .nucloud-logs/<stage>/suite.log and run.env; with REPORT= the EXIT trap reports it.
+            if [[ $TEST_STAGE != no ]]; then REPORT_STARTED=$(date -u +%s); trap 'report_after $?' EXIT; fi
             [[ $TEST_STAGE == no ]] || run_setup  # the suite prepares its own fixtures before the cases
             if [[ ${#HOST_TEST_CMD[@]} -gt 0 ]]; then
-                suite_env; export MACHINE=$ENV; "${HOST_TEST_CMD[@]}"
+                suite_env; export MACHINE=$ENV; mkdir -p "$PWD/.nucloud-logs/$ENV"
+                "${HOST_TEST_CMD[@]}" 2>&1 | redact_secrets | tee "$PWD/.nucloud-logs/$ENV/suite.log"
             elif [[ $TEST_STAGE == no ]]; then
                 IFS='|' read -r n t _ <<<"${IMAGES[0]}"
                 docker image inspect "$REGISTRY/$n:$t-$SUFFIX" >/dev/null 2>&1 || each i_build
@@ -908,6 +937,38 @@ case "${1:-}" in
         else
             say "no test stage in $df"
         fi ;;
+    report-send)
+        [[ ${REPORT:-} =~ ^https?:// ]] || die "REPORT=<http(s)://trackHammer> names where to send"
+        report_files
+        if [[ -n ${FILE:-} ]]; then python3 ./nucloud-report.py deliver "$FILE" --to "$REPORT"; else python3 ./nucloud-report.py flush --to "$REPORT"; fi ;;
+    inventory-send)
+        [[ -n ${REPORT:-} ]] || die "REPORT=<http(s)://trackHammer, a directory or a .json path> names where the inventory goes"
+        report_files
+        mkdir -p .nucloud-logs/inventory
+        out=.nucloud-logs/inventory/inventory-$(date -u +%Y%m%dT%H%M%SZ).json
+        TEST_FRAMEWORK=$TEST_FRAMEWORK python3 ./nucloud-report.py inventory --out "$out"
+        python3 ./nucloud-report.py deliver "$out" --to "$REPORT" ;;
+    report-check)
+        need_stage api
+        report_files
+        log=.nucloud-logs/$ENV/suite.log
+        if [[ -f $log && -f .nucloud-logs/$ENV/run.env ]]; then
+            # shellcheck disable=SC1090
+            . ".nucloud-logs/$ENV/run.env"
+        elif [[ -f .claude/testmaster/runs/suite.$ENV.log ]]; then  # the last run through TESTMASTER (nucloud's runner)
+            log=.claude/testmaster/runs/suite.$ENV.log
+            ended=$(python3 -c 'import os,sys; print(int(os.path.getmtime(sys.argv[1])))' "$log"); started=$ended
+            exit=$(python3 -c 'import json,sys; t=json.load(open(sys.argv[1]))["tests"].get(sys.argv[2], {}); print(0 if t.get("last_result") == "pass" else 1)' \
+                .claude/testmaster/registry.json "suite.$ENV" 2>/dev/null || echo 1)
+            outcome=completed image=
+        else
+            die "no run on $ENV to check: make test MACHINE=$ENV first"
+        fi
+        out=.nucloud-logs/$ENV/reports/check-$(date -u +%Y%m%dT%H%M%SZ).json
+        mkdir -p ".nucloud-logs/$ENV/reports"
+        python3 ./nucloud-report.py build --stage "$ENV" --log "$log" --started "$started" --ended "$ended" \
+            --exit "$exit" --outcome "$outcome" --image "$image" --out "$out"
+        python3 ./nucloud-report.py validate "$out" && say "report-check: $out meets the standard" ;;
     smoke) each i_smoke ;;
     image-load) load_images ;;
     stage-check) stage_kubeconfig; say "$ENV answers at $(stage_vm)" ;;

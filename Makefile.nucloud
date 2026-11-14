@@ -7,7 +7,7 @@
 .DEFAULT_GOAL := help
 
 # The template's version; testing-dashboard shows it per repo. Bump it on every template change.
-NUCLOUD_VERSION  := 1.1.17
+NUCLOUD_VERSION  := 1.1.18
 
 # Set by CI to the run number; empty for a local build (tag -nucloud.dev.<commit>)
 BUILD_NUMBER     ?=
@@ -19,7 +19,7 @@ MACHINE          ?= $(ENV)
 override ENV     := $(MACHINE)
 ONLY             ?=
 
-export BUILD_NUMBER IMAGE_SUFFIX ENV ONLY COLOR TAGS EXCLUDE_TAGS UPDATE
+export BUILD_NUMBER IMAGE_SUFFIX ENV ONLY COLOR TAGS EXCLUDE_TAGS UPDATE REPORT REPORT_TOKEN FILE
 
 ##@ General
 
@@ -57,6 +57,18 @@ sbom:  ## Write sbom-<name>.spdx.json per image with syft
 .PHONY: test
 test:  ## Run the repo's unit tests inside the Dockerfile's test target, if it has one
 	@./makehelp-nucloud.sh test
+
+.PHONY: report-send
+report-send:  ## Send a kept report to trackHammer: FILE=<report.json>, or every pending one; REPORT=<url>
+	@./makehelp-nucloud.sh report-send
+
+.PHONY: inventory-send
+inventory-send:  ## Send this repo's cases, tags and about text to trackHammer: REPORT=<url or path>
+	@./makehelp-nucloud.sh inventory-send
+
+.PHONY: report-check
+report-check:  ## Build and check a report from the last run's output without running tests: MACHINE=<stage>
+	@./makehelp-nucloud.sh report-check
 
 .PHONY: setup
 setup:  ## Create or verify the suite's own fixtures on a stage (make test runs it first): MACHINE=<stage>

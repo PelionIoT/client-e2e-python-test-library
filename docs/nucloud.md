@@ -158,8 +158,10 @@ upper-cased, `-` as `_`), masked in the output like the run's own key.
 `SUITES=<paths>` narrows the run to those folders or tests, for suites that
 read it. The suite container starts detached; a container still Created after
 `SUITE_START_TIMEOUT` seconds (default 120, set in `nucloud.env`) aborts the run,
-since the Docker engine never started it. Stopping a running suite gives it
-60 s (SIGTERM) for its EXIT trap. A suite copies its service logs to `$NUCLOUD_LOGS`, from an EXIT
+since the Docker engine never started it. A HUP, INT or TERM to make at any
+point after the container exists stops it, with 60 s (SIGTERM) for its EXIT trap.
+The container carries the label `nucloud.run=$NUCLOUD_RUN_ID`, so the runner
+finds and stops it after a run it stopped or timed out. A suite copies its service logs to `$NUCLOUD_LOGS`, from an EXIT
 trap; when the container stops, make copies them to `.nucloud-logs/<stage>/`
 here, also from a remote Docker context, each text file masked like the
 output. Each run empties that folder first, so every report in it is that run's. `.dockerignore` excludes `.nucloud-logs/`, and a build whose context
@@ -167,10 +169,15 @@ holds that folder without the exclusion is refused, so no image carries
 earlier runs' logs. Python 3 suites write one line per
 HTTP request to `.nucloud-logs/<stage>/http.log`
 (`<case> <METHOD> <url without query> <status>`, tab-separated; `<case>` is the pytest id or the behave `<feature file>::<scenario>`), through
-`nucloud-http.py` installed as the container's `sitecustomize`. `HTTP_LOG=no`
-turns it off. pytest prints each case's duration (`--durations=0` in
-`PYTEST_ADDOPTS`); `TIMINGS=no` turns that off. The suite's output masks the key, the
-passwords, every `ak_` API key and every PEM private key.
+`nucloud-http.py` installed as the container's `sitecustomize`. A 2xx answer to a
+POST made through `requests` whose JSON carries a top-level `id` adds
+`<case> <url> <id>` to `.nucloud-logs/<stage>/http-ids.log`, so records a run
+leaves behind can be deleted by id; no other part of an answer is kept.
+`HTTP_LOG=no` turns both off. pytest prints each case's duration (`--durations=0` in
+`PYTEST_ADDOPTS`); `TIMINGS=no` turns that off. `nucloud-redact.py` masks the suite's output and the copied logs: the key, the
+passwords, every `ak_` API key, and every private key, PEM or base64-encoded
+(one token, or a wrapped block of base64 lines). The runner masks the logs it
+keeps with the same file.
 
 The shared checks cover what every repo needs. `nucloud.env` adds this
 repo's own needs, and `make prereqs` runs them in the same colored format:
@@ -209,7 +216,7 @@ the cloud outside its API), what it needs (`needs:hsm`, `needs:device`,
 default (`lifecycle:deprecated`, `risk:insecure` and the other `exclude`
 tags do not). This repo's own tags use its prefix and live in
 `test-tags.local.toml`. The rules are in
-[testing](https://github.com/IzumaNetworks/nucloud/blob/main/docs/testing.md#rules).
+[testing](https://github.com/IzumaNetworks/nucloud/blob/main/docs/testing/tags.md#rules).
 
 ```sh
 make tags                                  # every case and its tags

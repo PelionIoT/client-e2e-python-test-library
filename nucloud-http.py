@@ -1,7 +1,10 @@
 # Installed as sitecustomize.py in the suite container (nucloud template): one line per HTTP request that
 # urllib3 (requests, botocore, the SDKs) makes, appended to $NUCLOUD_HTTP_LOG as
 # <case>\t<METHOD>\t<scheme://host/path>\t<status>. <case> is pytest's current test, else "-". Query strings
-# are dropped, so no key or token in a URL reaches the log. Test code and its own logging are untouched.
+# are dropped, so no key or token in a URL reaches the log. A 2xx answer to a POST made through requests that
+# carries a top-level JSON "id" also appends <case>\t<scheme://host/path>\t<id> to <the same folder>/http-ids.log, so
+# a run that leaves records behind can delete them by id; nothing else of the answer is kept. Test code and its own
+# logging are untouched.
 import logging
 import os
 import re
@@ -29,11 +32,33 @@ if _path and sys.version_info[0] >= 3:
         def write(self, m):
             try:
                 origin = re.sub(r':(443|80)$', '', m.group('origin'))
-                case = os.environ.get('PYTEST_CURRENT_TEST', '').rsplit(' (', 1)[0] or _behave[0] or '-'
+                case = _case()
                 with open(_path, 'a') as f:
                     f.write('%s\t%s\t%s%s\t%s\n' % (case, m.group('method'), origin, m.group('path'), m.group('status')))
             except Exception:
                 pass
+
+    def _case():
+        return os.environ.get('PYTEST_CURRENT_TEST', '').rsplit(' (', 1)[0] or _behave[0] or '-'
+
+    _ids = os.path.join(os.path.dirname(_path), 'http-ids.log')
+
+    def _patch_requests(sessions):
+        send = sessions.Session.send
+
+        def logged_send(self, request, **kwargs):
+            r = send(self, request, **kwargs)
+            try:
+                if (request.method == 'POST' and 200 <= r.status_code < 300 and not kwargs.get('stream')
+                        and 'json' in r.headers.get('Content-Type', '')):
+                    rid = r.json().get('id')
+                    if isinstance(rid, str) and re.match(r'^[\w.:-]{1,128}$', rid):
+                        with open(_ids, 'a') as f:
+                            f.write('%s\t%s\t%s\n' % (_case(), request.url.split('?', 1)[0], rid))
+            except Exception:
+                pass
+            return r
+        sessions.Session.send = logged_send
 
     # behave sets no pytest id: wrap behave.model.Scenario.run, once behave imports it, to name the running
     # scenario as <feature file>::<scenario name>, the id the case inventory uses.
@@ -50,12 +75,15 @@ if _path and sys.version_info[0] >= 3:
                 _behave[0] = prev
         model.Scenario.run = scenario_run
 
-    class _BehaveHook(object):
+    _patches = {'behave.model': _patch_behave, 'requests.sessions': _patch_requests}
+
+    class _ImportHook(object):
+        """Patches each module in _patches once it is imported, then leaves sys.meta_path when all are done."""
         def find_module(self, name, path=None):  # Python 2 and pre-3.4 finders: never claims a module
             return None
 
         def find_spec(self, name, path, target=None):
-            if name != 'behave.model':
+            if name not in _patches:
                 return None
             import importlib.util
             sys.meta_path.remove(self)
@@ -70,16 +98,16 @@ if _path and sys.version_info[0] >= 3:
             def patched(module):
                 exec_module(module)
                 try:
-                    _patch_behave(module)
+                    _patches.pop(name)(module)
                 except Exception:
                     pass
-                if self in sys.meta_path:
+                if not _patches and self in sys.meta_path:
                     sys.meta_path.remove(self)
             spec.loader.exec_module = patched
             return spec
 
-    if sys.version_info >= (3, 4):  # find_spec exists from 3.4; 3.0-3.3 log requests without scenario names
-        sys.meta_path.insert(0, _BehaveHook())
+    if sys.version_info >= (3, 4):  # find_spec exists from 3.4; 3.0-3.3 log requests without scenario names or ids
+        sys.meta_path.insert(0, _ImportHook())
 
     _log = logging.getLogger('urllib3.connectionpool')
     _log.addHandler(_Requests(logging.DEBUG))

@@ -1,0 +1,1753 @@
+{
+ "tags": {
+  "api:access-keys": "Calls the `access-keys` route family",
+  "api:accounts": "Calls the `accounts` route family (iam service)",
+  "api:agreements": "Calls the `agreements` route family",
+  "api:analytics-api": "Calls the `analytics-api` route family",
+  "api:api-keys": "Calls the `api-keys` route family (iam service)",
+  "api:applications": "Calls the `applications` route family",
+  "api:auth": "Calls the `auth` route family (iam service)",
+  "api:billing-report": "Calls the `billing-report` route family (billing service)",
+  "api:billing-report-active-devices": "Calls the `billing-report-active-devices` route family (billing service)",
+  "api:billing-report-firmware-updates": "Calls the `billing-report-firmware-updates` route family",
+  "api:branding-colors": "Calls the `branding-colors` route family",
+  "api:branding-images": "Calls the `branding-images` route family",
+  "api:certificate-enrollments": "Calls the `certificate-enrollments` route family (certificate-issuer service)",
+  "api:certificate-issuer-configurations": "Calls the `certificate-issuer-configurations` route family (certificate-issuer service)",
+  "api:certificate-issuers": "Calls the `certificate-issuers` route family (certificate-issuer service)",
+  "api:developer-certificates": "Calls the `developer-certificates` route family (connector-ca service)",
+  "api:device-block-categories": "Calls the `device-block-categories` route family",
+  "api:device-enrollments": "Calls the `device-enrollments` route family (enrollment service)",
+  "api:device-enrollments-bulk-deletes": "Calls the `device-enrollments-bulk-deletes` route family",
+  "api:device-enrollments-bulk-uploads": "Calls the `device-enrollments-bulk-uploads` route family",
+  "api:device-events": "Calls the `device-events` route family (device-directory service)",
+  "api:device-groups": "Calls the `device-groups` route family (device-directory service)",
+  "api:device-queries": "Calls the `device-queries` route family (device-directory service)",
+  "api:devices": "Calls the `devices` route family (device-directory service)",
+  "api:downloads": "Calls the `downloads` route family",
+  "api:firmware-images": "Calls the `firmware-images` route family (update-service service)",
+  "api:firmware-manifests": "Calls the `firmware-manifests` route family (update-service service)",
+  "api:identity-providers": "Calls the `identity-providers` route family (iam service)",
+  "api:inventory-api": "Calls the `inventory-api` route family",
+  "api:limitations": "Calls the `limitations` route family",
+  "api:metadata-api": "Calls the `metadata-api` route family",
+  "api:metrics": "Calls the `metrics` route family (statistics service)",
+  "api:monitoring-alerts-api": "Calls the `monitoring-alerts-api` route family",
+  "api:policies": "Calls the `policies` route family (iam service)",
+  "api:policy-groups": "Calls the `policy-groups` route family (iam service)",
+  "api:server-credentials": "Calls the `server-credentials` route family (connector-ca service)",
+  "api:service-packages": "Calls the `service-packages` route family (billing service)",
+  "api:service-packages-quota": "Calls the `service-packages-quota` route family",
+  "api:service-packages-quota-history": "Calls the `service-packages-quota-history` route family",
+  "api:subscriber-actions-api": "Calls the `subscriber-actions-api` route family",
+  "api:subscriber-groups-api": "Calls the `subscriber-groups-api` route family",
+  "api:subscribers-api": "Calls the `subscribers-api` route family",
+  "api:tags-api": "Calls the `tags-api` route family",
+  "api:trusted-certificates": "Calls the `trusted-certificates` route family (iam service)",
+  "api:update-campaigns": "Calls the `update-campaigns` route family (update-service service)",
+  "api:user-invitations": "Calls the `user-invitations` route family (iam service)",
+  "api:users": "Calls the `users` route family (iam service)",
+  "api:v2-device-requests": "Calls the `v2-device-requests` route family (mds service)",
+  "api:v2-endpoints": "Calls the `v2-endpoints` route family (mds service)",
+  "api:v2-notification": "Calls the `v2-notification` route family (mds service)",
+  "api:v2-subscriptions": "Calls the `v2-subscriptions` route family (mds service)",
+  "connect-tests:bootstrap": "Upstream tag @bootstrap",
+  "connect-tests:bootstrap-psk": "Upstream tag @bootstrap-psk",
+  "connect-tests:device-expiration": "Upstream tag @device-expiration",
+  "connect-tests:device-registry": "Upstream tag @device-registry",
+  "connect-tests:firmware-download": "Upstream tag @firmware-download",
+  "connect-tests:long-test": "Upstream tag @long-test",
+  "connect-tests:nucloud-seed": "Upstream tag @nucloud-seed",
+  "connect-tests:os2": "Upstream tag @os2",
+  "connect-tests:psk-listing": "Upstream tag @psk-listing",
+  "connect-tests:session-reset": "Upstream tag @session-reset",
+  "e2e-edge-test-suite:cpu-notif-test": "Upstream tag cpu_notif_test",
+  "e2e-edge-test-suite:reboot-test": "Upstream tag reboot_test",
+  "e2eiot-cli-test-bdd:bug-iotft-231": "Tracks upstream bug IOTFT-231",
+  "e2eiot-cli-test-bdd:f4": "RSA exponent F4 (65537) counterpart of a deprecated F0 case",
+  "e2eiot-cli-test-bdd:f4-coverage": "Added to keep the coverage of a deprecated F0 case",
+  "feature:admin": "Source file or directory `admin`",
+  "feature:agent-rbac": "Source file or directory `agent-rbac`",
+  "feature:aiocoap": "Source file or directory `aiocoap`",
+  "feature:android": "Source file or directory `android`",
+  "feature:api": "Source file or directory `api`",
+  "feature:api-dba": "Source file or directory `api-dba`",
+  "feature:api-gw-authentication": "Source file or directory `api-gw-authentication`",
+  "feature:api-key": "Source file or directory `api-key`",
+  "feature:apigw": "Source file or directory `apigw`",
+  "feature:apitester": "Source file or directory `apitester`",
+  "feature:apply": "Source file or directory `apply`",
+  "feature:area-chart": "Source file or directory `area-chart`",
+  "feature:area-chart-stacked": "Source file or directory `area-chart-stacked`",
+  "feature:auto-observation": "Source file or directory `auto-observation`",
+  "feature:basic-connectivity": "Source file or directory `basic-connectivity`",
+  "feature:billing": "Source file or directory `billing`",
+  "feature:billing-admin": "Source file or directory `billing-admin`",
+  "feature:bootstrap": "Source file or directory `bootstrap`",
+  "feature:byoc-helper": "Source file or directory `byoc-helper`",
+  "feature:case-example": "Source file or directory `case-example`",
+  "feature:ce": "Source file or directory `ce`",
+  "feature:certificate-renewal": "Source file or directory `certificate-renewal`",
+  "feature:certificates": "Source file or directory `certificates`",
+  "feature:chunked-upload": "Source file or directory `chunked-upload`",
+  "feature:chunky-upload": "Source file or directory `chunky-upload`",
+  "feature:cleanup": "Source file or directory `cleanup`",
+  "feature:cleanup-developer-device": "Source file or directory `cleanup-developer-device`",
+  "feature:cleanup-namespaces": "Source file or directory `cleanup-namespaces`",
+  "feature:cli": "Source file or directory `cli`",
+  "feature:cloud-vault-activate-certificate-issuer": "Source file or directory `cloud-vault-activate-certificate-issuer`",
+  "feature:cloud-vault-certificate-issuer-configuration": "Source file or directory `cloud-vault-certificate-issuer-configuration`",
+  "feature:cloud-vault-certificate-issuer-configuration-bad-path": "Source file or directory `cloud-vault-certificate-issuer-configuration-bad-path`",
+  "feature:cloud-vault-create-certificate-issuer": "Source file or directory `cloud-vault-create-certificate-issuer`",
+  "feature:cloud-vault-delete-certificate-issuer": "Source file or directory `cloud-vault-delete-certificate-issuer`",
+  "feature:cloud-vault-get-certificate-issuer-attributes": "Source file or directory `cloud-vault-get-certificate-issuer-attributes`",
+  "feature:cloud-vault-get-certificate-issuer-configuration": "Source file or directory `cloud-vault-get-certificate-issuer-configuration`",
+  "feature:cloud-vault-http-bad-path": "Source file or directory `cloud-vault-http-bad-path`",
+  "feature:cloud-vault-http-header-bad-path": "Source file or directory `cloud-vault-http-header-bad-path`",
+  "feature:cloud-vault-jwt": "Source file or directory `cloud-vault-jwt`",
+  "feature:cloud-vault-list-certificate-issuers": "Source file or directory `cloud-vault-list-certificate-issuers`",
+  "feature:cloud-vault-list-configurations": "Source file or directory `cloud-vault-list-configurations`",
+  "feature:cloud-vault-maintenance": "Source file or directory `cloud-vault-maintenance`",
+  "feature:cloud-vault-sign-with-csr-cfssl": "Source file or directory `cloud-vault-sign-with-csr-cfssl`",
+  "feature:cloud-vault-sign-with-csr-global-sign": "Source file or directory `cloud-vault-sign-with-csr-global-sign`",
+  "feature:cloud-vault-sign-with-csr-hsm": "Source file or directory `cloud-vault-sign-with-csr-hsm`",
+  "feature:cloud-vault-update-certificate-issuer": "Source file or directory `cloud-vault-update-certificate-issuer`",
+  "feature:cloud-vault-update-certificate-issuer-bad-path": "Source file or directory `cloud-vault-update-certificate-issuer-bad-path`",
+  "feature:cloud-vault-verify-certificate-issuer": "Source file or directory `cloud-vault-verify-certificate-issuer`",
+  "feature:cluster": "Source file or directory `cluster`",
+  "feature:cluster-import": "Source file or directory `cluster-import`",
+  "feature:cluster-pool-manager": "Source file or directory `cluster-pool-manager`",
+  "feature:cluster-reset": "Source file or directory `cluster-reset`",
+  "feature:cluster-settle": "Source file or directory `cluster-settle`",
+  "feature:clusters": "Source file or directory `clusters`",
+  "feature:combined-cases": "Source file or directory `combined-cases`",
+  "feature:common": "Source file or directory `common`",
+  "feature:config": "Source file or directory `config`",
+  "feature:config-loader": "Source file or directory `config-loader`",
+  "feature:confirmation-modal": "Source file or directory `confirmation-modal`",
+  "feature:connect": "Source file or directory `connect`",
+  "feature:connection-indicator": "Source file or directory `connection-indicator`",
+  "feature:connectivity-management": "Source file or directory `connectivity-management`",
+  "feature:connectors": "Source file or directory `connectors`",
+  "feature:controller-restart": "Source file or directory `controller-restart`",
+  "feature:core-services": "Source file or directory `core-services`",
+  "feature:create-accounts": "Source file or directory `create-accounts`",
+  "feature:create-certificates": "Source file or directory `create-certificates`",
+  "feature:create-clients": "Source file or directory `create-clients`",
+  "feature:create-location": "Source file or directory `create-location`",
+  "feature:create-map": "Source file or directory `create-map`",
+  "feature:create-tenant": "Source file or directory `create-tenant`",
+  "feature:dba-server": "Source file or directory `dba-server`",
+  "feature:dba-server-http-bad-path": "Source file or directory `dba-server-http-bad-path`",
+  "feature:delete-endpoint": "Source file or directory `delete-endpoint`",
+  "feature:delete-location": "Source file or directory `delete-location`",
+  "feature:delete-tenant": "Source file or directory `delete-tenant`",
+  "feature:dev-client-runner": "Source file or directory `dev-client-runner`",
+  "feature:dev-client-update-runner": "Source file or directory `dev-client-update-runner`",
+  "feature:device-activity": "Source file or directory `device-activity`",
+  "feature:device-activity-chart": "Source file or directory `device-activity-chart`",
+  "feature:device-directory": "Source file or directory `device-directory`",
+  "feature:device-events": "Source file or directory `device-events`",
+  "feature:device-generated-keys": "Source file or directory `device-generated-keys`",
+  "feature:device-models": "Source file or directory `device-models`",
+  "feature:device-resources": "Source file or directory `device-resources`",
+  "feature:device-selection": "Source file or directory `device-selection`",
+  "feature:device-statistics": "Source file or directory `device-statistics`",
+  "feature:devicecatalog": "Source file or directory `devicecatalog`",
+  "feature:deviceinsight": "Source file or directory `deviceinsight`",
+  "feature:deviceinsights": "Source file or directory `deviceinsights`",
+  "feature:devices": "Source file or directory `devices`",
+  "feature:devicesentry": "Source file or directory `devicesentry`",
+  "feature:directives": "Source file or directory `directives`",
+  "feature:dlms-demo-test-case": "Source file or directory `dlms-demo-test-case`",
+  "feature:dns": "Source file or directory `dns`",
+  "feature:dtls-fragmentation": "Source file or directory `dtls-fragmentation`",
+  "feature:echo": "Source file or directory `echo`",
+  "feature:ed": "Source file or directory `ed`",
+  "feature:edge": "Source file or directory `edge`",
+  "feature:endpoints": "Source file or directory `endpoints`",
+  "feature:endurance": "Source file or directory `endurance`",
+  "feature:endurance-cases": "Source file or directory `endurance-cases`",
+  "feature:enrollment": "Source file or directory `enrollment`",
+  "feature:example1": "Source file or directory `example1`",
+  "feature:example2": "Source file or directory `example2`",
+  "feature:externalca": "Source file or directory `externalca`",
+  "feature:fab": "Source file or directory `fab`",
+  "feature:fab-menu": "Source file or directory `fab-menu`",
+  "feature:fab-menu-item": "Source file or directory `fab-menu-item`",
+  "feature:factory-tool": "Source file or directory `factory-tool`",
+  "feature:factory-tool-api-debug": "Source file or directory `factory-tool-api-debug`",
+  "feature:factory-tool-defects-iotft-231": "Source file or directory `factory-tool-defects-iotft-231`",
+  "feature:factory-tool-defects-iotft-420": "Source file or directory `factory-tool-defects-iotft-420`",
+  "feature:factory-tool-developer-flow": "Source file or directory `factory-tool-developer-flow`",
+  "feature:factory-tool-disable": "Source file or directory `factory-tool-disable`",
+  "feature:factory-tool-download": "Source file or directory `factory-tool-download`",
+  "feature:factory-tool-firmware-update": "Source file or directory `factory-tool-firmware-update`",
+  "feature:factory-tool-first-to-claim": "Source file or directory `factory-tool-first-to-claim`",
+  "feature:factory-tool-mode1": "Source file or directory `factory-tool-mode1`",
+  "feature:factory-tool-mode1-delete": "Source file or directory `factory-tool-mode1-delete`",
+  "feature:factory-tool-mode1-is-device-ready": "Source file or directory `factory-tool-mode1-is-device-ready`",
+  "feature:factory-tool-mode2": "Source file or directory `factory-tool-mode2`",
+  "feature:factory-tool-mode2-to-file": "Source file or directory `factory-tool-mode2-to-file`",
+  "feature:factory-tool-mode2-validate": "Source file or directory `factory-tool-mode2-validate`",
+  "feature:factory-tool-mode3": "Source file or directory `factory-tool-mode3`",
+  "feature:factory-tool-mode3-external-issuer": "Source file or directory `factory-tool-mode3-external-issuer`",
+  "feature:factory-tool-mode3-to-file": "Source file or directory `factory-tool-mode3-to-file`",
+  "feature:factory-tool-mode3-to-file-complete": "Source file or directory `factory-tool-mode3-to-file-complete`",
+  "feature:factory-tool-sotp": "Source file or directory `factory-tool-sotp`",
+  "feature:factory-tool-stress": "Source file or directory `factory-tool-stress`",
+  "feature:factorytool": "Source file or directory `factorytool`",
+  "feature:fcc-mcc-demo": "Source file or directory `fcc-mcc-demo`",
+  "feature:fcc-runner": "Source file or directory `fcc-runner`",
+  "feature:fcce-mcce": "Source file or directory `fcce-mcce`",
+  "feature:fcu": "Source file or directory `fcu`",
+  "feature:fcu-custom-properies": "Source file or directory `fcu-custom-properies`",
+  "feature:fcu-server": "Source file or directory `fcu-server`",
+  "feature:fcu-sotp": "Source file or directory `fcu-sotp`",
+  "feature:fleet-events": "Source file or directory `fleet-events`",
+  "feature:floating-button": "Source file or directory `floating-button`",
+  "feature:framework": "Source file or directory `framework`",
+  "feature:free-account-update-limits": "Source file or directory `free-account-update-limits`",
+  "feature:functions": "Source file or directory `functions`",
+  "feature:gateway": "Source file or directory `gateway`",
+  "feature:generator": "Source file or directory `generator`",
+  "feature:group-input": "Source file or directory `group-input`",
+  "feature:grouplist-input": "Source file or directory `grouplist-input`",
+  "feature:handler": "Source file or directory `handler`",
+  "feature:happy-path": "Source file or directory `happy-path`",
+  "feature:harness": "Source file or directory `harness`",
+  "feature:healthtests": "Source file or directory `healthtests`",
+  "feature:heat-map": "Source file or directory `heat-map`",
+  "feature:hsm-cache": "Source file or directory `hsm-cache`",
+  "feature:hsm-certificate": "Source file or directory `hsm-certificate`",
+  "feature:hsm-certificate-bad-path": "Source file or directory `hsm-certificate-bad-path`",
+  "feature:hsm-certificate-with-csr": "Source file or directory `hsm-certificate-with-csr`",
+  "feature:hsm-certificate-with-csr-bad-path": "Source file or directory `hsm-certificate-with-csr-bad-path`",
+  "feature:hsm-csr": "Source file or directory `hsm-csr`",
+  "feature:hsm-csr-bad-path": "Source file or directory `hsm-csr-bad-path`",
+  "feature:hsm-csr-loop": "Source file or directory `hsm-csr-loop`",
+  "feature:hsm-csr-with-keys": "Source file or directory `hsm-csr-with-keys`",
+  "feature:hsm-csr-with-keys-bad-path": "Source file or directory `hsm-csr-with-keys-bad-path`",
+  "feature:hsm-derive-aes-key": "Source file or directory `hsm-derive-aes-key`",
+  "feature:hsm-dh-derive": "Source file or directory `hsm-dh-derive`",
+  "feature:hsm-extensions": "Source file or directory `hsm-extensions`",
+  "feature:hsm-fill-partition": "Source file or directory `hsm-fill-partition`",
+  "feature:hsm-generate-key": "Source file or directory `hsm-generate-key`",
+  "feature:hsm-generate-key-bad-path": "Source file or directory `hsm-generate-key-bad-path`",
+  "feature:hsm-http-bad-path": "Source file or directory `hsm-http-bad-path`",
+  "feature:hsm-http-bad-path-cache": "Source file or directory `hsm-http-bad-path-cache`",
+  "feature:hsm-http-bad-path-certificates": "Source file or directory `hsm-http-bad-path-certificates`",
+  "feature:hsm-http-bad-path-certificates-with-csr": "Source file or directory `hsm-http-bad-path-certificates-with-csr`",
+  "feature:hsm-http-header-bad-path": "Source file or directory `hsm-http-header-bad-path`",
+  "feature:hsm-imported-keys": "Source file or directory `hsm-imported-keys`",
+  "feature:hsm-jwt": "Source file or directory `hsm-jwt`",
+  "feature:hsm-maintenance": "Source file or directory `hsm-maintenance`",
+  "feature:hsm-metrics": "Source file or directory `hsm-metrics`",
+  "feature:hsm-randoms": "Source file or directory `hsm-randoms`",
+  "feature:hsm-self-signed-certificate": "Source file or directory `hsm-self-signed-certificate`",
+  "feature:hsm-sign": "Source file or directory `hsm-sign`",
+  "feature:hsm-sign-bad-path": "Source file or directory `hsm-sign-bad-path`",
+  "feature:hsm-symmetric-key": "Source file or directory `hsm-symmetric-key`",
+  "feature:hsm-trust-level": "Source file or directory `hsm-trust-level`",
+  "feature:html-logger": "Source file or directory `html-logger`",
+  "feature:iam": "Source file or directory `iam`",
+  "feature:init": "Source file or directory `init`",
+  "feature:install-fcu": "Source file or directory `install-fcu`",
+  "feature:jsonrpc2": "Source file or directory `jsonrpc2`",
+  "feature:junit": "Source file or directory `junit`",
+  "feature:kaas": "Source file or directory `kaas`",
+  "feature:kcm": "Source file or directory `kcm`",
+  "feature:kcm-example": "Source file or directory `kcm-example`",
+  "feature:keycloak": "Source file or directory `keycloak`",
+  "feature:kubeconfig": "Source file or directory `kubeconfig`",
+  "feature:library-test": "Source file or directory `library-test`",
+  "feature:limits": "Source file or directory `limits`",
+  "feature:line-chart": "Source file or directory `line-chart`",
+  "feature:list-clusters": "Source file or directory `list-clusters`",
+  "feature:list-tenants": "Source file or directory `list-tenants`",
+  "feature:live": "Source file or directory `live`",
+  "feature:location-selection": "Source file or directory `location-selection`",
+  "feature:locations": "Source file or directory `locations`",
+  "feature:login": "Source file or directory `login`",
+  "feature:main-content": "Source file or directory `main-content`",
+  "feature:map-selection": "Source file or directory `map-selection`",
+  "feature:maps": "Source file or directory `maps`",
+  "feature:mbed-clitest-mbed-client": "Source file or directory `mbed-clitest-mbed-client`",
+  "feature:mesh": "Source file or directory `mesh`",
+  "feature:mesh-network": "Source file or directory `mesh-network`",
+  "feature:metrics": "Source file or directory `metrics`",
+  "feature:mini-client": "Source file or directory `mini-client`",
+  "feature:model": "Source file or directory `model`",
+  "feature:modify-vcnp": "Source file or directory `modify-vcnp`",
+  "feature:multiselect-dropdown-ext": "Source file or directory `multiselect-dropdown-ext`",
+  "feature:myriplane-api-test-suite": "Source file or directory `myriplane-api-test-suite`",
+  "feature:namespaces-left-to-the-reset": "Source file or directory `namespaces-left-to-the-reset`",
+  "feature:nanoclient": "Source file or directory `nanoclient`",
+  "feature:navbar": "Source file or directory `navbar`",
+  "feature:netty": "Source file or directory `netty`",
+  "feature:network-policy": "Source file or directory `network-policy`",
+  "feature:nft": "Source file or directory `nft`",
+  "feature:ngx-charts-chart-ext": "Source file or directory `ngx-charts-chart-ext`",
+  "feature:ngx-charts-heat-map-ext": "Source file or directory `ngx-charts-heat-map-ext`",
+  "feature:nop": "Source file or directory `nop`",
+  "feature:notification-service": "Source file or directory `notification-service`",
+  "feature:notifications": "Source file or directory `notifications`",
+  "feature:observation": "Source file or directory `observation`",
+  "feature:obsolete": "Source file or directory `obsolete`",
+  "feature:osmo": "Source file or directory `osmo`",
+  "feature:playground-indicator": "Source file or directory `playground-indicator`",
+  "feature:pmi": "Source file or directory `pmi`",
+  "feature:portal": "Source file or directory `portal`",
+  "feature:portal-invitation": "Source file or directory `portal-invitation`",
+  "feature:portal-mbed-sso-login": "Source file or directory `portal-mbed-sso-login`",
+  "feature:portal-smoke": "Source file or directory `portal-smoke`",
+  "feature:portal-template": "Source file or directory `portal-template`",
+  "feature:preferences": "Source file or directory `preferences`",
+  "feature:prepare-update": "Source file or directory `prepare-update`",
+  "feature:process-crypto": "Source file or directory `process-crypto`",
+  "feature:process-reporting": "Source file or directory `process-reporting`",
+  "feature:process-runner": "Source file or directory `process-runner`",
+  "feature:provisioning": "Source file or directory `provisioning`",
+  "feature:psk": "Source file or directory `psk`",
+  "feature:psk-accounts": "Source file or directory `psk-accounts`",
+  "feature:pytest-factory-tool-mode1": "Source file or directory `pytest-factory-tool-mode1`",
+  "feature:pythonscripts": "Source file or directory `pythonscripts`",
+  "feature:queued-command": "Source file or directory `queued-command`",
+  "feature:radiator": "Source file or directory `radiator`",
+  "feature:rcc-client-for-python": "Source file or directory `rcc-client-for-python`",
+  "feature:rcc-helpers": "Source file or directory `rcc-helpers`",
+  "feature:read-only": "Source file or directory `read-only`",
+  "feature:registration": "Source file or directory `registration`",
+  "feature:registration-statistics": "Source file or directory `registration-statistics`",
+  "feature:registry": "Source file or directory `registry`",
+  "feature:requestbuilder": "Source file or directory `requestbuilder`",
+  "feature:resource": "Source file or directory `resource`",
+  "feature:resource-selection": "Source file or directory `resource-selection`",
+  "feature:resource-value-window-selection": "Source file or directory `resource-value-window-selection`",
+  "feature:rest": "Source file or directory `rest`",
+  "feature:restclientcontainer": "Source file or directory `restclientcontainer`",
+  "feature:rude": "Source file or directory `rude`",
+  "feature:runner": "Source file or directory `runner`",
+  "feature:sandbox": "Source file or directory `sandbox`",
+  "feature:sda": "Source file or directory `sda`",
+  "feature:secure-time": "Source file or directory `secure-time`",
+  "feature:secureelement": "Source file or directory `secureelement`",
+  "feature:selftest": "Source file or directory `selftest`",
+  "feature:server": "Source file or directory `server`",
+  "feature:service": "Source file or directory `service`",
+  "feature:serviceprobe": "Source file or directory `serviceprobe`",
+  "feature:setup": "Source file or directory `setup`",
+  "feature:sidebar": "Source file or directory `sidebar`",
+  "feature:sla-pmi": "Source file or directory `sla-pmi`",
+  "feature:spinner": "Source file or directory `spinner`",
+  "feature:sse": "Source file or directory `sse`",
+  "feature:state": "Source file or directory `state`",
+  "feature:statistics": "Source file or directory `statistics`",
+  "feature:statisticsapi": "Source file or directory `statisticsapi`",
+  "feature:stats": "Source file or directory `stats`",
+  "feature:status": "Source file or directory `status`",
+  "feature:storage": "Source file or directory `storage`",
+  "feature:sut": "Source file or directory `sut`",
+  "feature:systemtest": "Source file or directory `systemtest`",
+  "feature:systest-library": "Source file or directory `systest-library`",
+  "feature:task-ledger": "Source file or directory `task-ledger`",
+  "feature:tc-gw-resources-rest": "Source file or directory `tc-gw-resources-rest`",
+  "feature:tc-rpi-ble-e2e": "Source file or directory `tc-rpi-ble-e2e`",
+  "feature:tenant-isolation": "Source file or directory `tenant-isolation`",
+  "feature:tenant-lifecycle": "Source file or directory `tenant-lifecycle`",
+  "feature:test-mbed-client-service": "Source file or directory `test-mbed-client-service`",
+  "feature:testify-integration": "Source file or directory `testify-integration`",
+  "feature:testutil": "Source file or directory `testutil`",
+  "feature:tile-view": "Source file or directory `tile-view`",
+  "feature:tlv-test": "Source file or directory `tlv-test`",
+  "feature:tpip": "Source file or directory `tpip`",
+  "feature:tunfuzz": "Source file or directory `tunfuzz`",
+  "feature:udp-queue": "Source file or directory `udp-queue`",
+  "feature:unlimited": "Source file or directory `unlimited`",
+  "feature:update": "Source file or directory `update`",
+  "feature:update-endpoint": "Source file or directory `update-endpoint`",
+  "feature:update-limits": "Source file or directory `update-limits`",
+  "feature:update-limits-1000": "Source file or directory `update-limits-1000`",
+  "feature:update-location": "Source file or directory `update-location`",
+  "feature:update-service-package": "Source file or directory `update-service-package`",
+  "feature:use-cases": "Source file or directory `use-cases`",
+  "feature:using-byoc-cases": "Source file or directory `using-byoc-cases`",
+  "feature:using-ds-cases": "Source file or directory `using-ds-cases`",
+  "feature:using-sdk": "Source file or directory `using-sdk`",
+  "feature:value-history": "Source file or directory `value-history`",
+  "feature:vc": "Source file or directory `vc`",
+  "feature:vc-addon": "Source file or directory `vc-addon`",
+  "feature:vertical-stacked-bar-chart": "Source file or directory `vertical-stacked-bar-chart`",
+  "feature:waitutil": "Source file or directory `waitutil`",
+  "feature:watch-controller": "Source file or directory `watch-controller`",
+  "feature:websocket": "Source file or directory `websocket`",
+  "feature:websockets": "Source file or directory `websockets`",
+  "feature:wms": "Source file or directory `wms`",
+  "feature:workload-migration": "Source file or directory `workload-migration`",
+  "fixture:billing": "Billing reports and service-package routes; 401 for tier 99 (matched from imports or the case path)",
+  "fixture:bootstrap": "LwM2M bootstrap server per stage, DNS state, production-host refusal (matched from imports or the case path)",
+  "fixture:certificate-issuer": "Trusted, developer and issuer certificates; cloud vault issuers (matched from imports or the case path)",
+  "fixture:connect-api": "Connect REST, API gateway auth, mds blackbox (matched from imports or the case path)",
+  "fixture:edge-gateway": "Staging Edge gateway VM on D71, relay, original RPi/RaaS hardware (matched from imports or the case path)",
+  "fixture:enrollment-decryption": "ED batch-key and decrypt; decrypt needs port-forward and service JWT (matched from imports or the case path)",
+  "fixture:factory-tool": "FCC/FCU/KCM; native process DUT substitute; `/downloads/fcu` 404 (matched from imports or the case path)",
+  "fixture:firmware-update": "Images, manifests, campaigns, upload jobs; golden storage DNS gap (matched from imports or the case path)",
+  "fixture:hsm": "DB-HSM on k3s-golden via port-forward; PMI HSM absent (matched from imports or the case path)",
+  "fixture:kaas": "Edge KaaS (`edge-k8s`), 503 on staging; control-plane cluster pools (matched from imports or the case path)",
+  "fixture:kafka": "Local Kafka for notification dummy and device-sentry (matched from imports or the case path)",
+  "fixture:lwm2m": "LwM2M server, device requests, retired RCC lab mapping (matched from imports or the case path)",
+  "fixture:notifications": "Websocket channel per API key, callbacks, mail flows (matched from imports or the case path)",
+  "fixture:portal": "Stage portals driven by Selenium, Cypress and Robot; the e2e webapp (matched from imports or the case path)",
+  "fixture:sda": "Secure Device Access routes; izprod only (matched from imports or the case path)",
+  "iotupd-3593-chunked-upload:large": "Upstream tag large",
+  "mbed-edge-javaclient:bletest": "Upstream tag bletest",
+  "mbed-edge-javaclient:ww-smoke-edge-resource": "Upstream tag ww_smoke_edge_resource",
+  "pelion-portal-tests:common": "Upstream tag common",
+  "pelion-portal-tests:new-account": "Upstream tag new_account",
+  "pelion-system-tests:common": "Upstream tag common",
+  "pelion-system-tests:device-lt120": "Upstream tag device_lt120",
+  "pelion-system-tests:device-lt300": "Upstream tag device_lt300",
+  "pelion-system-tests:long": "Upstream tag long",
+  "pelion-system-tests:new-account": "Upstream tag new_account",
+  "pelion-system-tests:radiator": "Upstream tag radiator",
+  "pelion-system-tests:sandbox": "Upstream tag sandbox",
+  "secsrv-qe-clitest-bdd:bug-iotft-231": "Tracks upstream bug IOTFT-231",
+  "secsrv-qe-clitest-bdd:bug-iotsplt-2121": "Tracks upstream bug IOTSPLT-2121",
+  "service:billing": "Calls a route the billing service serves: `billing-report`, `billing-report-active-devices`, `service-packages`",
+  "service:certificate-issuer": "Calls a route the certificate-issuer service serves: `certificate-enrollments`, `certificate-issuer-configurations`, `certificate-issuers`",
+  "service:connector-ca": "Calls a route the connector-ca service serves: `developer-certificates`, `server-credentials`",
+  "service:device-directory": "Calls a route the device-directory service serves: `device-events`, `device-groups`, `device-queries`, `devices`",
+  "service:enrollment": "Calls a route the enrollment service serves: `device-enrollment-bulk-uploads`, `device-enrollment-denials`, `device-enrollments`",
+  "service:iam": "Calls a route the iam service serves: `accounts`, `api-keys`, `auth`, `identity-providers`, `policies`, `policy-groups`, `trusted-certificates`, `user-invitations`, `users`",
+  "service:mds": "Calls a route the mds service serves: `device-echo`, `device-requests`, `endpoints`, `notification`, `subscriptions`, `v2-device-requests`, `v2-endpoints`, `v2-notification`, `v2-subscriptions`",
+  "service:statistics": "Calls a route the statistics service serves: `metrics`",
+  "service:update-service": "Calls a route the update-service service serves: `firmware-images`, `firmware-manifests`, `update-campaigns`",
+  "sla:local-service": "Repository tag of sla (test-tags.local.toml)"
+ },
+ "repos": {
+  "---": {
+   "tests": "---",
+   "framework": "---",
+   "fixtures": [],
+   "readme": ""
+  },
+  "DBQueue": {
+   "tests": "dbqueue service health",
+   "framework": "Gradle JUnit, offline",
+   "fixtures": [
+    "database-manipulator"
+   ],
+   "readme": "dbqueue is a Spring Boot service that queues device campaign rows in PostgreSQL. `integration-tests` holds its TestNG health cases.",
+   "ledger": {
+    "state": "partial",
+    "note": "offline: all 3 health cases run offline against dbqueue + PostgreSQL 10 in one image; no stage row",
+    "name": "ArmMbedCloud/DBQueue"
+   }
+  },
+  "EnrollmentSmokeTest": {
+   "tests": "Device enrollment list, bulk upload/delete, login",
+   "framework": "Python unittest",
+   "fixtures": [
+    "device-registry",
+    "accounts",
+    "read-only-guard"
+   ],
+   "readme": "Smoke test for the device enrollment bulk upload API. `src/smokeTest.py` logs in, lists enrollments, checks the bulk upload and delete status routes, and on k3s-golden uploads four enrollment identities and deletes them again. See `docs/nucloud.md` for `make test MACHINE=<stage>`.",
+   "ledger": {
+    "state": "at-target",
+    "note": "-",
+    "name": "ArmMbedCloud/EnrollmentSmokeTest"
+   }
+  },
+  "GoogleCloudConnectorExerciser": {
+   "tests": "",
+   "framework": "",
+   "fixtures": [],
+   "readme": "",
+   "ledger": {
+    "state": "deferred",
+    "note": "A 2019 exerciser for a customer bridge; needs a Google Cloud account.",
+    "name": "PelionIoT/GoogleCloudConnectorExerciser"
+   }
+  },
+  "Pelion-Edge-Testing": {
+   "tests": "KaaS API fuzzing, Coverity reports",
+   "framework": "shell + `nucloud_cases.py`",
+   "fixtures": [
+    "kaas",
+    "edge-gateway",
+    "accounts"
+   ],
+   "readme": "",
+   "ledger": {
+    "state": "below-target",
+    "note": "staging: blocked 3: read fuzz paths, edge-k8s /version returns 503. blocked 5: create and exec fuzz paths are writes, and edge-k8s returns 503.; offline: Coverity counter, 4 radamsa generators, 3 read executors and 2 filter.sh cases against a stub API. No cloud call.",
+    "name": "PelionIoT/Pelion-Edge-Testing"
+   }
+  },
+  "autocloud": {
+   "tests": "Account auto-creation helper; nucloud case runs against a local fake API",
+   "framework": "Python unittest, offline",
+   "fixtures": [
+    "accounts"
+   ],
+   "readme": "Automatically create accounts on mbed cloud, and get an API key.  Used for automated testing.",
+   "ledger": {
+    "state": "partial",
+    "note": "offline: Own test; make setup is idempotent on staging",
+    "name": "PelionIoT/autocloud"
+   }
+  },
+  "cassandra-performance-tests": {
+   "tests": "",
+   "framework": "",
+   "fixtures": [],
+   "readme": "",
+   "ledger": {
+    "state": "load",
+    "note": "Load suite: Cassandra performance runner, against the database.",
+    "name": "ArmMbedCloud/cassandra-performance-tests"
+   }
+  },
+  "client-e2e-python-test-library": {
+   "tests": "Device Management Client end to end: register, GET, PUT, subscribe, factory reset, update",
+   "framework": "pytest",
+   "fixtures": [
+    "simulated-device",
+    "bootstrap",
+    "firmware-update",
+    "accounts",
+    "read-only-guard"
+   ],
+   "readme": "Izuma Client E2E tests verify that a target platform can perform essential Device Management Client operations. The library is designed to be used with the [pytest test framework](https://docs.pytest.org/en/latest/).",
+   "ledger": {
+    "state": "at-target",
+    "note": "k3s-golden: 6 device cases on a simulated device, 3 read-only. Not run: 1, the guard case, staging only. Update applies no firmware and checks no signature; staging: GET only, HTTP guard. Not run: 6 device cases, bootstrapping writes; 1 update-campaign case, /v3/update-campaigns answers 404 on staging; offline: The guard refuses a write before it leaves the process",
+    "name": "PelionIoT/client-e2e-python-test-library"
+   }
+  },
+  "connect-tests": {
+   "tests": "Device Server (mds) end to end: bootstrap, registration, device requests, subscriptions, experience-data decryption; mds blackbox",
+   "framework": "Maven, Cucumber + JUnit",
+   "fixtures": [
+    "connect-api",
+    "bootstrap",
+    "simulated-device",
+    "lwm2m",
+    "certificate-issuer",
+    "device-registry",
+    "notifications",
+    "hsm",
+    "accounts"
+   ],
+   "readme": "This is a repository for Device Server cloud end-to-end tests.",
+   "ledger": {
+    "state": "at-target",
+    "note": "k3s-golden: Retained R credit: 136 passes. S certificate-bootstrap and both original experience-data scenarios pass. V2 and V4 each pass all 12 unchanged steps with real guarded batch-key POST200 and DTLS/notification websocket traffic; encrypted notification payload assertions verify real decryption. V2 retains three earlier local harness attempts separately with no Cloud credit; V4 passes its first run. Exact subscription prestate is restored, key channels and run-owned CAs are absent, and accepted devices remain. Both successes stay excluded from replay. Source/image/request/cleanup evidence: .claude/iterate/evidence/sanderling/connect-experience-results-v2-startup and connect-experience-results-v4. No Cloud source, service image, configuration or key-policy changes.; offline: Self-hosted mds Compose blackbox: 186 JUnit passes and 146 Cucumber scenario passes; 12 upstream @Ignore. Fixture stack and networks removed. Does not prove k3s-golden behavior.",
+    "name": "ArmMbedCloud/connect-tests"
+   }
+  },
+  "connector-ca-apigw-test": {
+   "tests": "Connector CA routes: server credentials, developer certificate lifecycle",
+   "framework": "Python unittest",
+   "fixtures": [
+    "certificate-issuer",
+    "connect-api",
+    "accounts"
+   ],
+   "readme": "Tests the connector CA routes: bootstrap and LwM2M server credentials, and the developer certificate lifecycle. `test.py` reads the stage from `NUCLOUD_*` variables. The developer certificate case runs on every stage that takes writes and deletes its certificate. See `docs/nucloud.md` for `make test MACHINE=<stage>`.",
+   "ledger": {
+    "state": "at-target",
+    "note": "-",
+    "name": "ArmMbedCloud/connector-ca-apigw-test"
+   }
+  },
+  "device-insights-ttest-kafka": {
+   "tests": "notification-kafka-dummy writes a REST notification to Kafka",
+   "framework": "Gradle + TestNG, offline",
+   "fixtures": [
+    "kafka",
+    "notifications"
+   ],
+   "readme": "notification-kafka-dummy is a Spring Boot service that takes a notification over REST and writes it to a Kafka topic. `integration-tests` holds its TestNG case.",
+   "ledger": {
+    "state": "partial",
+    "note": "offline: the 1 case runs offline against notification-kafka-dummy + Kafka in one image and lands 1 message on INPUT-topic; no stage row",
+    "name": "ArmMbedCloud/device-insights-ttest-kafka"
+   }
+  },
+  "device-sentry-tests": {
+   "tests": "device-sentry services over Kafka/Mongo/Postgres",
+   "framework": "Gradle + JUnit, offline",
+   "fixtures": [
+    "device-sentry-stack",
+    "kafka"
+   ],
+   "readme": "`make test` builds one image that holds the suite and the stack the compose files start: MongoDB 4.2, PostgreSQL 10, ZooKeeper and Kafka 2.5, and the seven services, built from ArmMbedCloud device-sentry, sentry-policy, sentry-device-status, sentry-campaign-manager (with its integration-tests dummy), sentry-alerts and sentry-history at pinned commits. Each service keeps its compose name and port 8080 on its own loopback address. The suite calls no stage. `SUITES='*HealthTest'` runs a subset.",
+   "ledger": {
+    "state": "partial",
+    "note": "offline: all 15 static cases run offline against the seven services built from source in one image; no stage row: device-sentry runs on no stage",
+    "name": "ArmMbedCloud/device-sentry-tests"
+   }
+  },
+  "device-server-loadtest": {
+   "tests": "",
+   "framework": "",
+   "fixtures": [],
+   "readme": "",
+   "ledger": {
+    "state": "load",
+    "note": "Load suite: performance tools for device-server.",
+    "name": "PelionIoT/device-server-loadtest"
+   }
+  },
+  "device-simulator": {
+   "tests": "Simulated LwM2M device registration; vendored aiocoap tests; device source for other suites",
+   "framework": "sh + pytest",
+   "fixtures": [
+    "simulated-device",
+    "bootstrap",
+    "lwm2m",
+    "accounts"
+   ],
+   "readme": "A Python application to simulate devices which can connect to Pelion Cloud The simulator now has support for * __TCP__ using TLS * __UDP__ using DTLS - Supported on Ubuntu 18.04+ only as needs >=Openssl 1.1.0. UDP support is also available via a docker build * __Update__ using __HTTP__ or __COAP__ - select update method as **http** or **coap** using config option __*update_method*__ in config file * __Cli client__ to simulate change in behaviour locally to the device (instead of a trigger from the cloud). New commands being continuously added to it",
+   "ledger": {
+    "state": "at-target",
+    "note": "staging: 2 upstream expected failures; k3s-golden: 2 upstream expected failures",
+    "name": "ArmMbedCloud/device-simulator"
+   }
+  },
+  "e2e-edge-test-suite": {
+   "tests": "Gateway online state, LwM2M resources, kubectl, remote terminal, websocket notifications",
+   "framework": "pytest + `izuma_systest_lib`",
+   "fixtures": [
+    "edge-gateway",
+    "kaas",
+    "lwm2m",
+    "notifications",
+    "accounts",
+    "jenkins"
+   ],
+   "readme": "This is the Python test suite for Izuma Edge end-to-end tests. The library is designed to be used with the [pytest test framework](https://docs.pytest.org/en/latest/).",
+   "ledger": {
+    "state": "below-target",
+    "note": "staging: ACCOUNT=edge on opossum-edge-gw. 4 blocked: edge-k8s 503 (kaas not installed on staging); 3 blocked: /v3alpha/devices/{id}/console 404, staging api-gw whitelist turns gateway-terminal-users off; 1 not run: reboot case. POST /v2/device-requests gave an intermittent 500 (2 in about 280 probe requests, 0 in runs 2 and 3)",
+    "name": "PelionIoT/e2e-edge-test-suite"
+   }
+  },
+  "e2e-iot-dlms-service-notification-generator-tool": {
+   "tests": "",
+   "framework": "",
+   "fixtures": [],
+   "readme": "",
+   "ledger": {
+    "state": "load",
+    "note": "Load suite: not read yet; the ledger files it with load tools.",
+    "name": "PelionIoT/e2e-iot-dlms-service-notification-generator-tool"
+   }
+  },
+  "e2e-iot-dlms-service-pelion-simulator": {
+   "tests": "",
+   "framework": "",
+   "fixtures": [],
+   "readme": "",
+   "ledger": {
+    "state": "closed",
+    "note": "A mock of the cloud for the DLMS service, with no cases; no stage deploys that service.",
+    "name": "PelionIoT/e2e-iot-dlms-service-pelion-simulator"
+   }
+  },
+  "e2e-iot-dlms-service-test-app": {
+   "tests": "",
+   "framework": "",
+   "fixtures": [],
+   "readme": "",
+   "ledger": {
+    "state": "closed",
+    "note": "A fake utility backend for the DLMS smart-meter service; its 185 cases are offline self-tests, and no stage deploys that service.",
+    "name": "PelionIoT/e2e-iot-dlms-service-test-app"
+   }
+  },
+  "e2eIoT-cli-test-bdd": {
+   "tests": "DB-HSM service, API gateway auth, FCC/KCM/FCU locally",
+   "framework": "Behave + mbed-clitest",
+   "fixtures": [
+    "hsm",
+    "factory-tool",
+    "connect-api",
+    "accounts",
+    "read-only-guard",
+    "jenkins"
+   ],
+   "readme": "Security Services QE tests.",
+   "ledger": {
+    "state": "partial",
+    "note": "k3s-golden: Retained API gateway authentication results. The 876-case historical stage scope excludes 596 local identities: 30 enabled auth, 832 HSM, 6 FCU downloads, 4 disabled refresh-token identities and 4 unresolved historical hardware wrappers. HSM/JWT routes and FCU downloads are unavailable; the hardware wrappers have collection/parser defects and are not a validated expanded-leaf catalog. No cloud replay.; staging: Retained 15 GET-only API-key authentication results. The 876-case historical stage scope excludes 596 local identities; the other 15 enabled auth cases require POST login and remain outside the staging selection. The other exclusions match golden.; offline: Original local catalog: 596 identities, 394 attempted. Failures: 21 filename-status mismatches; 6 FCC parameter, root-of-trust or entropy status mismatches; 1 disabled-state status; 4 FCU rejections; 1 unexpected BYOC encoding acceptance; 2 absent legacy schema fields. Not run: 117 upstream-tag exclusions, 70 operator/debug blob fixtures, 1 compiled developer credential, 4 held stress cases and 10 outlines blocked by an unconditional missing-schema preamble. Source docs/process-case-results.json names all identities, actual verdicts, causes, commands and images. Eight additional harness checks are excluded. Real FCC/KCM/FCU uses a verified network-none/loopback namespace; supplied assertions and payloads are preserved.",
+    "name": "PelionIoT/e2eIoT-cli-test-bdd"
+   }
+  },
+  "e2eIoT-cli-test-pytest": {
+   "tests": "Device Based Authorization server HTTP bad paths",
+   "framework": "pytest-bdd + mbed-clitest",
+   "fixtures": [
+    "dba",
+    "accounts",
+    "jenkins"
+   ],
+   "readme": "Since we use mbed-clitest, we need to have testcase files that clitest can use. Since we use Pytest-bdd, we also need pytest testcase files.",
+   "ledger": {
+    "state": "below-target",
+    "note": "k3s-golden: Current collected36 DBAcases blocked: GET/OPTIONS 404on /v3/trust-anchors and /ace-auth/token. Undefined token step implemented; bypass diagnostic runs16 token cases with15 route failures and1 expected404that proves no service behavior.; staging: Current collected36 DBAcases blocked by absent routes; probes and oneGET only,0 writes.",
+    "name": "PelionIoT/e2eIoT-cli-test-pytest"
+   }
+  },
+  "e2eIot-system-test-provisioning": {
+   "tests": "FactoryTool leaves and the FCC/MCC registration demo",
+   "framework": "pytest + mbed-clitest",
+   "fixtures": [
+    "factory-tool",
+    "simulated-device",
+    "bootstrap",
+    "certificate-issuer",
+    "device-registry",
+    "accounts",
+    "jenkins"
+   ],
+   "readme": "`utils\\virtualenv\\create_pytest_virtualenv.cmd`",
+   "ledger": {
+    "state": "at-target",
+    "note": "k3s-golden: DUT=process: original FCC/MCC demo passes using probes. Real factory injection, native registration and exact device GET; owned certificate POST/PUT and cleanup404 verified. Device records remain.; offline: DUT=process: 28 original FactoryTool leaves, 0 failures. Three wrappers map 8 custom-chain, 13 mode2 and 7 mode4 leaves. Real native FCC and FCU; original assertions unchanged.; staging: Full run e2eiot-2b-staging (2026-11-12T22:14:58Z): staging runs write cases; 29 passed, 0 failed or errored, 0 skipped (summary). Log .claude/testmaster/runs/suite.staging.log.",
+    "name": "PelionIoT/e2eIot-system-test-provisioning"
+   }
+  },
+  "edge-nft-test-suite": {
+   "tests": "Load on cloud-ui-server `/wigwag` reads",
+   "framework": "JMeter",
+   "fixtures": [
+    "cloud-ui-server",
+    "edge-gateway",
+    "accounts"
+   ],
+   "readme": "`os2api.jmx` sends the cloud-ui-server device reads (`/wigwag/cloud-ui-server/v2/accounts/{account}/sites/{site}/...`) from 5 threads, 5 loops each. It reads the host, `protocol`, `port` and `apiKey` from JMeter properties; its two PATCH samplers stay disabled.",
+   "ledger": {
+    "state": "below-target",
+    "note": "staging: 1 blocked: GET api.izuma.io/wigwag/cloud-ui-server/version 404, staging api-gw whitelist turns cloud-ui-server off; no staging host serves /wigwag (gateways 401/device-cert 404, edge-k8s and containers 503, portals SPA fallback); offline: make smoke: the plan's 8 GET samplers x 25 against a localhost stub; proves the harness, not the cloud",
+    "name": "PelionIoT/edge-nft-test-suite"
+   }
+  },
+  "fargate": {
+   "tests": "",
+   "framework": "",
+   "fixtures": [],
+   "readme": "",
+   "ledger": {
+    "state": "load",
+    "note": "Load suite: Statuspage Docker image with a REST JMeter plan, likely light.",
+    "name": "PelionIoT/fargate"
+   }
+  },
+  "gateway-health-monitor": {
+   "tests": "gw-exporter metrics, search-party gateway finder",
+   "framework": "Node + MariaDB, sanderling harness",
+   "fixtures": [
+    "edge-gateway",
+    "cloud-ui-server",
+    "database-manipulator",
+    "sanderling-controls",
+    "accounts",
+    "jenkins"
+   ],
+   "readme": "1. gw-exporter - Prometheus exporter for Pelion Edge hardware and OS metrics. It also hosts the Grafana dashboard to monitor the stats of gateways. 1. search-party - A tool which finds the gateways slated for e2e testing.",
+   "ledger": {
+    "state": "below-target",
+    "note": "offline: collector metrics from a fixture, MariaDB table and row, /metrics, search-party whitelist. not run 2: Jenkins test cases removed, pe-jm.usa.arm.com does not resolve.; staging: Full run edge-1a-after-staging (2026-11-13T02:38:38Z): staging runs write cases; 19 passed, 4 failed or errored, 0 skipped (summary). Log .claude/testmaster/runs/suite.staging.log.",
+    "name": "PelionIoT/gateway-health-monitor"
+   }
+  },
+  "iotsystest-docker-tools": {
+   "tests": "",
+   "framework": "",
+   "fixtures": [],
+   "readme": "",
+   "ledger": {
+    "state": "load",
+    "note": "Load suite: containers of test tools, including a load generator; it drives no load alone.",
+    "name": "PelionIoT/iotsystest-docker-tools"
+   }
+  },
+  "iotupd-3593-chunked-upload": {
+   "tests": "Chunked firmware image upload",
+   "framework": "pytest",
+   "fixtures": [
+    "firmware-update",
+    "accounts"
+   ],
+   "readme": "Firmware image upload in chunks (IOTUPD-3593). `test_chunked_upload.py` uploads images through `/v3/firmware-images/upload-jobs`, checks the stored size, and deletes the image and job. The cases run on k3s-golden with a tier 2 account (`ACCOUNT=tier2`). `SUITES=\"-m large\"` selects the 3900 MiB upload. See `docs/nucloud.md` for `make test MACHINE=<stage>`.",
+   "ledger": {
+    "state": "below-target",
+    "note": "k3s-golden: All6 chunk-upload cases hit500on POST upload-jobs/{id}/chunks, reproduced with a1 KiB direct probe; job create 201and delete 204work. No leftover job,image,manifest,campaign.",
+    "name": "PelionIoT/iotupd-3593-chunked-upload"
+   }
+  },
+  "izdm-pprof": {
+   "tests": "Async device-request load probe",
+   "framework": "Go binary",
+   "fixtures": [
+    "lwm2m",
+    "simulated-device",
+    "notifications",
+    "accounts"
+   ],
+   "readme": "A Go program that simulates async LwM2M device requests similar to the k6 JavaScript implementation. It fetches registered devices, establishes a WebSocket connection for receiving async responses, and sends device requests at a configured rate per device.",
+   "ledger": {
+    "state": "at-target",
+    "note": "k3s-golden: 8 requests on TCP and UDP; staging lists devices only",
+    "name": "IzumaNetworks/izdm-pprof"
+   }
+  },
+  "izuma-canary": {
+   "tests": "k6 canary: accounts, connector CA, developer certificates, object storage, LwM2M GRM",
+   "framework": "k6",
+   "fixtures": [
+    "accounts",
+    "certificate-issuer",
+    "connect-api",
+    "object-storage",
+    "edge-gateway"
+   ],
+   "readme": "K6-based canary test that calls multiple Izuma Cloud API endpoints and exports metrics to Prometheus (remote-write), visualized in Grafana.",
+   "ledger": {
+    "state": "at-target",
+    "note": "-",
+    "name": "IzumaNetworks/izuma-canary"
+   }
+  },
+  "jenkins-sla-device-tester": {
+   "tests": "Device API SLA: registered device, subscription",
+   "framework": "pytest",
+   "fixtures": [
+    "simulated-device",
+    "device-registry",
+    "connect-api",
+    "accounts",
+    "jenkins"
+   ],
+   "readme": "SLA Device API tester: one pass against one device. See `README.rst` and `docs/nucloud.md`.",
+   "ledger": {
+    "state": "at-target",
+    "note": "-",
+    "name": "ArmMbedCloud/jenkins-sla-device-tester"
+   }
+  },
+  "jenkins-sla-rest-tester": {
+   "tests": "REST API SLA over 18 public routes",
+   "framework": "Python",
+   "fixtures": [
+    "connect-api",
+    "firmware-update",
+    "accounts",
+    "jenkins"
+   ],
+   "readme": "REST API SLA tester: one pass over the read-only API routes. See `README.rst` and `docs/nucloud.md`.",
+   "ledger": {
+    "state": "at-target",
+    "note": "k3s-golden: All18 real route checks pass on golden.; staging: GET and OPTIONS 404prove update-campaigns, firmware-images and firmware-manifests routes are absent;3 not-run.",
+    "name": "ArmMbedCloud/jenkins-sla-rest-tester"
+   }
+  },
+  "kaas-debug-tools": {
+   "tests": "Not a suite: pod create/delete repro for bug 134 (not a suite, not stamped)",
+   "framework": "Python + kubectl",
+   "fixtures": [
+    "kaas"
+   ],
+   "readme": "moche01@MacBook-Pro kaas % python repro-134.py pod.yaml Using pod.yaml with pod name mo-test-pod pod \"mo-test-pod\" deleted try_count = 1 pod/mo-test-pod created created after 1 seconds pod \"mo-test-pod\" deleted try_count = 2 pod/mo-test-pod created created after 1 seconds pod \"mo-test-pod\" deleted try_count = 3 pod/mo-test-pod created created after 0 seconds pod \"mo-test-pod\" deleted",
+   "ledger": {
+    "state": "deferred",
+    "note": "Its only tool is a pod create and delete loop through edge-k8s, which returns 503, so nothing can run and the repo stays unbranched.",
+    "name": "PelionIoT/kaas-debug-tools"
+   }
+  },
+  "legio": {
+   "tests": "Product source for Legio, not a cloud suite (not a suite, not stamped)",
+   "framework": "cargo / just",
+   "fixtures": [
+    "legio-sut"
+   ],
+   "readme": "Multi-tenant, multi-cluster Kubernetes control-plane manager, in Rust."
+  },
+  "legiotest": {
+   "tests": "Full-system tests of Legio",
+   "framework": "Go + Testify",
+   "fixtures": [
+    "legio-sut",
+    "kaas"
+   ],
+   "readme": "LegioTest is the full-system test orchestrator for [Legio](https://github.com/IzumaNetworks/legio). It follows MyriTest's Go, Testify, sequential-suite, real-Kubernetes, and HTML-reporting patterns while targeting Legio's REST, gRPC, CLI, agent, registry, and controller contracts.",
+   "ledger": {
+    "state": "partial",
+    "note": "self-hosted: Legio built from source on one incus VM with two k3d clusters (scripts/nucloud-legio-vm.sh). 3 login and 4 cluster-import cases pass. Not run: 129 Gap() scaffolds with no test body, marked xfail by the suite.; offline: Framework contract and smoke cases, no Legio call.",
+    "name": "IzumaNetworks/legiotest"
+   }
+  },
+  "lwm2m-bootstrapper": {
+   "tests": "Go LwM2M bootstrap/registration tool over DTLS",
+   "framework": "go test + sh",
+   "fixtures": [
+    "bootstrap",
+    "certificate-issuer",
+    "lwm2m",
+    "device-registry",
+    "accounts"
+   ],
+   "readme": "This is a test tool to bootstrap to a LWM2M server to acquire a certificate and private key for use with edge-proxy.",
+   "ledger": {
+    "state": "at-target",
+    "note": "k3s-golden: Server credentials, CA bootstrap, CA lwm2m and developer bootstrap over real DTLS, each confirmed by GET /v3/devices.; staging: GET /v3/server-credentials. Not run: 3, bootstrap writes.; offline: TLV unit case.",
+    "name": "PelionIoT/lwm2m-bootstrapper"
+   }
+  },
+  "mbed-client-e2e-app": {
+   "tests": "Mbed OS e2e app; `boot_smoke_test` on a simulated process DUT",
+   "framework": "clitest `--type process`",
+   "fixtures": [
+    "simulated-device",
+    "bootstrap",
+    "accounts",
+    "jenkins"
+   ],
+   "readme": "This is the \"Real world\" E2E testing application for mbed-client/mbed-cloud-client and cloud. It is used to simulate and test real-world usecases incorporating the entire system from embedded hardware all the way to the cloud, on realistically constrained devices with approximated HW setups.",
+   "ledger": {
+    "state": "partial",
+    "note": "k3s-golden: boot_smoke_test on a simulated process DUT: proves registration on the stage, never runs the C++ firmware. Not run: 1, flash_device needs a board and asserts nothing; staging: Not run: 1, bootstrapping writes; 1, flash_device needs a board",
+    "name": "PelionIoT/mbed-client-e2e-app"
+   }
+  },
+  "mbed-client-e2e-webapp": {
+   "tests": "e2e dashboard webapp client and server",
+   "framework": "karma + mocha, offline",
+   "fixtures": [
+    "portal",
+    "connect-api"
+   ],
+   "readme": "Web application for E2E testing using the Mbed Cloud SDK.",
+   "ledger": {
+    "state": "partial",
+    "note": "offline: No case calls a stage. client 52/52 in headless Chromium, server 27/27 on mongod 3.4. Not run: 1, client/e2e protractor spec, which make test does not start (it needs a served app; not attempted). Dropped: 6 server cases on removed APIs (find, getEndpoints, synchronize, _getResources, selectResource, functional GET /api/locations). The 52 client specs are \"should create\" checks: each renders the real component in the real module graph and asserts only truthiness",
+    "name": "PelionIoT/mbed-client-e2e-webapp"
+   }
+  },
+  "mbed-client-service": {
+   "tests": "mcs-server, mcs-node, fcu-server; live certificate/device cases",
+   "framework": "mocha + pytest + bash",
+   "fixtures": [
+    "mcs-stack",
+    "certificate-issuer",
+    "simulated-device",
+    "bootstrap",
+    "factory-tool",
+    "lwm2m",
+    "accounts"
+   ],
+   "readme": "This project allows you to create and manage Mbed Cloud Clients (running in Linux processes) with HTTP REST requests. This allows you to write applications and tests in higher level languages.",
+   "ledger": {
+    "state": "at-target",
+    "note": "k3s-golden: Live cases: certificate, credential, device bootstrap and registration over real DTLS. Registers and deregisters in one run.; staging: Not run: live 6 write.; offline: mcs-server 70, mcs-node 2, fcu-server 2, on real PostgreSQL and Elasticsearch.",
+    "name": "PelionIoT/mbed-client-service"
+   }
+  },
+  "mbed-client-service-library": {
+   "tests": "Python client library for mcs-server",
+   "framework": "pytest",
+   "fixtures": [
+    "mcs-stack",
+    "certificate-issuer",
+    "simulated-device",
+    "bootstrap",
+    "accounts"
+   ],
+   "readme": "This library allows you to make calls to the [mbed-client-service](https://github.com/ARMmbed/mbed-client-service).",
+   "ledger": {
+    "state": "at-target",
+    "note": "k3s-golden: Rewritten on the current library API, against mbed-client-service pinned in packages/ with devices bootstrapping over real DTLS; staging: Full run client-2-staging (2026-11-13T02:38:50Z): staging runs write cases; 4 passed, 0 failed or errored, 0 skipped (pytest). Log .claude/testmaster/runs/suite.staging.log.",
+    "name": "PelionIoT/mbed-client-service-library"
+   }
+  },
+  "mbed-client-service-library-js": {
+   "tests": "Node client library for mcs-server",
+   "framework": "mocha, offline",
+   "fixtures": [
+    "mcs-stack"
+   ],
+   "readme": "This is a node.js library for dealing with [mbed-client-service](https://github.com/armmbed/mbed-client-service), which allows you to quickly spin up multiple mbed Cloud Client instances.",
+   "ledger": {
+    "state": "partial",
+    "note": "offline: Against a live mbed-client-service in the image; its cloud host is a closed port. Not run: 2, register and deregister routes are gone; 1, the service serves no socket.io; 1, the library cannot start a device, so setValue stores nothing",
+    "name": "PelionIoT/mbed-client-service-library-js"
+   }
+  },
+  "mbed-clitest-mbed-client": {
+   "tests": "Native Device Management Client 4.13.2 against LwM2M/Connect",
+   "framework": "mbed-clitest",
+   "fixtures": [
+    "simulated-device",
+    "bootstrap",
+    "certificate-issuer",
+    "notifications",
+    "lwm2m",
+    "accounts",
+    "jenkins"
+   ],
+   "readme": "Test selections, account isolation, and case inventory: [docs/tests.md](docs/tests.md).",
+   "ledger": {
+    "state": "partial",
+    "note": "k3s-golden: 393 cloud cases. Results combine original clitest account-collision evidence with 5 isolated onprem recovery passes. Not run: 17 inconclusive, 39 unreached, 252 unselected. Five retained registration-notification failures are not independently reproduced on onprem.; offline: 428 offline cases. The 128 passes comprise 126 DSMock cases and 2 distinct local cases from the cloud suite; the duplicate suite identity is excluded. Two hardware cases are outside both class-scoped rows and remain not run.; staging: Staging runs the 393 cloud cases as clitest-mbedclient (ad85decb39a0). Full run client-1c-staging timed out at the 90 m default (257 cases reached); the suite needs --timeout 180m. No completed staging run yet.",
+    "name": "PelionIoT/mbed-clitest-mbed-client"
+   }
+  },
+  "mbed-clitest-systemtest": {
+   "tests": "IAM, API gateway, billing, cert renewal, connector, factory tool, SDA, update, process-DUT",
+   "framework": "icetea/clitest",
+   "fixtures": [
+    "accounts",
+    "private-gateway",
+    "simulated-device",
+    "factory-tool",
+    "firmware-update",
+    "sda",
+    "certificate-issuer",
+    "billing",
+    "sanderling-controls",
+    "jenkins"
+   ],
+   "readme": "Testcases are divided to folders per feature/service. Most of the cases are using Mbed Clitest test framework.",
+   "ledger": {
+    "state": "below-target",
+    "note": "k3s-golden: Retained R counts. S executes two original API-key factory download/metadata cases once; both retain failed assertions (authenticated GET404 versus expected403). No new passing credit or fixture writes; old successful cases and genuine failures stay excluded from replay. Current receipts: .claude/iterate/evidence/sanderling/consumer-resume-original-receipt.json and consumer-info-original-receipt.json. 477 source cases incl 1 offline; docs/nucloud-results.tsv names every failure and exclusion. Blockers: unavailable factory/FCU and synchronous resource routes; unsupported identity/BYOC/mini-client commands; missing client/manifest/build/network fixtures; external-CA bytes drift and unassigned credentials; CAPTCHA; closed-month billing data and metrics route; firmware internal URL; token expiry still 200; statistics authorization/files; 120s DUT bounds. Bounded recovery: 26/34 pass, no assertion weakened.; offline: factory_reset checks the process DUT's local factory storage only; no cloud assertion, excluded from golden passes; staging: Full run system-1b-staging (2026-11-12T22:20:35Z): staging runs write cases; 70 passed, 90 failed or errored, 0 skipped (summary). Log .claude/testmaster/runs/suite.staging.log.",
+    "name": "PelionIoT/mbed-clitest-systemtest"
+   }
+  },
+  "mbed-clitest-updateqa": {
+   "tests": "",
+   "framework": "",
+   "fixtures": [],
+   "readme": "",
+   "ledger": {
+    "state": "closed",
+    "note": "Archived; every case duplicates mbed-clitest-systemtest or qe-update, confirmed by a scratch trial.",
+    "name": "PelionIoT/mbed-clitest-updateqa"
+   }
+  },
+  "mbed-cloud-sdk-bdd": {
+   "tests": "SDK API-key and config behavior",
+   "framework": "behave",
+   "fixtures": [
+    "accounts",
+    "read-only-guard"
+   ],
+   "readme": "Business Driven Development test definitions (Cucumber format) for the Mbed Cloud SDKs",
+   "ledger": {
+    "state": "at-target",
+    "note": "k3s-golden: 4 scenarios reach the cloud.; staging: Not run: 4 API key scenarios need a POST.; offline: Config and compare scenarios make no cloud call.",
+    "name": "PelionIoT/mbed-cloud-sdk-bdd"
+   }
+  },
+  "mbed-cloud-sdk-testrunner": {
+   "tests": "Python SDK entity and module calls via SDK test server",
+   "framework": "pytest",
+   "fixtures": [
+    "accounts",
+    "sdk-account-state",
+    "firmware-update",
+    "certificate-issuer",
+    "connect-api",
+    "billing",
+    "portal",
+    "sanderling-controls",
+    "read-only-guard",
+    "jenkins"
+   ],
+   "readme": "For consistent integration level testing of the Pelion Device Management SDKs, the tests are defined centrally in this repository. The SDKs are then tested via an HTTP interface (that is obviously language agnostic), which therefore allows these tests to be run across all SDKs.",
+   "ledger": {
+    "state": "below-target",
+    "note": "k3s-golden: Retained R credit: 262 passes. S adds seven unchanged original passes: six PolicyGroup/Subtenant cases and one LWM2M certificate-list case. Certificate canonical003 maps to isolated collector001 through verified function/class/source lineage; its owned CA POST201/DELETE204/GET404 and container removal have retained receipts. Query process exits0 but terminal proof is unavailable: it stays uncredited and excluded from replay; one cleanup GET verifies absence. Six genuine failures remain. No Cloud source/configuration changes or successful-case reruns.; staging: 165 GET-only selected cases:101 pass,14 fail,50 skip;306 unselected.689 GET,0 writes. Blocked9 update routes 404,4 branding-images500,1null password_policy.minimum_length. Skips name absent prerequisite records.; offline: Passing main-run nodes with no cloud request, joined independently against per-test transport call IDs.",
+    "name": "PelionIoT/mbed-cloud-sdk-testrunner"
+   }
+  },
+  "mbed-cloud-systemtest-library": {
+   "tests": "Library code used by other suites",
+   "framework": "pytest, offline",
+   "fixtures": [
+    "lwm2m",
+    "factory-tool",
+    "sdk-facade",
+    "jenkins"
+   ],
+   "readme": "Common helpers to enable easier system testing for mbed cloud. This is Python lib and meant to be used witch clitest test framework. Also it will have dependencies with mbed cloud python SDK",
+   "ledger": {
+    "state": "partial",
+    "note": "offline: rcc_helpers tests need a retired lab address",
+    "name": "PelionIoT/mbed-cloud-systemtest-library"
+   }
+  },
+  "mbed-edge-javaclient": {
+   "tests": "Java edge client: JUnit, osmo model, pytest system tests",
+   "framework": "iwant/JUnit + osmo + pytest",
+   "fixtures": [
+    "edge-gateway",
+    "connect-api",
+    "notifications",
+    "lwm2m",
+    "accounts",
+    "jenkins"
+   ],
+   "readme": "* java-client: End2end tests (with tools) for Pelion Edge * system-test: System level tests for Pelion edge * as-mbed-gw-developer: iwant build mechanism for java-client",
+   "ledger": {
+    "state": "partial",
+    "note": "staging: 144 pytest and 1 osmo model run on opossum-edge-gw. fail 3: edge-core 0.21 has no /10255/0/1, /10255/0/2, /10255/0/5. not_run: 81 gateway PUT and POST cases fire Reboot, Update and factory reset on the only suite gateway and PUT /v2/endpoints is 404; 58 WigWag cases, /v3alpha returns 404; 37 RaaS cases, 62.44.193.186:8114 unreachable; 13 callback cases, callback-handler.t-ocdn.com does not resolve; 6 cases start their own edge-core with a developer certificate; 3 tc_raas_smoke start-edge, build-revision and factory-reset cases; 1 skip in the case itself; 1 BLE hardware; 1 tc_remove_devices_from_cloud never runs; Osmo cloud model needs RCC, whose host does not resolve; Robot wise3610 needs RaaS; offline: JUnit across 8 modules in the image",
+    "name": "PelionIoT/mbed-edge-javaclient"
+   }
+  },
+  "mbed-guitests-systemtest": {
+   "tests": "Portal and Admin Console UI",
+   "framework": "Robot Framework",
+   "fixtures": [
+    "portal",
+    "simulated-device",
+    "accounts"
+   ],
+   "readme": "Here are the collections of info to install Robot framework and run test cases.",
+   "ledger": {
+    "state": "below-target",
+    "note": "k3s-golden: Portal selection with two held stage devices passes through TESTMASTER in 285471 ms:20 page loads,14 MFA,2 password recovery,16 device browser cases. Excluded 3 tier 99 page checks and7 blocked mailbox/CAPTCHA/portal-defect cases. AdminConsole and legacy IAM/portal_old stay outside the default 62-case selection. Simulator certificate deleted; device records retained.; staging: Full run system-3g-staging (2026-11-13T02:16:39Z): staging runs write cases; 41 passed, 13 failed or errored, 0 skipped (summary). Log .claude/testmaster/runs/suite.staging.log.",
+    "name": "PelionIoT/mbed-guitests-systemtest"
+   }
+  },
+  "mbed-mbt-systemtest": {
+   "tests": "Model-based IAM tests",
+   "framework": "pyosmo under icetea",
+   "fixtures": [
+    "accounts",
+    "read-only-guard"
+   ],
+   "readme": "This repository contains tests implemented as model mased testing using [pyosmo](https://github.com/OPpuolitaival/pyosmo) and [icetea](https://github.com/ARMmbed/icetea).",
+   "ledger": {
+    "state": "at-target",
+    "note": "k3s-golden: The 1 static case generates 20 tests of 15 steps on users, API keys and groups; staging: Full run system-1b-staging (2026-11-12T22:17:17Z): staging runs write cases; 20 passed, 0 failed or errored, 0 skipped (summary). Log .claude/testmaster/runs/suite.staging.log.",
+    "name": "PelionIoT/mbed-mbt-systemtest"
+   }
+  },
+  "mbed-nft-systemtest": {
+   "tests": "",
+   "framework": "",
+   "fixtures": [],
+   "readme": "",
+   "ledger": {
+    "state": "load",
+    "note": "Load suite: JMeter performance tests with AWS load generators.",
+    "name": "PelionIoT/mbed-nft-systemtest"
+   }
+  },
+  "mbedServiceCheck": {
+   "tests": "Field service check: portal, `/v2/endpoints`, mbed.com sites",
+   "framework": "Python",
+   "fixtures": [
+    "portal",
+    "connect-api",
+    "read-only-guard"
+   ],
+   "readme": "When services are not working, or slow, we need a standard way for field engineers to diagnose the issue / report relevant metrics. This script is meant to be a standard way for in field engineers to measure the performance of our services around the world.",
+   "ledger": {
+    "state": "partial",
+    "note": "k3s-golden: Portal title, stage apiBase and JavaScript bundle checks pass. Connector GET and OPTIONS 404;16 mbed.comredirects and6 retired Git hosts stay not-run.7 read-only calls.; staging: Portal content checks pass; connector absent(1), unrelated mbed.comredirects(16), retired Git hosts(6) stay not-run.7 GET/OPTIONScalls,0 writes.",
+    "name": "PelionIoT/mbedServiceCheck"
+   }
+  },
+  "mds-rest-testing": {
+   "tests": "REST client container against mds REST API",
+   "framework": "JUnit + pytest",
+   "fixtures": [
+    "connect-api",
+    "simulated-device"
+   ],
+   "readme": "mbed Device Server REST client container",
+   "ledger": {
+    "state": "at-target",
+    "note": "-",
+    "name": "PelionIoT/mds-rest-testing"
+   }
+  },
+  "myritest": {
+   "tests": "Integration tests of Myriplane",
+   "framework": "Go + Testify",
+   "fixtures": [
+    "myriplane-sut",
+    "kaas",
+    "database-manipulator"
+   ],
+   "readme": "Integration test suite for [Myriplane](https://github.com/IzumaNetworks/myriplane).",
+   "ledger": {
+    "state": "at-target",
+    "note": "offline: unit tests against scratch Postgres; leaf cases only, raw Go 109 passes include 6 parent records; self-hosted: self-hosted Myriplane from source, 16 packages; leaf cases only, excludes 21 passing parent records; 1 needs third pool cluster, 2 need Cilium ClusterMesh, 1 upstream unconditional invalid-config skip, 4 Keycloak cases need an IDP, 4 myriagent cases omitted by default package expansion; all 3 owned VMs stopped",
+    "name": "IzumaNetworks/myritest"
+   }
+  },
+  "notification-svc-perftest": {
+   "tests": "",
+   "framework": "",
+   "fixtures": [],
+   "readme": "",
+   "ledger": {
+    "state": "load",
+    "note": "Load suite: notification performance tests run as Kubernetes jobs.",
+    "name": "PelionIoT/notification-svc-perftest"
+   }
+  },
+  "old-pelion-edge-ready-test-suite": {
+   "tests": "PERTS levels L1-L5 run on the gateway",
+   "framework": "mocha",
+   "fixtures": [
+    "edge-gateway",
+    "kaas",
+    "accounts",
+    "jenkins"
+   ],
+   "readme": "For documentation about the Pelion Edge ready test suite, please see the [Pelion Edge documentation](https://developer.pelion.com/docs/device-management-edge/latest/testing/index.html).",
+   "ledger": {
+    "state": "partial",
+    "note": "staging: fail 1: edge-core segfaults on stop, so systemd reads failed, not inactive. not_run: 16 cpufreq cases, the VM exposes none; 1 thermal zone, the VM has none; 1 maestro, the snap ships none; 5 KAAS, edge-k8s.izuma.io returns 503 and the gateway has no kubectl; 1 cloud logs, /v3/devices/{id}/logs and /v3/device-logs return 404. 19 #SlashDirSize passes prove only readdir",
+    "name": "PelionIoT/old-pelion-edge-ready-test-suite"
+   }
+  },
+  "onprem-tester": {
+   "tests": "End-to-end acceptance of a Device Management install",
+   "framework": "Bash `testall` + pytest",
+   "fixtures": [
+    "accounts",
+    "simulated-device",
+    "certificate-issuer",
+    "firmware-update",
+    "factory-tool",
+    "bootstrap",
+    "notifications",
+    "billing"
+   ],
+   "readme": "The end-to-end acceptance test of a Device Management installation. One Docker image holds the compiled example clients, the API smoke tester, manifest-tool and the pytest steps; `testall` runs them in order against the API address it is given: API smoke, certificates, update preparation, client builds, developer-mode clients over TCP, UDP and IPv6, firmware update over HTTP and CoAP, the factory flow (FCU download, factory configurator client, factory-mode clients), device events and device deletion. [tested_features.md](tested_features.md) lists what each step proves.",
+   "ledger": {
+    "state": "at-target",
+    "note": "k3s-golden: run cases 497 incl. 472 API smoke subcases; 96% pass. FCU /downloads/fcu 404: 12 fail (api-smoke 10, install_fcu 1, device_events prod device 1) + 18 not run (install_fcu 7, fcc-runner 1, fcu-client-runner 5, fcu-client-udp-runner 5). Firmware image URL http://minio-api.staging-shared.local unreachable from the device, campaign autostopped: 2 fail (update HTTP, update CoAP test_02) + 4 not run. Billing routes 401 to tier 99 (/v3/service-packages, -quota, -quota-history GET): 3 fail. DELETE /v3/accounts/{id} unsupported-method check gets 404 where the smoke expects 405: 1 fail. No global IPv6 in the Docker bridge: 6 skipped (IPv6 build 1, IPv6 runner 5). Developer device deleted (204); 3 unenrolled smoke device records per run stay (cloud: 400, developer-certificate devices only).; offline: developer client build in the container; factory and factory-configurator clients prebuilt in the image (2 skipped as present); staging: not run: the suite writes on every stage (certificates, devices, campaigns, API smoke POST/PUT/DELETE); the operator put staging out of scope",
+    "name": "PelionIoT/onprem-tester"
+   }
+  },
+  "pelion-e2e-python-test-library-internal": {
+   "tests": "Private near copy of client-e2e",
+   "framework": "pytest",
+   "fixtures": [
+    "simulated-device",
+    "bootstrap",
+    "firmware-update",
+    "accounts"
+   ],
+   "readme": "internal work repository for public pelion python test library: https://github.com/ARMmbed/pelion-e2e-python-test-library",
+   "ledger": {
+    "state": "at-target",
+    "note": "k3s-golden: 6 device cases on a simulated device, 3 read-only. Not run: 1, the guard case, staging only. Update applies no firmware and checks no signature; staging: GET only, HTTP guard. Not run: 6 device cases, bootstrapping writes; 1 update-campaign case, /v3/update-campaigns answers 404 on staging; offline: The guard refuses a write before it leaves the process",
+    "name": "ArmMbedCloud/pelion-e2e-python-test-library-internal"
+   }
+  },
+  "pelion-edge-e2e-test-suite": {
+   "tests": "Pelion Edge cloud APIs via `/wigwag` routes",
+   "framework": "mocha",
+   "fixtures": [
+    "edge-gateway",
+    "connect-api",
+    "cloud-ui-server",
+    "read-only-guard",
+    "accounts",
+    "jenkins"
+   ],
+   "readme": "A collection of test cases which evaluates the Pelion Edge APIs with the intent to identify any gaps, errors or missing requirements in contrary to the acutal desire or requirements. This suite groups similar test cases together into categories like smoke, integration, stress, performance etc. The details of each category is mentioned below.",
+   "ledger": {
+    "state": "below-target",
+    "note": "staging: S executes 45 exact original GET cases once: all fail on authenticated cloud-ui HTTP404, with assertions preserved. The 221-case scope includes 89 write-requiring cases, 85 upstream-disabled cases and 2 prior offline successes; none executes in S. Receipts: .claude/iterate/evidence/sanderling/edge-results-summary.json. Gateway remains deregistered; cloud source and configuration remain protected.; offline: make smoke: isUIServerOnline and getSites against a localhost stub, all requests under /wigwag/; proves the harness, not the cloud",
+    "name": "PelionIoT/pelion-edge-e2e-test-suite"
+   }
+  },
+  "pelion-external-certificate-check": {
+   "tests": "TLS certificate expiry of public hosts",
+   "framework": "bash + openssl",
+   "fixtures": [
+    "external-certificates"
+   ],
+   "readme": "",
+   "ledger": {
+    "state": "at-target",
+    "note": "k3s-golden: TLS handshakes, days to expiry over 21. Proves expiry only, as the original does. Not run 1: gateways has no DNS name.; staging: TLS handshakes only; the image has no HTTP client.",
+    "name": "ArmMbedCloud/pelion-external-certificate-check"
+   }
+  },
+  "pelion-frontend-tests": {
+   "tests": "Portal UI specs",
+   "framework": "Cypress",
+   "fixtures": [
+    "portal",
+    "accounts",
+    "notifications"
+   ],
+   "readme": "Cypress suites for the Device Management portal.",
+   "ledger": {
+    "state": "below-target",
+    "note": "k3s-golden: 3 blocked; staging: Full run portal-2a-staging (2026-11-13T02:41:54Z): staging runs write cases; 0 passed, 1 failed or errored, 0 skipped (exit). Log .claude/testmaster/runs/suite.staging.log.",
+    "name": "PelionIoT/pelion-frontend-tests"
+   }
+  },
+  "pelion-portal-tests": {
+   "tests": "Portal UI flows",
+   "framework": "pytest + Selenium",
+   "fixtures": [
+    "portal",
+    "accounts",
+    "notifications",
+    "firmware-update"
+   ],
+   "readme": "System test cases to test Pelion device management cloud and device management client.",
+   "ledger": {
+    "state": "below-target",
+    "note": "staging: Full run portal-2a-staging (2026-11-13T02:58:50Z): staging runs write cases; 37 passed, 6 failed or errored, 1 skipped (pytest). Log .claude/testmaster/runs/suite.staging.log.",
+    "name": "ArmMbedCloud/pelion-portal-tests"
+   }
+  },
+  "pelion-status": {
+   "tests": "Status page probes: REST, registration/bootstrap, Edge KaaS",
+   "framework": "JMeter + Python",
+   "fixtures": [
+    "accounts",
+    "bootstrap",
+    "simulated-device",
+    "kaas",
+    "firmware-update",
+    "billing",
+    "factory-tool",
+    "read-only-guard"
+   ],
+   "readme": "",
+   "ledger": {
+    "state": "partial",
+    "note": "k3s-golden: ACCOUNT=clitest, REST 139 and 1 simulated device for bootstrap and registration, which replaces the 2 device tests. 17 DELETE, 89 GET, 38 POST, 16 PUT. Not run: 12 blocked (downloads/fcu 3, trust-anchors 1, manufacturing 1 route absent; service-packages 3, billing 4 tier 99 401), 3 skipped by the plan conditions, edge 1 no DNS name.; staging: Full run portal-2a-staging (2026-11-13T02:49:40Z): staging runs write cases; 128 passed, 5 failed or errored, 23 skipped (summary). Log .claude/testmaster/runs/suite.staging.log.",
+    "name": "ArmMbedCloud/pelion-status"
+   }
+  },
+  "pelion-system-test-library": {
+   "tests": "Shared Python library `pelion_systest_lib`",
+   "framework": "pytest, offline",
+   "fixtures": [
+    "accounts"
+   ],
+   "readme": "New location is: https://github.com/PelionIoT/pelion-system-test-library",
+   "ledger": {
+    "state": "partial",
+    "note": "offline: Library's own tests",
+    "name": "IzumaNetworks/pelion-system-test-library"
+   }
+  },
+  "pelion-system-tests": {
+   "tests": "DM API, IAM, devices, billing, update, notifications, Edge/KaaS, portal",
+   "framework": "pytest + `pelion_systest_lib`",
+   "fixtures": [
+    "accounts",
+    "edge-gateway",
+    "kaas",
+    "simulated-device",
+    "bootstrap",
+    "firmware-update",
+    "billing",
+    "notifications",
+    "portal",
+    "factory-tool",
+    "connect-api",
+    "private-gateway",
+    "sanderling-controls",
+    "jenkins"
+   ],
+   "readme": "System test cases to test Pelion device management cloud and device management client.",
+   "ledger": {
+    "state": "at-target",
+    "note": "Rolled up from the folders below",
+    "name": "IzumaNetworks/pelion-system-tests"
+   }
+  },
+  "portal-qa-scripts": {
+   "tests": "Portal QA: users, keys, limits, login, firmware upload",
+   "framework": "Cypress 6.4",
+   "fixtures": [
+    "portal",
+    "accounts",
+    "firmware-update"
+   ],
+   "readme": "This is e2e test automation framework using Cypress and TypeScript v3, along with Cypress supported test suite Mocha & Chai. Designed to be as simple as possible.",
+   "ledger": {
+    "state": "partial",
+    "note": "staging: Login spec only; k3s-golden: All 20 current cases accounted for.16 real browser/API passes; no empty test bodies. Failure 1: oversized firmware redirects to the jobs/list page without the required size error. Not run 3: two accepted-invitation multi-team cases are held with mailbox work; IDP login-profile click throws undefined-is-not-iterable before any PUT. Temporary users, keys, images and simulator certificate cleaned.",
+    "name": "PelionIoT/portal-qa-scripts"
+   }
+  },
+  "proto-bridge-test-harness": {
+   "tests": "",
+   "framework": "",
+   "fixtures": [],
+   "readme": "",
+   "ledger": {
+    "state": "deferred",
+    "note": "A 2016 harness for customer cloud bridges; needs third-party cloud accounts.",
+    "name": "PelionIoT/proto-bridge-test-harness"
+   }
+  },
+  "qe-dba-tools": {
+   "tests": "DBA policy dump/create/delete",
+   "framework": "unittest",
+   "fixtures": [
+    "accounts",
+    "sda",
+    "database-manipulator",
+    "dba",
+    "read-only-guard"
+   ],
+   "readme": "iam_account_config `make test` runs `iam_account_config` against a stage: see `scripts/nucloud-test.sh`. `blobs_generator` needs `ace-auth/token` and `v3/trust-anchors`, which answer 404 on every stage.",
+   "ledger": {
+    "state": "partial",
+    "note": "offline: The guard refusing a write and another host; no cloud call.; k3s-golden: connect99:5 cloud dump checks and1 policy create/delete pass; blobs_generator blocked on ace-auth/token and trust-anchors 404. Policy deleted.; staging: 8 GET,0 writes.5 dump checks pass; policy writes refused and blobs_generator routes absent.",
+    "name": "PelionIoT/qe-dba-tools"
+   }
+  },
+  "qe-misc": {
+   "tests": "No cases: Jenkins Groovy, credential files, cleanup lists (not a suite, not stamped)",
+   "framework": "none",
+   "fixtures": [
+    "jenkins",
+    "factory-tool",
+    "hsm",
+    "accounts"
+   ],
+   "readme": "",
+   "ledger": {
+    "state": "closed",
+    "note": "No test case on any of 27 branches: Jenkins glue for the retired PMI factory service.",
+    "name": "PelionIoT/qe-misc"
+   }
+  },
+  "qe-pytest": {
+   "tests": "CE renewal, ED batch keys; WMS, SDA, DeviceInsight, FactoryTool, KCM, PMI folders skipped",
+   "framework": "pytest + side runners",
+   "fixtures": [
+    "simulated-device",
+    "bootstrap",
+    "accounts",
+    "certificate-issuer",
+    "hsm",
+    "factory-tool",
+    "sda",
+    "wms",
+    "device-insight",
+    "enrollment-decryption",
+    "sanderling-controls",
+    "read-only-guard",
+    "database-manipulator",
+    "jenkins"
+   ],
+   "readme": "`make test MACHINE=k3s-golden ACCOUNT=clitest` runs pytest directly in the image, without the mbed-clitest wrapper that allocated RaaS boards. `scripts/nucloud_plugin.py` points the suite at the stage and skips each case no stage can run, with its cause. `SUITES` takes pytest paths and arguments:",
+   "ledger": {
+    "state": "below-target",
+    "note": "k3s-golden: Retained R credit: 43 passes. S executes 13 original cases once: 4 pass and 9 genuine cloud failures; two public ED batch cases replace retained failures. Additional WMS fake-workflow passes its original missing-entity assertion; template and SDA trust-anchor reads retain genuine 404 failures. Original assertions and the 1827-case cloud scope remain fixed; 801 local identities stay separate. Receipt hashes and exact IDs: .claude/iterate/evidence/sanderling/case-results.json. Public ED creates three ordinary owned-account batch records; records remain and generated keys stay redacted. No cloud source or configuration changes.; staging: Retained 3 exact CE IDs, GET-only, within the disjoint 1827-case stage scope. The native work makes no staging request.; offline: All 725 eligible native leaves run: 657 pass and 68 fail. The 68 readiness assertions expect certificates without clientAuth to pass; real FCC returns INVALID_CERTIFICATE, displayed through the legacy KCM dictionary as NOT_PERMITTED. Not run: 70 upstream skips, 4 held stress cases and 2 credential fixtures. Actual FCC/KCM/FCU runs in a verified network-none/loopback namespace. Source 140693b7 and docs/nucloud-process-results.jsonl preserve all 801 identities and invocation hashes; representative probes are deduplicated.",
+    "name": "PelionIoT/qe-pytest"
+   }
+  },
+  "qe-update": {
+   "tests": "Firmware update campaigns, component update, UCHUB, encrypted firmware",
+   "framework": "pytest",
+   "fixtures": [
+    "simulated-device",
+    "firmware-update",
+    "bootstrap",
+    "billing",
+    "hsm",
+    "accounts",
+    "device-registry",
+    "read-only-guard"
+   ],
+   "readme": "Running test: pytest test_cases/update/test_update_one_device.py --config_path=configs/tc_config_int.json --raas_config=configs/raas_config_prov_jen.json --bin=testapp/base.bin \\ --platform_name=K64F -log_cli=true --log-cli-level=DEBUG \\ --junitxml=reports/results.xml --html=reports/results.html \\ --self-contained-html \\ --log-cli-level=INFO \\ --log-file=reports/pytest.log \\ --log-file-level=DEBUG \\",
+   "ledger": {
+    "state": "below-target",
+    "note": "k3s-golden: 203 unique recovered cloud identities: 100 pass, 89 fail, 14 explicit skips. The not_run count also includes 104 unresolved historical identities; this does not prove they never ran. The 307 cloud-case catalog excludes 2 offline regressions. The plan-R-only subset (48 pass, 29 fail, 3 skip) is included. Blockers include internal datafile DNS/CoAP 4.04, reconnect/registration 5.00, suspend, migration draft server errors, and simulator/tooling or phase/setup/teardown causes. Source docs/status.md and case-results.tsv preserve named causes and historical provenance.; staging: All 307 cloud cases write; staging is refused. Two offline regressions are excluded. No staging request in this recovery.; offline: Real manifest-tool failure/stale-output check and real SimulatedBoard buffered-output/no-extra-command check. Final make smoke and isolated source-owned TESTMASTER pass at ad6ef1c6; no cloud pass credited.",
+    "name": "PelionIoT/qe-update"
+   }
+  },
+  "repo": {
+   "tests": "what it tests",
+   "framework": "runner",
+   "fixtures": [],
+   "readme": ""
+  },
+  "sandbox": {
+   "tests": "No cloud test: Arm-era Jenkins/statistics Terraform, RaaS scripts (not a suite, not stamped)",
+   "framework": "mbed-clitest, Terraform",
+   "fixtures": [
+    "jenkins"
+   ],
+   "readme": "sandbox - for test automation/CI integration testing purpose",
+   "ledger": {
+    "state": "closed",
+    "note": "14 mbed-clitest cases that flash and SD-card-test RaaS boards, plus Terraform; no cloud test and no board here.",
+    "name": "PelionIoT/sandbox"
+   }
+  },
+  "sandbox-jenkins-test": {
+   "tests": "",
+   "framework": "",
+   "fixtures": [],
+   "readme": "",
+   "ledger": {
+    "state": "closed",
+    "note": "No test case: deploys a Jenkins lab on mbedcloudintegration.net, which does not resolve.",
+    "name": "ArmMbedCloud/sandbox-jenkins-test"
+   }
+  },
+  "sda-cli": {
+   "tests": "Nothing: README only (not a suite, not stamped)",
+   "framework": "none",
+   "fixtures": [
+    "sda"
+   ],
+   "readme": "",
+   "ledger": {
+    "state": "deferred",
+    "note": "Stays unbranched: the default branch is a README, the dev branch cannot compile, and the SDA service is absent from both stages.",
+    "name": "PelionIoT/sda-cli"
+   }
+  },
+  "secsrv-qe-clitest-bdd": {
+   "tests": "API gateway auth, cloud vault issuers, HSM, factory tool, KCM",
+   "framework": "Behave + mbed-clitest",
+   "fixtures": [
+    "accounts",
+    "connect-api",
+    "certificate-issuer",
+    "hsm",
+    "factory-tool",
+    "sda",
+    "jenkins"
+   ],
+   "readme": "Security Services QE tests.",
+   "ledger": {
+    "state": "partial",
+    "note": "staging: Logs in with POST /auth/login, then reads; k3s-golden: 1966 expanded scenarios: 19 failed internal sign_csr requests, 6 failed third-party CA verification; not run 938 HSM + 660 factory/FCU/device + 103 internal vault + 5 activation known-bug + 6 disabled/known-bug API gateway. No direct HSM access.",
+    "name": "PelionIoT/secsrv-qe-clitest-bdd"
+   }
+  },
+  "secsrv-qe-scripts": {
+   "tests": "Not a suite: retired QE Jenkins, RaaS, k8s proxy, DBA generator scripts (not a suite, not stamped)",
+   "framework": "shell, Python",
+   "fixtures": [
+    "jenkins",
+    "simulated-device",
+    "database-manipulator"
+   ],
+   "readme": "Security Services QE scripts and general utilities",
+   "ledger": {
+    "state": "closed",
+    "note": "No test case on any of 6 branches: a Security Services QE toolbox; e2eIoT-cli-test-bdd clones its k8s_proxy.",
+    "name": "PelionIoT/secsrv-qe-scripts"
+   }
+  },
+  "sentry-load-test": {
+   "tests": "",
+   "framework": "",
+   "fixtures": [],
+   "readme": "",
+   "ledger": {
+    "state": "load",
+    "note": "Load suite: load test for the sentry service.",
+    "name": "ArmMbedCloud/sentry-load-test"
+   }
+  },
+  "serviceprobe": {
+   "tests": "Probe clients for connector CA, enrollment, IAM",
+   "framework": "Maven JUnit, offline",
+   "fixtures": [
+    "certificate-issuer",
+    "device-registry"
+   ],
+   "readme": "`make test` runs the JUnit suite offline. A probe run needs cluster-internal ports and an internal JWT key, so no case reaches a stage: `/internal/v3/device-enrollments` and `/healthcheck/ping` answer 404 on the public API.",
+   "ledger": {
+    "state": "below-target",
+    "note": "offline: JUnit, no cloud call. 3 of the 7 only assert that a client reports FAILED against a closed localhost port.; k3s-golden: Blocked 3: probes need cluster-internal ports and an internal JWT key. /internal/v3/device-enrollments and /healthcheck/ping 404 on the public API; the repo key is not used.; staging: Blocked 3: same cause as k3s-golden.",
+    "name": "ArmMbedCloud/serviceprobe"
+   }
+  },
+  "sla": {
+   "tests": "SLA service and report generator JUnit; SLA monitor use cases",
+   "framework": "Gradle JUnit + pytest",
+   "fixtures": [
+    "simulated-device",
+    "certificate-issuer",
+    "bootstrap",
+    "jenkins"
+   ],
+   "readme": "This repository contains implementation of [IOTCLOUDPR-2967](https://armiot.atlassian.net/wiki/spaces/IoTBU/pages/1303607300/IOTCLOUDPR-2967+-+PMI+SLA+E2E+use+case+SLA+probing)",
+   "ledger": {
+    "state": "partial",
+    "note": "offline: JUnit on embedded Postgres, no cloud call. The static 166 is these 159, 1 buildSrc case the root build does not run, and the 6 monitor use cases.; k3s-golden: ACCOUNT=probes. Monitor use cases 1.1, 3.1, 4.1 on a simulated device; verdict read from the monitor sqlite, because the pytest files pass whatever happens. Not run: 3 need PMI nanoclient firmware (2.1 alert-gen, 5.1 resource 10000, 6.1 holder role). SLA service is not on the stage: its routes 404.; staging: A device bootstrap is a write, so no use case runs. JUnit reruns offline; no staging call.",
+    "name": "ArmMbedCloud/sla"
+   }
+  },
+  "snap-edge-tools": {
+   "tests": "TLS/L3/L4 connectivity from gateway to LwM2M and bootstrap",
+   "framework": "shell + `nucloud_cases.py`",
+   "fixtures": [
+    "edge-gateway",
+    "lwm2m",
+    "bootstrap",
+    "certificate-issuer"
+   ],
+   "readme": "Clone this repository and use the build and deploy instructions from [Snapcraft](https://snapcraft.io/docs/snapcraft-overview#heading--building-your-snap).",
+   "ledger": {
+    "state": "at-target",
+    "note": "staging: run on opossum-edge-gw and in the image: pinned CAs, TLS to LwM2M and bootstrap, one daemon pass. blocked 1: daemon ping to the LwM2M host, the stage load balancers drop ICMP (confirmed from workstation, container and gateway).",
+    "name": "PelionIoT/snap-edge-tools"
+   }
+  },
+  "stressman": {
+   "tests": "",
+   "framework": "",
+   "fixtures": [],
+   "readme": "",
+   "ledger": {
+    "state": "load",
+    "note": "Load suite: distributed stress-test platform for cloud APIs.",
+    "name": "IzumaNetworks/stressman"
+   }
+  },
+  "tbg-websocket-bug-reproduction": {
+   "tests": "Websocket reproduction on a real C++ client",
+   "framework": "pytest",
+   "fixtures": [
+    "simulated-device",
+    "bootstrap",
+    "certificate-issuer",
+    "notifications",
+    "accounts"
+   ],
+   "readme": "This is an environment to be able to reproduce a customer's problem",
+   "ledger": {
+    "state": "at-target",
+    "note": "k3s-golden: The real mbed-cloud-client-example C++ client with a stage certificate: registration, read, subscription, reconnect, registration update, all on a notification websocket; staging: Not run: 5, each needs a device and a channel, which are writes",
+    "name": "PelionIoT/tbg-websocket-bug-reproduction"
+   }
+  },
+  "tunfuzz": {
+   "tests": "TCP-tunnel network fuzzer on loopback",
+   "framework": "pytest, offline",
+   "fixtures": [
+    "tcp-tunnel-local"
+   ],
+   "readme": "A network fuzzer tool specifically for testing TCP tunnels",
+   "ledger": {
+    "state": "partial",
+    "note": "offline: The tool had no cases. 4 written: loopback exchange, seed repeat, other seed, through a TCP tunnel. No stage call",
+    "name": "PelionIoT/tunfuzz"
+   }
+  },
+  "update-service-load": {
+   "tests": "",
+   "framework": "",
+   "fixtures": [],
+   "readme": "",
+   "ledger": {
+    "state": "load",
+    "note": "Load suite: Locust traffic that measures KPIs at a constant rate.",
+    "name": "ArmMbedCloud/update-service-load"
+   }
+  }
+ },
+ "template_history": [
+  {
+   "at": "2026-11-12T20:39:20Z",
+   "version": "1.0.0"
+  },
+  {
+   "at": "2026-11-12T22:06:37Z",
+   "version": "1.1.0"
+  },
+  {
+   "at": "2026-11-12T22:33:56Z",
+   "version": "1.1.1"
+  },
+  {
+   "at": "2026-11-12T22:49:31Z",
+   "version": "1.1.2"
+  },
+  {
+   "at": "2026-11-12T23:04:57Z",
+   "version": "1.1.3"
+  },
+  {
+   "at": "2026-11-13T02:22:50Z",
+   "version": "1.1.4"
+  },
+  {
+   "at": "2026-11-13T02:31:45Z",
+   "version": "1.1.5"
+  },
+  {
+   "at": "2026-11-13T02:45:10Z",
+   "version": "1.1.6"
+  },
+  {
+   "at": "2026-11-13T03:04:22Z",
+   "version": "1.1.7"
+  },
+  {
+   "at": "2026-11-13T03:22:22Z",
+   "version": "1.1.8"
+  },
+  {
+   "at": "2026-11-13T03:31:39Z",
+   "version": "1.1.9"
+  },
+  {
+   "at": "2026-11-13T03:39:05Z",
+   "version": "1.1.10"
+  },
+  {
+   "at": "2026-11-13T03:55:16Z",
+   "version": "1.1.11"
+  },
+  {
+   "at": "2026-11-13T05:17:24Z",
+   "version": "1.1.12"
+  },
+  {
+   "at": "2026-11-13T05:20:13Z",
+   "version": "1.1.13"
+  },
+  {
+   "at": "2026-11-13T05:35:45Z",
+   "version": "1.1.14"
+  },
+  {
+   "at": "2026-11-13T06:09:50Z",
+   "version": "1.1.15"
+  },
+  {
+   "at": "2026-11-13T06:19:23Z",
+   "version": "1.1.16"
+  },
+  {
+   "at": "2026-11-13T06:39:51Z",
+   "version": "1.1.17"
+  },
+  {
+   "at": "2026-11-14T04:30:41Z",
+   "version": "1.1.18"
+  }
+ ]
+}

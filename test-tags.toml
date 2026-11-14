@@ -1,5 +1,5 @@
 # Shared test-case tag vocabulary. nucloud stamps this file into every test repo.
-# Rules: docs/testing.md#rules (nucloud) and docs/nucloud.md (each repo).
+# Rules: docs/testing/tags.md#rules (nucloud) and docs/nucloud.md (each repo).
 #
 # Each tag is <group>:<name>, lowercase kebab-case; a name may hold a further
 # :<part> (cloud:manipulator:pod). Gherkin writes every ":" as "." and pytest as "_". `default` is the selection
