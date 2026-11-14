@@ -157,6 +157,10 @@ def run_cases(text, stage, since, exit_code, outcome, ms):
     s, rows, why = parser()(text, ROOT, stage, since, None, inventory_ids(), ms, result)
     if why:  # the log shows no case ran (setup failed, Docker refused): one not-run case says so
         return [{'id': f'suite.{stage}', 'verdict': 'not_run', 'duration_ms': 0, 'message': why}], 'not_run'
+    if not rows and s and any(s[:4]):  # the output prints totals but names no case: one case for the whole suite
+        verdict = 'pass' if exit_code == 0 and outcome == 'completed' else 'fail'
+        return [{'id': f'suite.{stage}', 'verdict': verdict, 'duration_ms': ms,
+                 'message': f'the output names no case; its summary: {s[0]} passed, {s[1]} failed, {s[2]} errors, {s[3]} skipped'}], outcome
     if not rows:  # a parser that finds nothing gives a report outside the standard, which is never sent
         return [], outcome
     merged = {}

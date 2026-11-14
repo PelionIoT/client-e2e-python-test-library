@@ -957,7 +957,9 @@ case "${1:-}" in
             . ".nucloud-logs/$ENV/run.env"
         elif [[ -f .claude/testmaster/runs/suite.$ENV.log ]]; then  # the last run through TESTMASTER (nucloud's runner)
             log=.claude/testmaster/runs/suite.$ENV.log
-            ended=$(python3 -c 'import os,sys; print(int(os.path.getmtime(sys.argv[1])))' "$log"); started=$ended
+            ended=$(python3 -c 'import os,sys; print(int(os.path.getmtime(sys.argv[1])))' "$log")
+            started=$(python3 -c 'import json,sys; t=json.load(open(sys.argv[1]))["tests"].get(sys.argv[2], {}); print(int(sys.argv[3]) - int(t.get("last_ms", 0)) // 1000)' \
+                .claude/testmaster/registry.json "suite.$ENV" "$ended" 2>/dev/null || echo "$ended")  # the run began last_ms before its log ended
             exit=$(python3 -c 'import json,sys; t=json.load(open(sys.argv[1]))["tests"].get(sys.argv[2], {}); print(0 if t.get("last_result") == "pass" else 1)' \
                 .claude/testmaster/registry.json "suite.$ENV" 2>/dev/null || echo 1)
             outcome=completed image=
