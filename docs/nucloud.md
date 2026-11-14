@@ -240,6 +240,33 @@ case loses needs a `# removed <case> <tag>: <why>` line in
 less, standard up to 120 seconds, slow above that, unmeasured with no
 completed run. Tiers are never written by hand.
 
+## Report runs to trackHammer
+
+trackHammer keeps every test repo's results. A run reports what the suite already
+prints; no test changes to report.
+
+```sh
+make test MACHINE=k3s-golden REPORT=http://127.0.0.1:8766   # send the run; prints its trackHammer page
+make test MACHINE=k3s-golden REPORT=./reports/               # write it to a file instead
+make report-send REPORT=http://127.0.0.1:8766                # send every report kept for later
+make report-send FILE=reports/run-….json REPORT=…            # send one file
+make inventory-send REPORT=http://127.0.0.1:8766             # send this repo's cases, tags and about text
+make report-check MACHINE=k3s-golden                         # build and check a report from the last run
+```
+
+- `REPORT_TOKEN=` is the bearer token a central trackHammer asks for. It is never
+  printed or written to a file.
+- A report trackHammer cannot be reached for waits in `.nucloud-logs/reports/pending/`
+  until `make report-send`. A report outside trackHammer's standard is never sent; it
+  waits in `.nucloud-logs/reports/invalid/` beside a file naming each problem.
+- Reporting never changes the exit code of `make test`, and without `REPORT=` a run
+  reports nothing.
+- Every run keeps the suite's masked output as `.nucloud-logs/<stage>/suite.log`.
+  The cases come from it, and from JUnit or robot files the run writes, through the
+  stamped `nucloud-parse.py`. A suite whose output names no case reports one case for
+  the whole suite. `REPORT_PARSER=own` in `nucloud.env` uses this repo's own
+  `report-parser.py` instead, for output the shared parser cannot read.
+
 ## Tags
 
 A local build is tagged `<upstream>-nucloud.dev.<commit>`, plus a hash of
