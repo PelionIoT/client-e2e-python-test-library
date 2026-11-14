@@ -146,8 +146,9 @@ if [[ -n "${BUILD_NUMBER:-}" ]]; then
 else
     # BUILD_NUMBER stays empty: it is exported, and a nested make (HOST_TEST_CMD) computes its own dev tag
     SUFFIX="nucloud.dev.${GIT_HEAD:0:7}"
-    if [[ -n "$(git status --porcelain -- . ':!sbom-*' 2>/dev/null)" ]]; then
-        SUFFIX+=".$({ git diff HEAD; git ls-files -o --exclude-standard -z -- . ':!sbom-*' | xargs -0 cat; } | git hash-object --stdin | cut -c1-7)"
+    source_paths=(. ':!sbom-*' ':!.claude' ':!**/.claude/**')
+    if [[ -n "$(git status --porcelain -- "${source_paths[@]}" 2>/dev/null)" ]]; then
+        SUFFIX+=".$({ git diff HEAD -- "${source_paths[@]}"; git ls-files -o --exclude-standard -z -- "${source_paths[@]}" | xargs -0 cat; } | git hash-object --stdin | cut -c1-7)"
     fi
 fi
 
@@ -211,14 +212,16 @@ each() { # each <fn>: call fn name tag dockerfile context target release ref
 
 guard_tag() { [[ "$1" == *-nucloud.* ]] || die "refusing $1: not a -nucloud.<n> tag"; }
 
-# A build context holding .nucloud-logs/ (unredacted service logs from earlier runs) must exclude it, or a
-# `COPY . /work` bakes those logs into the image. BuildKit reads <dockerfile>.dockerignore before <context>/.dockerignore.
+# Build contexts exclude runtime logs and agent state. BuildKit reads
+# <dockerfile>.dockerignore before <context>/.dockerignore.
 guard_logs() { # guard_logs <context> <dockerfile> <ref>
-    local ign=$1/.dockerignore
-    [[ -d $1/.nucloud-logs ]] || return 0
+    local ign=$1/.dockerignore runtime
     [[ -f $2.dockerignore ]] && ign=$2.dockerignore
-    grep -qsxE '/?\.nucloud-logs/?' "$ign" ||
-        die "refusing $3: $ign does not exclude .nucloud-logs/, so the build would copy run logs into the image; add a .nucloud-logs/ line"
+    for runtime in .nucloud-logs .claude; do
+        [[ -d $1/$runtime ]] || continue
+        grep -qsxE "/?${runtime//./\\.}/?" "$ign" ||
+            die "refusing $3: $ign does not exclude $runtime/, so the build would copy runtime state into the image; add a $runtime/ line"
+    done
 }
 
 i_list() { printf '%-50s %s\n' "$1" "$7"; }
@@ -648,7 +651,7 @@ stop_suite() { deadline 90 docker stop -t 60 "$SUITE_CONTAINER" >/dev/null 2>&1 
 deadline() {
     local s=$1 p w rc; shift
     "$@" & p=$!
-    { sleep "$s"; kill -KILL "$p"; } >/dev/null 2>&1 & w=$!
+    python3 -c 'import os, signal, sys, time; time.sleep(float(sys.argv[1])); os.kill(int(sys.argv[2]), signal.SIGKILL)' "$s" "$p" >/dev/null 2>&1 & w=$!
     wait "$p"; rc=$?
     kill -KILL "$w" 2>/dev/null; wait "$w" 2>/dev/null
     return "$rc"
