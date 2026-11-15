@@ -12,6 +12,8 @@ source = Path('/root/mbed-cloud-client-example')
 credentials = source / 'mbed_cloud_dev_credentials.c'
 credentials.write_bytes(Path('/tmp/native-credentials.c').read_bytes())
 credentials.chmod(0o600)
+with (source / 'define.txt').open('a') as handle:
+    handle.write('\nadd_definitions(-DMBED_CONF_APP_DEVELOPER_MODE=1)\n')
 subprocess.run(['cmake', '--build', str(source / '__x86_x64_NativeLinux_mbedtls'), '--target', 'mbedCloudClientExample.elf', '--', '-j4'], check=True)
 binary = source / '__x86_x64_NativeLinux_mbedtls/Release/mbedCloudClientExample.elf'
 private = Path('/tmp/sdk-native-device')

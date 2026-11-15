@@ -1,2 +1,3 @@
 # removed suite needs:device: writes through the API (cloud:apiwrites)
 suite	cloud:apiwrites
+# removed suite cloud:apiwrites: source discovery names ten actual pytest cases; suite is no executable case

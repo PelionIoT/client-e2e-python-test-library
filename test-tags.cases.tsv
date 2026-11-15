@@ -1,3 +1,12 @@
 # Classifier tags per case: nucloud scripts/testing-tag-classify.py. <case>\t<canonical tags>
 # Correct a wrong tag here or in the source, never by changing a verdict.
-suite	cloud:apiwrites
+tests/dev-client-tests.py::test_01_get_device_id	cloud:apiwrites tier:unmeasured
+tests/dev-client-tests.py::test_02_get_resource	cloud:apiwrites tier:unmeasured
+tests/dev-client-tests.py::test_03_put_resource	cloud:apiwrites tier:unmeasured
+tests/dev-client-tests.py::test_04_subscribe_resource	cloud:apiwrites tier:unmeasured
+tests/dev-client-tests.py::test_05_factory_reset	cloud:apiwrites tier:unmeasured
+tests/dev-client-tests.py::test_06_update_device	cloud:apiwrites needs:update-service tier:unmeasured
+tests/read-only-tests.py::test_get_device	cloud:read-only tier:unmeasured
+tests/read-only-tests.py::test_get_missing_device	cloud:read-only tier:unmeasured
+tests/read-only-tests.py::test_get_update_campaigns	cloud:read-only needs:update-service tier:unmeasured
+tests/read-only-tests.py::test_guard_refuses_a_write	kind:control needs:offline tier:unmeasured
