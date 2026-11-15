@@ -146,7 +146,7 @@ if [[ -n "${BUILD_NUMBER:-}" ]]; then
 else
     # BUILD_NUMBER stays empty: it is exported, and a nested make (HOST_TEST_CMD) computes its own dev tag
     SUFFIX="nucloud.dev.${GIT_HEAD:0:7}"
-    source_paths=(. ':!sbom-*' ':!.claude' ':!**/.claude/**')
+    source_paths=(. ':!sbom-*' ':!.claude' ':!**/.claude/**' ':!**/__pycache__/**' ':!*.pyc' ':!*.pyo')
     if [[ -n "$(git status --porcelain -- "${source_paths[@]}" 2>/dev/null)" ]]; then
         SUFFIX+=".$({ git diff HEAD -- "${source_paths[@]}"; git ls-files -o --exclude-standard -z -- "${source_paths[@]}" | xargs -0 cat; } | git hash-object --stdin | cut -c1-7)"
     fi

@@ -292,3 +292,9 @@ build cache. Every runner service also runs its completion cleanup hook.
 
 `docs/fixes.md` lists every change the development branch makes to build
 files or source, and why.
+
+### Parameterized pytest cases
+
+A repository can supply `nucloud-cases.json` with schema `nucloud.case-instances/v1`, a `sources` object mapping repository-relative collection input paths to SHA256 hashes, and an `instances` array of complete parameterized pytest node IDs. Generate IDs from actual pytest collection or retained framework output. Include each original test file and the fixture, configuration and dependency inputs that determine its parameter collection. Optional provenance records the source commit, run IDs and log hashes. Keep credentials and secret parameter values out of the catalog.
+
+Each listed instance replaces its static pytest parent and inherits the parent's source and overlay tags. An explicit instance overlay adds its own tags. Unlisted parents retain their static identity. The tagger rejects duplicate or unknown instances, missing original test-file hashes, paths outside the repository and stale source hashes. Refresh the catalog when a collection input changes. The catalog describes collection identity; it supplies no verdicts and does not prove a case ran.
