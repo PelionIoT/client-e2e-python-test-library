@@ -22,6 +22,9 @@ if not all(c.isalnum() or c in '._-' for c in run):
 root = Path.cwd()
 evidence = root / '.nucloud-logs' / 'native-mcce' / run
 evidence.mkdir(parents=True, exist_ok=True, mode=0o700)
+for retained in evidence.parent.glob('*/ownership.json'):
+    if json.loads(retained.read_text()).get('status') != 'certificate-absent':
+        raise RuntimeError('unresolved native ownership receipt: ' + str(retained))
 fence = evidence / 'ownership.json'
 if fence.exists():
     raise RuntimeError('existing native ownership receipt requires reconciliation')
