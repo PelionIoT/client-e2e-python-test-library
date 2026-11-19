@@ -24,7 +24,7 @@ labels    = { class = "kubernetes", distribution = "k3s" }
 facts     = { kubeconfig_path = "/etc/rancher/k3s/k3s.yaml" }
 
 # K3s development cloud.
-[machine.k3s-trav-c]
+[machine.k3s-trav]
 provider  = "incus"
 remote    = "D71"
 kind      = "vm"
