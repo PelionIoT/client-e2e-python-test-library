@@ -57,7 +57,7 @@ and reach the build as BuildKit secrets, never as layers. A repo with
 ## Deploy to a k3s stage
 
 ```sh
-make deploy MACHINE=k3s-trav
+make deploy MACHINE=k3s-trav-c
 make deploy MACHINE=k3s-cypress
 make deploy              # on a terminal: pick the stage from a list
 ```
@@ -65,6 +65,10 @@ make deploy              # on a terminal: pick the stage from a list
 Every stage target takes `MACHINE=<stage>`. Without it, a terminal shows a
 numbered list of the stages in `.iz` and `.izlocal`; answer with a number or
 a stage name. Without a terminal, the target exits naming the stages.
+Once the stage is known, the target prints in orange the full command it
+amounts to, picked and defaulted values included, such as
+`==> make test MACHINE=k3s-trav-c REPORT=http://127.0.0.1:8766`; rerun that
+line to skip the list.
 
 `make deploy` builds the images, imports them, upgrades their releases and
 ends with the same table `make running` prints. Use
@@ -83,7 +87,7 @@ command never builds, pulls or pushes images. `make deploy` rejects
 `IMAGE_SUFFIX` so a build cannot overwrite an earlier build's selected tag.
 
 `deploy` finds the stage's incus remote and VM in `.iz`, which every repo
-carries. `.iz` defines the shared clouds: the K3s clouds `k3s-ed`, `k3s-trav`
+carries. `.iz` defines the shared clouds: the K3s clouds `k3s-ed`, `k3s-trav-c`
 and `k3s-golden` and the Kubernetes (k8s) cloud `staging`, all on the `D71`
 remote, and lists `k3s-golden` and `staging` under `[nucloud] production`:
 `deploy`, `deploy-only` and `image-load` refuse a production stage and leave
@@ -254,13 +258,14 @@ make inventory-send REPORT=http://127.0.0.1:8766             # send this repo's 
 make report-check MACHINE=k3s-golden                         # build and check a report from the last run
 ```
 
+Set `[nucloud] report = "http://127.0.0.1:8766"` in the untracked `.izlocal` to report normal `make test` runs without a command-line destination. `Makefile.nucloud` applies this default, and the Nucloud entrypoint applies it to both isolated and native targets; `make help` shows the value in force. An environment or command-line `REPORT` overrides it, and an explicit empty `REPORT=` disables reporting. `make entrypoint-here DIR=<checkout>` in the Nucloud source checkout refreshes this wrapper without replacing the checkout's stamped templates or tag files.
+
 - `REPORT_TOKEN=` is the bearer token a central trackHammer asks for. It is never
   printed or written to a file.
 - A report trackHammer cannot be reached for waits in `.nucloud-logs/reports/pending/`
   until `make report-send`. A report outside trackHammer's standard is never sent; it
   waits in `.nucloud-logs/reports/invalid/` beside a file naming each problem.
-- Reporting never changes the exit code of `make test`, and without `REPORT=` a run
-  reports nothing.
+- Reporting leaves the exit code of `make test` unchanged. A run with neither a configured destination nor a `REPORT` override reports nothing.
 - Every run keeps the suite's masked output as `.nucloud-logs/<stage>/suite.log`.
   The cases come from it, and from JUnit or robot files the run writes, through the
   stamped `nucloud-parse.py`. A suite whose output names no case reports one case for
@@ -292,9 +297,3 @@ build cache. Every runner service also runs its completion cleanup hook.
 
 `docs/fixes.md` lists every change the development branch makes to build
 files or source, and why.
-
-### Parameterized pytest cases
-
-A repository can supply `nucloud-cases.json` with schema `nucloud.case-instances/v1`, a `sources` object mapping repository-relative collection input paths to SHA256 hashes, and an `instances` array of complete parameterized pytest node IDs. Generate IDs from actual pytest collection or retained framework output. Include each original test file and the fixture, configuration and dependency inputs that determine its parameter collection. Optional provenance records the source commit, run IDs and log hashes. Keep credentials and secret parameter values out of the catalog.
-
-Each listed instance replaces its static pytest parent and inherits the parent's source and overlay tags. An explicit instance overlay adds its own tags. Unlisted parents retain their static identity. The tagger rejects duplicate or unknown instances, missing original test-file hashes, paths outside the repository and stale source hashes. Refresh the catalog when a collection input changes. The catalog describes collection identity; it supplies no verdicts and does not prove a case ran.

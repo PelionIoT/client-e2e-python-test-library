@@ -62,8 +62,9 @@ case "${COLOR:-auto}" in
 esac
 if [[ -n $TTY ]]; then
     C_OK=$'\033[32m' C_FAIL=$'\033[1;31m' C_WARN=$'\033[33m' C_NAME=$'\033[36m' C_BOLD=$'\033[1m' C_DIM=$'\033[2m' C_OFF=$'\033[0m'
+    C_ASSUME=$'\033[38;5;208m'
 else
-    C_OK= C_FAIL= C_WARN= C_NAME= C_BOLD= C_DIM= C_OFF=
+    C_OK= C_FAIL= C_WARN= C_NAME= C_BOLD= C_DIM= C_OFF= C_ASSUME=
 fi
 
 # Clouds come from .iz then .izlocal parsed as structured TOML by nucloud-cloud.py,
@@ -106,6 +107,7 @@ show_help() { # make help: the nucloud targets, the variables they read, and a w
     printf '  %s%-14s%s %s\n' "$C_NAME" "ARGS=" "$C_OFF" "arguments for run"
     if [[ $kind == tests ]]; then
         printf '  %s%-14s%s %s\n' "$C_NAME" "REPORT=" "$C_OFF" "after make test, send the run to trackHammer (http(s)://<host>) or write it (a directory or .json path)"
+        printf '  %-14s %s\n' "" "${REPORT:+now $REPORT; }unset: [nucloud] report in .izlocal; REPORT= turns it off"
         printf '  %s%-14s%s %s\n' "$C_NAME" "REPORT_TOKEN=" "$C_OFF" "bearer token for REPORT=; never printed"
     fi
     printf '  %s%-14s%s %s\n' "$C_NAME" "COLOR=" "$C_OFF" "always or never; default: color on a terminal unless NO_COLOR is set"
@@ -146,13 +148,21 @@ if [[ -n "${BUILD_NUMBER:-}" ]]; then
 else
     # BUILD_NUMBER stays empty: it is exported, and a nested make (HOST_TEST_CMD) computes its own dev tag
     SUFFIX="nucloud.dev.${GIT_HEAD:0:7}"
-    source_paths=(. ':!sbom-*' ':!.claude' ':!**/.claude/**' ':!**/__pycache__/**' ':!*.pyc' ':!*.pyo')
-    if [[ -n "$(git status --porcelain -- "${source_paths[@]}" 2>/dev/null)" ]]; then
-        SUFFIX+=".$({ git diff HEAD -- "${source_paths[@]}"; git ls-files -o --exclude-standard -z -- "${source_paths[@]}" | xargs -0 cat; } | git hash-object --stdin | cut -c1-7)"
+    if [[ -n "$(git status --porcelain -- . ':!sbom-*' 2>/dev/null)" ]]; then
+        SUFFIX+=".$({ git diff HEAD; git ls-files -o --exclude-standard -z -- . ':!sbom-*' | xargs -0 cat; } | git hash-object --stdin | cut -c1-7)"
     fi
 fi
 
 die() { echo "error: $*" >&2; exit 1; }
+NUCLOUD_TARGET=${1:-}
+show_command() { # once per make: the command this run amounts to, picked and defaulted values included (orange)
+    [[ -z ${NUCLOUD_SHOWN:-} ]] || return 0
+    export NUCLOUD_SHOWN=1
+    local line="make $NUCLOUD_TARGET MACHINE=$ENV" v
+    for v in ONLY TAGS EXCLUDE_TAGS ACCOUNT IMAGE_SUFFIX; do [[ -z ${!v:-} ]] || line+=" $v=${!v}"; done
+    [[ $NUCLOUD_TARGET != test || -z ${REPORT:-} ]] || line+=" REPORT=${REPORT/:\/\/*@/://}"
+    printf '%s==> %s%s\n' "$C_ASSUME" "$line" "$C_OFF" >&2
+}
 say() { printf '==> %s\n' "$*"; }
 need_stage() { # need_stage [change|api]: MACHINE= names the stage; otherwise a picklist on a terminal, a refusal elsewhere.
     # With "change" (image-load, deploy, deploy-only) a production stage is refused and left out of the picklist.
@@ -164,6 +174,7 @@ need_stage() { # need_stage [change|api]: MACHINE= names the stage; otherwise a 
     if [[ -n $ENV ]]; then
         [[ ${1:-} == api || $endpoints != *" $ENV "* ]] || die "$ENV is an API-only stage: nucloud reaches it through its API and has no VM to act on"
         [[ ${1:-} != change || $prod != *" $ENV "* ]] || die "$ENV is production; nucloud builds are never deployed there (.iz [nucloud] production)"
+        show_command
         return 0
     fi
     while IFS=$'\t' read -r s f r n; do
@@ -191,6 +202,7 @@ need_stage() { # need_stage [change|api]: MACHINE= names the stage; otherwise a 
         printf '%sno such stage: %s%s\n' "$C_FAIL" "$choice" "$C_OFF" >&2
     done
     printf '%s==> stage %s%s\n' "$C_BOLD" "$ENV" "$C_OFF" >&2
+    show_command
 }
 
 if [[ -n "${IMAGE_SUFFIX:-}" ]]; then
@@ -212,16 +224,14 @@ each() { # each <fn>: call fn name tag dockerfile context target release ref
 
 guard_tag() { [[ "$1" == *-nucloud.* ]] || die "refusing $1: not a -nucloud.<n> tag"; }
 
-# Build contexts exclude runtime logs and agent state. BuildKit reads
-# <dockerfile>.dockerignore before <context>/.dockerignore.
+# A build context holding .nucloud-logs/ (unredacted service logs from earlier runs) must exclude it, or a
+# `COPY . /work` bakes those logs into the image. BuildKit reads <dockerfile>.dockerignore before <context>/.dockerignore.
 guard_logs() { # guard_logs <context> <dockerfile> <ref>
-    local ign=$1/.dockerignore runtime
+    local ign=$1/.dockerignore
+    [[ -d $1/.nucloud-logs ]] || return 0
     [[ -f $2.dockerignore ]] && ign=$2.dockerignore
-    for runtime in .nucloud-logs .claude; do
-        [[ -d $1/$runtime ]] || continue
-        grep -qsxE "/?${runtime//./\\.}/?" "$ign" ||
-            die "refusing $3: $ign does not exclude $runtime/, so the build would copy runtime state into the image; add a $runtime/ line"
-    done
+    grep -qsxE '/?\.nucloud-logs/?' "$ign" ||
+        die "refusing $3: $ign does not exclude .nucloud-logs/, so the build would copy run logs into the image; add a .nucloud-logs/ line"
 }
 
 i_list() { printf '%-50s %s\n' "$1" "$7"; }
@@ -651,7 +661,7 @@ stop_suite() { deadline 90 docker stop -t 60 "$SUITE_CONTAINER" >/dev/null 2>&1 
 deadline() {
     local s=$1 p w rc; shift
     "$@" & p=$!
-    python3 -c 'import os, signal, sys, time; time.sleep(float(sys.argv[1])); os.kill(int(sys.argv[2]), signal.SIGKILL)' "$s" "$p" >/dev/null 2>&1 & w=$!
+    { sleep "$s"; kill -KILL "$p"; } >/dev/null 2>&1 & w=$!
     wait "$p"; rc=$?
     kill -KILL "$w" 2>/dev/null; wait "$w" 2>/dev/null
     return "$rc"
@@ -919,6 +929,7 @@ case "${1:-}" in
             [[ ${#TEST_CMD[@]} -gt 0 || ${#HOST_TEST_CMD[@]} -gt 0 ]] || die "TEST_CMD missing from nucloud.env"
             [[ -z ${REPORT:-} ]] || report_files
             # Every run leaves .nucloud-logs/<stage>/suite.log and run.env; with REPORT= the EXIT trap reports it.
+            [[ $TEST_STAGE == no ]] || need_stage api  # the stage first: a run with no stage leaves nothing to report
             if [[ $TEST_STAGE != no ]]; then REPORT_STARTED=$(date -u +%s); trap 'report_after $?' EXIT; fi
             [[ $TEST_STAGE == no ]] || run_setup  # the suite prepares its own fixtures before the cases
             if [[ ${#HOST_TEST_CMD[@]} -gt 0 ]]; then

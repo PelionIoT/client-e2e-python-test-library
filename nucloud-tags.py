@@ -20,7 +20,6 @@ test-tags.lock records each case's tags; a tag a case loses needs a line
 """
 import ast
 import fnmatch
-import hashlib
 import json
 import os
 import re
@@ -326,53 +325,6 @@ def framework():
     return os.environ.get('TEST_FRAMEWORK') or 'none'
 
 
-def case_instances(out, native):
-    """Expand source-bound pytest collection IDs without importing test code."""
-    path = ROOT / 'nucloud-cases.json'
-    if not path.exists():
-        return out
-    try:
-        catalog = json.loads(path.read_text())
-        if not isinstance(catalog, dict) or catalog.get('schema') != 'nucloud.case-instances/v1':
-            raise ValueError('unsupported schema')
-        sources, instances = catalog['sources'], catalog['instances']
-        if not isinstance(sources, dict) or not sources or not isinstance(instances, list) or not instances:
-            raise ValueError('nonempty sources and instances required')
-        for rel, expected in sources.items():
-            source = ROOT / rel
-            if not isinstance(rel, str) or Path(rel).is_absolute() or '..' in Path(rel).parts:
-                raise ValueError('source paths must stay inside the repository')
-            if not source.is_file() or not source.resolve().is_relative_to(ROOT.resolve()):
-                raise ValueError(f'source unavailable: {rel}')
-            if not isinstance(expected, str) or hashlib.sha256(source.read_bytes()).hexdigest() != expected:
-                raise ValueError(f'stale source: {rel}')
-        groups = {}
-        seen = set()
-        for node in instances:
-            if not isinstance(node, str) or '[' not in node or not node.endswith(']') or any(c in node for c in '\r\n\t'):
-                raise ValueError('instances must be complete parameterized pytest node IDs')
-            base = node.split('[', 1)[0]
-            if node in seen or base not in native or KIND.get(base) != 'pytest':
-                raise ValueError(f'duplicate or unknown pytest instance: {node}')
-            if base.split('::', 1)[0] not in sources:
-                raise ValueError(f'instance source hash missing: {base}')
-            seen.add(node)
-            groups.setdefault(base, []).append(node)
-        for base, nodes in groups.items():
-            inherited = out.pop(base)
-            for node in nodes:
-                if node in out:
-                    explicit = out.pop(node)
-                    out[node] = (sorted(set(inherited[0]) | set(explicit[0])), inherited[1] + explicit[1],
-                                 inherited[2] + explicit[2])
-                else:
-                    out[node] = inherited
-                KIND[node] = 'pytest'
-        return dict(sorted(out.items()))
-    except (ValueError, TypeError, KeyError, OSError) as exc:
-        raise Problem(f'nucloud-cases.json: {exc}') from exc
-
-
 def cases(voc):
     """{case: (canonical tags, unknown native tags)} from source plus the overlay."""
     found, kind = {}, {}
@@ -399,7 +351,7 @@ def cases(voc):
                 unknown.append(n)
         out[case] = (sorted(tags), unknown, extra.get(case, []))
         KIND[case] = kind.get(case, 'overlay')
-    return case_instances(out, found)
+    return out
 
 
 KIND = {}

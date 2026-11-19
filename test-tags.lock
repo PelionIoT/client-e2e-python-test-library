@@ -1,3 +1,12 @@
 # removed suite needs:device: writes through the API (cloud:apiwrites)
-suite	cloud:apiwrites
 # removed suite cloud:apiwrites: source discovery names ten actual pytest cases; suite is no executable case
+tests/dev-client-tests.py::test_01_get_device_id	cloud:read-only feature:dev-client fixture:bootstrap fixture:connect-api tier:unmeasured
+tests/dev-client-tests.py::test_02_get_resource	cloud:read-only feature:dev-client fixture:bootstrap fixture:connect-api tier:unmeasured
+tests/dev-client-tests.py::test_03_put_resource	cloud:apiwrites feature:dev-client fixture:bootstrap fixture:connect-api tier:unmeasured
+tests/dev-client-tests.py::test_04_subscribe_resource	cloud:apiwrites feature:dev-client fixture:bootstrap fixture:connect-api tier:unmeasured
+tests/dev-client-tests.py::test_05_factory_reset	cloud:apiwrites feature:dev-client fixture:bootstrap fixture:connect-api tier:unmeasured
+tests/dev-client-tests.py::test_06_update_device	cloud:apiwrites feature:dev-client fixture:bootstrap fixture:connect-api needs:update-service tier:unmeasured
+tests/read-only-tests.py::test_get_device	feature:read-only kind:control needs:offline tier:unmeasured
+tests/read-only-tests.py::test_get_missing_device	feature:read-only kind:control needs:offline tier:unmeasured
+tests/read-only-tests.py::test_get_update_campaigns	feature:read-only kind:control needs:offline tier:unmeasured
+tests/read-only-tests.py::test_guard_refuses_a_write	feature:read-only kind:control needs:offline tier:unmeasured

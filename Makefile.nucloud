@@ -7,7 +7,7 @@
 .DEFAULT_GOAL := help
 
 # The template's version; testing-dashboard shows it per repo. Bump it on every template change.
-NUCLOUD_VERSION  := 1.1.21
+NUCLOUD_VERSION  := 1.1.19
 
 # Set by CI to the run number; empty for a local build (tag -nucloud.dev.<commit>)
 BUILD_NUMBER     ?=
@@ -18,6 +18,11 @@ ENV              ?=
 MACHINE          ?= $(ENV)
 override ENV     := $(MACHINE)
 ONLY             ?=
+
+# REPORT unset: [nucloud] report in the untracked .izlocal names this system's trackHammer; REPORT= turns it off.
+ifeq ($(origin REPORT),undefined)
+REPORT := $(shell python3 -c 'import pathlib,sys; toml=__import__("tomllib" if sys.version_info >= (3,11) else "tomli"); p=pathlib.Path(".izlocal"); print(toml.loads(p.read_text()).get("nucloud",{}).get("report","") if p.is_file() else "")' 2>/dev/null)
+endif
 
 export BUILD_NUMBER IMAGE_SUFFIX ENV ONLY COLOR TAGS EXCLUDE_TAGS UPDATE REPORT REPORT_TOKEN FILE
 
