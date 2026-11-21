@@ -24,13 +24,14 @@ labels    = { class = "kubernetes", distribution = "k3s" }
 facts     = { kubeconfig_path = "/etc/rancher/k3s/k3s.yaml" }
 
 # K3s development cloud.
-[machine.k3s-trav]
+[machine.k3s-trav-c]
 provider  = "incus"
 remote    = "D71"
-kind      = "vm"
+kind      = "container"
 os        = "ubuntu"
-osversion = "22.04"
-image     = "images:ubuntu/jammy/cloud"
+osversion = "24.04"
+image     = "images:ubuntu/24.04"
+resources = { memory = "80GiB", disk = "300GiB" }
 labels    = { class = "kubernetes", distribution = "k3s" }
 facts     = { kubeconfig_path = "/etc/rancher/k3s/k3s.yaml" }
 
